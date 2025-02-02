@@ -1,0 +1,9 @@
+function damaged(event) {
+    var cHP = event.npc.getHealth();
+    var mHP = event.npc.getMaxHealth();
+    if(cHP < mHP * 0.11) {
+        event.npc.say("&4&lEnough");
+        event.npc.say("&4Send him to &lThe Heat Death &4&lChamber")
+        event.npc.executeCommand("/tp @p -319 50 -910");
+    }
+}
