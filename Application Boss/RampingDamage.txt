@@ -1,0 +1,30 @@
+var base = 1000;
+var hit = base;
+var ramp = 500;
+var target;
+var active = false;
+
+function damaged(event) {
+    if(!active) {
+        event.npc.timers.forceStart(1, 200, true);
+        active = true;
+    }
+    target = event.getSource();
+}
+
+function targetLost(event) {
+    event.npc.timers.stop(0);
+    hit = base;
+    active = false;
+}
+
+function timer(event) {
+    var id  = event.id;
+    if(id == 1) {
+        event.npc.say("&6&lThe air burns hotter!");
+        hit += ramp; 
+        if(target != null) {
+            target.hurt(hit);
+        }
+    }
+}
