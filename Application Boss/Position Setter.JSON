@@ -1,0 +1,11 @@
+function init(event) {
+    event.npc.timers.forceStart(0,40,true);
+}
+
+function timer(event) { // Move npc back to center periodically
+    if(event.id == 0){
+        event.npc.setX(-317);
+        event.npc.setY(60);
+        event.npc.setZ(-927);
+    }
+}
