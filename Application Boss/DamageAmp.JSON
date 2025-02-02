@@ -1,0 +1,48 @@
+var damageAmp;
+var threshHolds;
+var oldHealth;
+
+function init(event) { // Reset variables on respawn
+    damageAmp = false;
+    threshHolds = [true, true, true];
+    event.npc.timers.stop(1);
+    oldHealth = event.npc.getMaxHealth();
+}
+
+function killed(event) {  // Cancel timer when dead
+    event.npc.timers.stop(1);
+}
+
+function damaged(event) {  
+    var maxHealth = event.npc.getMaxHealth();
+    var currentHealth = event.npc.getHealth();
+    if(currentHealth <= maxHealth * 0.75 && threshHolds[0]) {  // Check damage threashholds
+        startAmp(0, event);
+    }
+    else if(currentHealth <= maxHealth * 0.50 && threshHolds[1]) {
+        startAmp(1, event);
+    }
+    else if(currentHealth <= maxHealth * 0.25 && threshHolds[2]) {
+        startAmp(2, event);
+    }
+    if(damageAmp) { // Apply damage amp
+        var damage = oldHealth - currentHealth;
+        currentHealth = currentHealth - damage * 2;
+        event.npc.setHealth(currentHealth);
+    }
+    oldHealth = currentHealth;
+}
+
+function timer(event) {
+    if(event.id == 1) { // End damage amp
+        damageAmp = false;
+        event.npc.say("The " + event.npc.getName() + " recovers it's strength.");
+    }
+}
+
+function startAmp(i, event) { // Begin damage amp
+        event.npc.say("The " + event.npc.getName() + " has entered a weakened state!");
+        damageAmp = true;
+        threshHolds[i] = false;
+        event.npc.timers.forceStart(1, 200, false);
+}
