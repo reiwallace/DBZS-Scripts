@@ -1,5 +1,6 @@
-var previousTargets[];
-var lethalDam = 1;
+var previousTargets = new Array();
+var lethalDam = 1; // Damage of lethal poison
+var arenaSize = 100; // Arena size - used for removing stacks from players no longer in the fight
 
 function init(e) {
     var npc = e.npc;
@@ -10,7 +11,7 @@ function timer(e) {
     var npc = e.npc;
     var id = e.id;
     if(id == 0) {
-        poisonTick(npc);
+        poisonTick(npc); // Do poison tick on timer
     }
 }
 
@@ -35,22 +36,20 @@ function resetLethalPoison(target) { // Remove all Lethal poison stacks on a tar
 }
 
 function poisonTick(npc) { // Function to execute poison damage on nearby players with stacks
-    var nearbyPlayers = npc.getSurroundingEntities(100, 1);
+    var nearbyPlayers = npc.getSurroundingEntities(arenaSize, 1);
     // Change poison damage
     for(i = 0; i < nearbyPlayers.length; i++) {
         var toDamageTarget = nearbyPlayers[i];
-        if(toDamageTarget != null && toDamageTarget.getTempData("Lethal Poison") > 0 && toDamageTarget.getMode() != 1 && !toDamageTarget.getDBCPlayer().isDBCFusionSpectator()) {
+        var poisonStacks = toDamageTarget.getTempData("Lethal Poison");
+        if(toDamageTarget != null && poisonStacks > 0 && toDamageTarget.getMode() != 1 && !toDamageTarget.getDBCPlayer().isDBCFusionSpectator()) {
         // Only damage players that have at least one lethal poison stack, are not in creative and are not a fusion spectator.    
         var DBCPlayer = toDamageTarget.getDBCPlayer();
-            for(n = 0; n < toDamageTarget.getTempData("Lethal Poison"); n++) {
-                DBCPlayer.setBody(DBCPlayer.getBody() - lethalDam);
-            }
+            DBCPlayer.setBody(DBCPlayer.getBody() - lethalDam * poisonStacks);
         }
     }
 }
 
-function meleeAttack(e) {
+function meleeAttack(e) { // Apply poison on melee swing
     var t = e.getAttackTarget();
-    e.npc.say(t.getTempData("Lethal Poison"));
     addLethalPoison(t);
 }
