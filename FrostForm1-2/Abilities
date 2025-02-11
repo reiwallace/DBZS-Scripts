@@ -1,0 +1,28 @@
+var target;
+var lethalDam = 1;
+
+function addLethalPoison(e, target) { // Add a stack of lethal poison to a target
+    var npc = e.npc;
+    if(target != null && !target.hasTempData("Lethal Poison")) {
+        target.setTempData("Lethal Poison", 1);
+        npc.timers.forceStart(1, 40, true);
+    } else if(target != null) {
+        target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") + 1);
+    }
+}
+
+function poisonTick(e) {
+    var npc = e.npc;
+    var nearbyPlayers = npc.getSurroundingEntities(100, 1);
+    // Change poison damage
+    for(i = 0; i < nearbyPlayers.length; i++) {
+        if(nearbyPlayers[i] != null && nearbyPlayers[i].getTempData("Lethal Poison") > 0 && nearbyPlayers[i].getMode() != 1 && nearbyPlayers[i].getDBCPlayer().isDBCFusionSpectator()) {
+        // Only damage players that have at least one lethal poison stack, are not in creative and are not a fusion spectator.
+        var toDamageTarget = nearbyPlayers[i];    
+        var DBCPlayer = toDamageTarget.getDBCPlayer();
+            for(n = 0; n < toDamageTarget.getTempData("Lethal Poison"); n++) {
+                DBCPlayer.setBody(DBCPlayer.getBody() - lethalDam);
+            }
+        }
+    }
+}
