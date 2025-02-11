@@ -1,28 +1,56 @@
 var target;
 var lethalDam = 1;
 
-function addLethalPoison(e, target) { // Add a stack of lethal poison to a target
+function init(e) {
     var npc = e.npc;
+    npc.timers.forceStart(0, 40, true);
+}
+
+function timer(e) {
+    var npc = e.npc;
+    var id = e.id;
+    if(id == 0) {
+        poisonTick(npc);
+    }
+}
+
+function addLethalPoison(target) { // Add a stack of lethal poison to a target
     if(target != null && !target.hasTempData("Lethal Poison")) {
         target.setTempData("Lethal Poison", 1);
-        npc.timers.forceStart(1, 40, true);
     } else if(target != null) {
         target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") + 1);
     }
 }
 
-function poisonTick(e) {
-    var npc = e.npc;
+function subtractLethalPoison(target) { // Remove a stack of lethal poison from a target
+    if(target != null && target.getTempData("Lethal Poison") > 0) {
+        target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - 1);
+    } 
+}
+
+function resetLethalPoison(target) { // Remove all Lethal poison stacks on a target
+    if(target != null && target.getTempData("Lethal Poison") > 0) {
+        target.removeTempData("Lethal Poison");
+    } 
+}
+
+function poisonTick(npc) { // Function to execute poison damage on nearby players with stacks
     var nearbyPlayers = npc.getSurroundingEntities(100, 1);
     // Change poison damage
     for(i = 0; i < nearbyPlayers.length; i++) {
-        if(nearbyPlayers[i] != null && nearbyPlayers[i].getTempData("Lethal Poison") > 0 && nearbyPlayers[i].getMode() != 1 && nearbyPlayers[i].getDBCPlayer().isDBCFusionSpectator()) {
-        // Only damage players that have at least one lethal poison stack, are not in creative and are not a fusion spectator.
-        var toDamageTarget = nearbyPlayers[i];    
+        var toDamageTarget = nearbyPlayers[i];
+        if(toDamageTarget != null && toDamageTarget.getTempData("Lethal Poison") > 0 && toDamageTarget.getMode() != 1 && !toDamageTarget.getDBCPlayer().isDBCFusionSpectator()) {
+        // Only damage players that have at least one lethal poison stack, are not in creative and are not a fusion spectator.    
         var DBCPlayer = toDamageTarget.getDBCPlayer();
             for(n = 0; n < toDamageTarget.getTempData("Lethal Poison"); n++) {
                 DBCPlayer.setBody(DBCPlayer.getBody() - lethalDam);
             }
         }
     }
+}
+
+function meleeAttack(e) {
+    var t = e.getAttackTarget();
+    e.npc.say(t.getTempData("Lethal Poison"));
+    addLethalPoison(t);
 }
