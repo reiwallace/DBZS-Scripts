@@ -1,10 +1,18 @@
 var previousTargets = new Array();
+// Tuning Knobs
+var staminaReduction = 0.75; // Lethal stamina reduction percentage 0-1
 var lethalDam = 1; // Damage of lethal poison
 var arenaSize = 100; // Arena size - used for removing stacks from players no longer in the fight
 
+
+var originalStamina;
+var target;
+var DBCTarget;
+
 function init(e) {
     var npc = e.npc;
-    npc.timers.forceStart(0, 40, true);
+    npc.timers.forceStart(0, 40, true); // Start poison tick timer
+    npc.timers.forceStart(1, 200, true); // Start ability timer
 }
 
 function timer(e) {
@@ -12,7 +20,38 @@ function timer(e) {
     var id = e.id;
     if(id == 0) {
         poisonTick(npc); // Do poison tick on timer
+    } else if(id == 1) {
+        chooseAbility(npc);
+    } else if(id == 2) {
+
     }
+}
+
+function getRandomInt(min, max) {  // Get a random number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function chooseAbility(npc) { // Decide which attack to use
+    var abilityChoice = getRandomInt(0, 1);
+    if(npc.getTempData("Form") == 1) { // Phase 1 attacks
+        if(abilityChoice == 0) {
+            nonLethalPoison(npc);
+        } else if(abilityChoice == 1) {
+            
+        }
+    } else if(npc.getTempData("Form") == 2) { // Phase 2 attacks
+        if(abilityChoice == 0) {
+
+        } else if(abilityChoice == 1) {
+            
+        }
+    }
+}
+
+function nonLethalPoison(npc) {
+    npc.say("Epic line");
+    target.setTempData("Non-lethal Poison", true);
+    npc.times.forceStart(2, 10, true);
 }
 
 function addLethalPoison(target) { // Add a stack of lethal poison to a target
@@ -50,6 +89,7 @@ function poisonTick(npc) { // Function to execute poison damage on nearby player
 }
 
 function meleeAttack(e) { // Apply poison on melee swing
-    var t = e.getAttackTarget();
-    addLethalPoison(t);
+    target = e.getAttackTarget();
+    DBCTarget = target.getDBCPlayer();
+    addLethalPoison(target);
 }
