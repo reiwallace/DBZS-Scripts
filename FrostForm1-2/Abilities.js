@@ -41,9 +41,9 @@ function timer(e) {
             var dx = -Math.sin(angle*Math.PI/180) * 0.5;
             var dz = Math.cos(angle*Math.PI/180) * 0.5;
 
-
-            createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
-            createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
+            // Particle telegraphing NYI
+            //createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
+            //createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
             heightIncrement += 0.1;
             angle += 18;
             if(!npc.timers.has(4)) {
@@ -55,7 +55,7 @@ function timer(e) {
     }
 }
 
-function createParticle(npc, x, y, z) {
+/*function createParticle(npc, x, y, z) { // Particle creation
     var particle = API.createParticle("minecraft:textures/particle/particles.png");
     particle.setSize(16, 16);
     particle.setMaxAge(20);
@@ -63,7 +63,7 @@ function createParticle(npc, x, y, z) {
     particle.setPosition(x, y, z);
     particle.setScale(1, 1, 0, 1);
     particle.spawn(npc.getWorld());
-}
+}*/
 
 function getRandomInt(min, max) {  // Get a random number
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -72,11 +72,11 @@ function getRandomInt(min, max) {  // Get a random number
 function chooseAbility(npc) { // Decide which attack to use
     var abilityChoice = getRandomInt(0, 1);
     if(npc.getTempData("Form") == 1) { // Phase 1 attacks
-        if(abilityChoice == 0) {
+        if(abilityChoice == 0) { // Non-lethal Poison
             npc.say("Epic line");
             target.addPotionEffect(2, 10, 5, true);
             npc.timers.forceStart(2, 1, true);
-        } else if(abilityChoice == 1) {
+        } else if(abilityChoice == 1) { // Ki lazer
             npc.say("A");
             angle = 0;
             heightIncrement = 0;
