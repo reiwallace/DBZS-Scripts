@@ -36,12 +36,16 @@ function timer(e) {
         }
         if(nonLethalClock > nonLethalClockMax) { // End loop after set amount of time
             npc.timers.stop(2);
-        } else if(id == 3) {
+        } else if(id == 3) { // Spiral animation 
+            
             var dx = -Math.sin(angle*Math.PI/180) * 0.5;
             var dz = Math.cos(angle*Math.PI/180) * 0.5;
-            npc.world.spawnParticle("magicCrit", npc.x+dx, npc.y + heightIncrement, npc.z+dz, 0, 0, 0, 0, 5);
-            heightIncrement += 0.2;
-            angle += 36;
+
+
+            createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
+            createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
+            heightIncrement += 0.1;
+            angle += 18;
             if(!npc.timers.has(4)) {
                 npc.timers.stop(3);
             }
@@ -49,6 +53,16 @@ function timer(e) {
             fireLazer(npc);
         }
     }
+}
+
+function createParticle(npc, x, y, z) {
+    var particle = API.createParticle("minecraft:textures/particle/particles.png");
+    particle.setSize(16, 16);
+    particle.setMaxAge(20);
+    particle.setAlpha(1, 1, 1, 0);
+    particle.setPosition(x, y, z);
+    particle.setScale(1, 1, 0, 1);
+    particle.spawn(npc.getWorld());
 }
 
 function getRandomInt(min, max) {  // Get a random number
@@ -66,7 +80,7 @@ function chooseAbility(npc) { // Decide which attack to use
             npc.say("A");
             angle = 0;
             heightIncrement = 0;
-            npc.timers.forceStart(3, 1, true);
+            npc.timers.forceStart(3, 0.5, true);
             npc.timers.forceStart(4, 20, false);
         }
     } else if(npc.getTempData("Form") == 2) { // Phase 2 attacks
