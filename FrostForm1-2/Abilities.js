@@ -42,8 +42,8 @@ function timer(e) {
             var dz = Math.cos(angle*Math.PI/180) * 0.5;
 
             // Particle telegraphing NYI
-            //createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
-            //createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
+            createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
+            createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
             heightIncrement += 0.1;
             angle += 18;
             if(!npc.timers.has(4)) {
@@ -55,7 +55,7 @@ function timer(e) {
     }
 }
 
-/*function createParticle(npc, x, y, z) { // Particle creation
+function createParticle(npc, x, y, z) { // Particle creation
     var particle = API.createParticle("minecraft:textures/particle/particles.png");
     particle.setSize(16, 16);
     particle.setMaxAge(20);
@@ -63,7 +63,7 @@ function timer(e) {
     particle.setPosition(x, y, z);
     particle.setScale(1, 1, 0, 1);
     particle.spawn(npc.getWorld());
-}*/
+}
 
 function getRandomInt(min, max) {  // Get a random number
     return Math.floor(Math.random() * (max - min + 1)) + min;
