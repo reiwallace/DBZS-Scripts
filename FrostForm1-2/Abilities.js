@@ -4,6 +4,10 @@ var nonLethalStaminaMax = 0.25; // Non-lethal max stamina
 var nonLethalClockMax = 100; // Duration of Non-lethal poison ticks
 var lethalDam = 1; // Damage of lethal poison
 var arenaSize = 100; // Arena size - used for removing stacks from players no longer in the fight
+var telegraphTimer = 20; // Telegraph time for attacks
+var meleeSpecialRange = 3; // Range for p2 melee special attack
+var meleeSpecialStacks = 5; // Number of stacks applied by p2 melee special attack
+var meditationStackRed = 2; // Number of stacks per second reduced by meditating
 
 var nonLethalClock;
 var target;
@@ -14,7 +18,7 @@ var heightIncrement;
 function init(e) {
     var npc = e.npc;
     npc.timers.forceStart(0, 40, true); // Start poison tick timer
-    npc.timers.forceStart(1, 200, true); // Start ability timer
+    npc.timers.forceStart(2, 200, true); // Start ability timer
 }
 
 function timer(e) {
@@ -23,46 +27,18 @@ function timer(e) {
     if(id == 0) {
         poisonTick(npc); // Do poison tick on timer
     } else if(id == 1) {
+        if(npc.getTempData("Form") == 2 && DBCTarget.getJRMCSE().contains("A") && target.getTempData("Lethal Poison") > 0) {
+            target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - meditationStackRed);
+        }
+    } else if(id == 2) {
         chooseAbility(npc);
-    } else if(id == 2) { // Non-lethal poison timer
-        nonLethalClock++;
-        // INSERT WEIGHT CODE
-        if(DBCTarget != null) { // Disable turbo and lower stamina
-            var loweredStamina = DBCTarget.getMaxStamina() * nonLethalStaminaMax;
-            DBCTarget.setTurboState(false);
-            if(DBCTarget.getStamina() > loweredStamina) {
-                DBCTarget.setStamina(loweredStamina);
-            }
-        }
-        if(nonLethalClock > nonLethalClockMax) { // End loop after set amount of time
-            npc.timers.stop(2);
-        } else if(id == 3) { // Spiral animation 
-            
-            var dx = -Math.sin(angle*Math.PI/180) * 0.5;
-            var dz = Math.cos(angle*Math.PI/180) * 0.5;
-
-            // Particle telegraphing NYI
-            createParticle(npc, npc.x+dx, npc.y + heightIncrement, npc.z+dz);
-            createParticle(npc, npc.x+-dx, npc.y + heightIncrement, npc.z+-dz);
-            heightIncrement += 0.1;
-            angle += 18;
-            if(!npc.timers.has(4)) {
-                npc.timers.stop(3);
-            }
-        } else if(id == 4) {
-            fireLazer(npc);
-        }
+    } else if(id == 3) { // Non-lethal poison timer
+        nonLethalEffects(npc, DBCTarget);
+    } else if(id == 4) { // Fire single Ki attack
+        fireLazer(npc);
+    } else if(id == 5) { // Big melee
+        poisonAoe(npc);
     }
-}
-
-function createParticle(npc, x, y, z) { // Particle creation
-    var particle = API.createParticle("minecraft:textures/particle/particles.png");
-    particle.setSize(16, 16);
-    particle.setMaxAge(20);
-    particle.setAlpha(1, 1, 1, 0);
-    particle.setPosition(x, y, z);
-    particle.setScale(1, 1, 0, 1);
-    particle.spawn(npc.getWorld());
 }
 
 function getRandomInt(min, max) {  // Get a random number
@@ -73,23 +49,25 @@ function chooseAbility(npc) { // Decide which attack to use
     var abilityChoice = getRandomInt(0, 1);
     if(npc.getTempData("Form") == 1) { // Phase 1 attacks
         if(abilityChoice == 0) { // Non-lethal Poison
-            npc.say("Epic line");
-            target.addPotionEffect(2, 10, 5, true);
-            npc.timers.forceStart(2, 1, true);
+            npc.say("&2&lNon-lethal Poison");
+            npc.timers.forceStart(3, 1, true);
         } else if(abilityChoice == 1) { // Ki lazer
-            npc.say("A");
-            angle = 0;
-            heightIncrement = 0;
-            npc.timers.forceStart(3, 0.5, true);
-            npc.timers.forceStart(4, 20, false);
+            npc.say("&9&lKI LAZER");
+            npc.timers.forceStart(4, telegraphTimer, false);
         }
     } else if(npc.getTempData("Form") == 2) { // Phase 2 attacks
-        if(abilityChoice == 0) {
-
-        } else if(abilityChoice == 1) {
+        if(abilityChoice == 0) { // Melee special
+            npc.say("&9&lMelee Special"); 
+            npc.timers.forceStart(5, telegraphTimer, true);
+        } else if(abilityChoice == 1) { // 
             
         }
     }
+}
+
+function checkKiCharge(DBCTarget) {
+
+    return;
 }
 
 function addLethalPoison(target) { // Add a stack of lethal poison to a target
@@ -126,8 +104,34 @@ function poisonTick(npc) { // Function to execute poison damage on nearby player
     }
 }
 
-function fireLazer{npc} { // Lazer attack thats actually a blast
+function nonLethalEffects(npc, DBCTarget) { // Applies effects of non-lethal poison
+    nonLethalClock++;
+    // INSERT WEIGHT CODE
+    if(DBCTarget != null) { // Disable turbo and lower stamina
+        var loweredStamina = DBCTarget.getMaxStamina() * nonLethalStaminaMax;
+        DBCTarget.setTurboState(false);
+        if(DBCTarget.getStamina() > loweredStamina) {
+            DBCTarget.setStamina(loweredStamina);
+        }
+    }
+    if(nonLethalClock > nonLethalClockMax) { // End loop after set amount of time
+            npc.timers.stop(2);
+    }
+}
+
+function fireLazer(npc) { // Lazer attack thats actually a blast
     npc.executeCommand("/dbcspawnki 1 1 " + lazerDamage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+}
+
+function poisonAoe(npc) { // Apply poison stacks to player if they are in range
+    var playersToHit = npc.getSurroundingEntities(meleeSpecialRange, 1);
+    for(i = 0; i < playersToHit.length; i++) {
+        if(playersToHit[i] != null) {
+            for(n = 0; n < meleeSpecialStacks; i++) { // Apply adjustable amount of stacks
+                addLethalPoison(playersToHit[i]);
+            }
+        }
+    }
 }
 
 function meleeAttack(e) { // Apply poison on melee swing
