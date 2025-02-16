@@ -9,6 +9,7 @@ var failText = "What a fool you are."; // Text on player failing a round
 var winText = "This is the end. The bitter, bitter end."; // Text on player winning the game
 var questID = 0; // Id of quest to be completed
 var failDamage = 1; // Damage for failing round
+var timerCoords = [-342, 54, -812]; // Coordinates to spawn timerNpc at
 
 var wins = 0;
 var currentRound = 0;
@@ -34,12 +35,12 @@ function timer(e) {
     var id = e.id;
     if(id == 0) { // Start round
         currentRound++;
-        npc.say("Round " + currentRound);
+        npc.say("&lRound " + currentRound);
         decidePoses(npc);
         npc.timers.forceStart(1, roundLength - 1, false); // Start fail timer
         timerNpc.setHealth(timerNpc.getMaxHealth());
         timerNpc.setShowBossBar(1);
-        countDown = roundLength/40;
+        countDown = roundLength*0.015;
         npc.timers.forceStart(2, 19, true); // Start round countdown
     } else if(id == 1) { // Fail round
         endRound(npc, true, failText);
@@ -48,7 +49,7 @@ function timer(e) {
         var timerTick = timerNpc.getMaxHealth() / (roundLength / 20); // Calculate a tick of the timer's health
         var currentTimer = timerNpc.getHealth();
         timerNpc.setHealth(currentTimer - timerTick); // Lower timer's health by 1 tick
-        if(npc.timers.has(1) && npc.timers.ticks(1) < roundLength/2) {
+        if(npc.timers.has(1) && npc.timers.ticks(1) < roundLength*0.3) {
             npc.say("&l" + countDown); // Chat countdown
             countDown--;
         }
@@ -119,7 +120,7 @@ function punishPlayer(npc) { // Punish the player for failing a round
     var toPunish = npc.getSurroundingEntities(50, 1);
     for(i = 0; i < toPunish.length; i++) { // Punish players
         if(toPunish[i] != null) {
-            //npc.world.thunderStrike(toPunish[i].getPosition());
+            npc.world.thunderStrike(toPunish[i].getPosition()); // Lightning strike the player
             toPunish[i].hurt(failDamage);
         }
     } 
