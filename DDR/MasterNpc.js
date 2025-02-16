@@ -16,6 +16,7 @@ var currentRound = 0;
 var timerNpc;
 var countDown;
 var silhouettes = new Array();
+var fireworkIncrement = 0;
 
 function init(e) {
     var npc = e.npc;
@@ -64,6 +65,12 @@ function timer(e) {
     } else if(id == 4) { // Selected Wrong npc
         endRound(npc, true, failText);
         punishPlayer(npc);
+    } else if(id == 5) { // Fireworks!!
+        spawnFirework(npc, npc.x + getRandomInt(-6, 6), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-6, 6));
+        fireworkIncrement++;
+        if(fireworkIncrement > 10) {
+            npc.timers.stop(5);
+        }
     } else if(id == 10) { // Reset if player leaves the area
         var playerCheck = npc.getSurroundingEntities(50, 1);
         if(playerCheck.length == 0) {
@@ -134,7 +141,7 @@ function endGame(npc) { // End the game, complete quest and reset npcs
             npc.executeCommand("/kamkeel quest finish " + players[i].getName() + " " + questID);
         }
     }
-
+    npc.timers.forceStart(5, 8, true);
 }
 
 function newGame(npc) { // Start new game
@@ -161,6 +168,13 @@ function resetAll(npc) { // Reset game
     npc.timers.clear(); // remove all timers
     timerNpc.setShowBossBar(0);
     resetPoses(npc);
+}
+
+function spawnFirework(npc, x, y, z) { // Spawn firework particles at coordinates
+    var sounds = ["minecraft:fireworks.largeBlast", "minecraft:fireworks.largeBlast_far", "minecraft:fireworks.blast_far", "minecraft:fireworks.blast"]
+    npc.world.spawnParticle("fireworksSpark", x, y, z, 0, 0, 0, 0.5, 40);
+    npc.world.spawnParticle("spell", x, y, z, 0, 0, 0, 1, 40);
+    npc.playSound(sounds[getRandomInt(0, sounds.length - 1)], 100, 1);
 }
 
 function getRandomInt(min, max) {  // Get a random number
