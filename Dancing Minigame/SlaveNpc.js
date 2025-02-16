@@ -2,7 +2,7 @@ var masterNpcName = "The bossman"; // Change to master npc's name
 var selectionDelay = 20; // How long the player needs to stand on the npc to confirm selection
 
 var masterNpc;
-var nearbyPlayer;
+var recentCollisions = new Array();
 
 function init(e) {
     var npc = e.npc;
@@ -24,6 +24,17 @@ function timer(e) {
             masterNpc.timers.forceStart(3, 1, false); // Fire off win signal to master npc
         } else if(checkPlayer.length > 0 && !npc.getTempData("isRightPose")) {
             masterNpc.timers.forceStart(4, 1, false); // Fire off lose signal to master npc
+        } else {
+            for(i = 0; i < recentCollisions.length; i++){
+                if(recentCollisions[i] != null) {
+                    var animData = recentCollisions[i].getAnimationData();
+                    if(animData.getAnimation() == npc.getAnimationData().getAnimation()) {
+                        animData.setEnabled(false);
+                        animData.updateClient();
+                    }
+                }
+            }
+            recentCollisions = new Array();
         }
     }
 }
@@ -31,6 +42,7 @@ function timer(e) {
 function collide(e) { // Check for player collision
     var npc = e.npc;
     var player = e.getEntity();
+    recentCollisions.push(player);
     if(npc.hasTempData("isRightPose") && !npc.timers.has(0)) { // Only check player collision if npc posing
         player.sendMessage("&oPose selected.");
         player.sendMessage("&oStand still to confirm pose.");
