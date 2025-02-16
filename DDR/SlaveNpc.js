@@ -19,7 +19,7 @@ function timer(e) {
     var npc = e.npc;
     var id = e.id;
     if(id == 0) { // Confirm selection after delay
-        var checkPlayer = npc.getSurroundingEntities(0, 1);
+        var checkPlayer = npc.getSurroundingEntities(1, 1);
         if(checkPlayer.length > 0 && npc.getTempData("isRightPose")) {
             masterNpc.timers.forceStart(3, 1, false); // Fire off win signal to master npc
         } else if(checkPlayer.length > 0 && !npc.getTempData("isRightPose")) {
@@ -30,9 +30,10 @@ function timer(e) {
 
 function collide(e) { // Check for player collision
     var npc = e.npc;
+    var player = e.getEntity();
     if(npc.hasTempData("isRightPose") && !npc.timers.has(0)) { // Only check player collision if npc posing
-        npc.say("Pose selected.");
-        npc.say("Stand still to confirm pose.");
+        player.sendMessage("&oPose selected.");
+        player.sendMessage("&oStand still to confirm pose.");
         npc.timers.forceStart(0, selectionDelay, false);
     }
 }
