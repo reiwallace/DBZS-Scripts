@@ -66,7 +66,7 @@ function timer(e) {
         endRound(npc, true, failText);
         punishPlayer(npc);
     } else if(id == 5) { // Fireworks!!
-        spawnFirework(npc, npc.x + getRandomInt(-6, 6), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-6, 6));
+        spawnFirework(npc, npc.x + getRandomInt(-5, 5), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-5, 5));
         fireworkIncrement++;
         if(fireworkIncrement > 10) {
             npc.timers.stop(5);
