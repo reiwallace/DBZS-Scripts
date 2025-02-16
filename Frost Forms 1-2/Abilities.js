@@ -7,7 +7,8 @@ var arenaSize = 100; // Arena size - used for removing stacks from players no lo
 var telegraphTimer = 20; // Telegraph time for attacks
 var meleeSpecialRange = 3; // Range for p2 melee special attack
 var meleeSpecialStacks = 5; // Number of stacks applied by p2 melee special attack
-var meditationStackRed = 2; // Number of stacks per second reduced by meditating
+var meditationStackRed = 10; // Number ticks between reducing stacks
+var poisonTickSpeed = 40; // Speed poison ticks in well ticks
 
 var nonLethalClock;
 var target;
@@ -17,7 +18,8 @@ var heightIncrement;
 
 function init(e) {
     var npc = e.npc;
-    npc.timers.forceStart(0, 40, true); // Start poison tick timer
+    npc.timers.forceStart(0, poisonTickSpeed, true); // Start poison tick timer
+    npc.timers.forceStart(1, meditationStackRed, true); // Start poison tick timer
     npc.timers.forceStart(2, 200, true); // Start ability timer
 }
 
@@ -28,7 +30,7 @@ function timer(e) {
         poisonTick(npc); // Do poison tick on timer
     } else if(id == 1) {
         if(npc.getTempData("Form") == 2 && DBCTarget.getJRMCSE().contains("A") && target.getTempData("Lethal Poison") > 0) {
-            target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - meditationStackRed);
+            target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - 1);
         }
     } else if(id == 2) {
         chooseAbility(npc);
@@ -63,11 +65,6 @@ function chooseAbility(npc) { // Decide which attack to use
             
         }
     }
-}
-
-function checkKiCharge(DBCTarget) {
-
-    return;
 }
 
 function addLethalPoison(target) { // Add a stack of lethal poison to a target
