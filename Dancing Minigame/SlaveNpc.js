@@ -34,6 +34,14 @@ function collide(e) { // Check for player collision
     if(npc.hasTempData("isRightPose") && !npc.timers.has(0)) { // Only check player collision if npc posing
         player.sendMessage("&oPose selected.");
         player.sendMessage("&oStand still to confirm pose.");
+        setPlayerPose(player, npc.getAnimationData().getAnimation());
         npc.timers.forceStart(0, selectionDelay, false);
     }
+}
+
+function setPlayerPose(targetPlayer, Pose) { // Set a player's animation
+    var animData = targetPlayer.getAnimationData();
+    animData.setEnabled(true);
+    animData.setAnimation(Pose);
+    animData.updateClient();
 }

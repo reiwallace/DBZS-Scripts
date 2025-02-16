@@ -158,10 +158,16 @@ function resetPoses(npc) { // Reset npc to standing pose
         animData.updateClient();
         targetNpc.removeTempData("isRightPose");
     }
-    for(i = 0; i < silhouettes.length; i++) {
+    var playerSearch = npc.getSurroundingEntities(20, 1); // Reset nearby players
+    for(i = 0; i < playerSearch.length; i++) {
+        if(playerSearch[i] != null) {
+            resetNPC(playerSearch[i]);
+        }
+    }
+    for(i = 0; i < silhouettes.length; i++) { // Reset silhouettes
         resetNPC(silhouettes[i]);
     }
-    resetNPC(npc);
+    resetNPC(npc); // Reset master npc
 }
 
 function resetAll(npc) { // Reset game
