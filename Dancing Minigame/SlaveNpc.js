@@ -25,16 +25,16 @@ function timer(e) {
         } else if(checkPlayer.length > 0 && !npc.getTempData("isRightPose")) {
             masterNpc.timers.forceStart(4, 1, false); // Fire off lose signal to master npc
         } else {
-            for(i = 0; i < recentCollisions.length; i++){
+            for(i = 0; i < recentCollisions.length; i++){ // Check if player has left the npc's hitbox
                 if(recentCollisions[i] != null) {
                     var animData = recentCollisions[i].getAnimationData();
-                    if(animData.getAnimation() == npc.getAnimationData().getAnimation()) {
+                    if(animData.getAnimation() == npc.getAnimationData().getAnimation()) { // Remove animation if player has npc's animation
                         animData.setEnabled(false);
                         animData.updateClient();
                     }
                 }
             }
-            recentCollisions = new Array();
+            recentCollisions = new Array(); // Clear array
         }
     }
 }
