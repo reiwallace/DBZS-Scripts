@@ -15,6 +15,7 @@ var target;
 var DBCTarget;
 var angle;
 var heightIncrement;
+var count;
 
 function init(e) {
     var npc = e.npc;
@@ -40,6 +41,14 @@ function timer(e) {
         fireLazer(npc);
     } else if(id == 5) { // Big melee
         poisonAoe(npc);
+    } else if(id == 6) { // Ki barrage telegraph
+        npc.timers.forceStart(7, 0, true);
+    } else if(id == 7) { // Ki vomit
+        fireLazer(npc);
+        count++;
+        if(count > 15) {
+            npc.timers.stop(7);
+        }
     }
 }
 
@@ -54,15 +63,17 @@ function chooseAbility(npc) { // Decide which attack to use
             npc.say("&2&lNon-lethal Poison");
             npc.timers.forceStart(3, 1, true);
         } else if(abilityChoice == 1) { // Ki lazer
-            npc.say("&9&lKI LAZER");
+            npc.say("&9&lKi lazer");
             npc.timers.forceStart(4, telegraphTimer, false);
         }
     } else if(npc.getTempData("Form") == 2) { // Phase 2 attacks
         if(abilityChoice == 0) { // Melee special
-            npc.say("&9&lMelee Special"); 
-            npc.timers.forceStart(5, telegraphTimer, true);
-        } else if(abilityChoice == 1) { // 
-            
+            npc.say("&6&lMelee Special"); 
+            npc.timers.forceStart(5, telegraphTimer, false);
+        } else if(abilityChoice == 1) { // Ki lazer barrage
+            npc.say("&1&lKi lazer barrage");
+            count = 0;
+            npc.timers.forceStart(6, telegraphTimer, false);
         }
     }
 }
