@@ -9,6 +9,11 @@ var meleeSpecialRange = 3; // Range for p2 melee special attack
 var meleeSpecialStacks = 5; // Number of stacks applied by p2 melee special attack
 var meditationStackRed = 10; // Number ticks between reducing stacks
 var poisonTickSpeed = 40; // Speed poison ticks in well ticks
+var nonLethalLine = "&2&lNon-lethal Poison"; // Attack line for non-lethal poison
+var kiLazerLine = "&9&lKi lazer"; // Attack line for ki lazer
+var meleeSpecialLine = "&6&lMelee Special"; // Attack line for special melee attack
+var kiBarrageLine = "&1&lKi lazer barrage"; // Attack line for ki lazer barrage
+
 
 var nonLethalClock;
 var target;
@@ -60,18 +65,18 @@ function chooseAbility(npc) { // Decide which attack to use
     var abilityChoice = getRandomInt(0, 1);
     if(npc.getTempData("Form") == 1) { // Phase 1 attacks
         if(abilityChoice == 0) { // Non-lethal Poison
-            npc.say("&2&lNon-lethal Poison");
+            npc.say(nonLethalLine);
             npc.timers.forceStart(3, 1, true);
         } else if(abilityChoice == 1) { // Ki lazer
-            npc.say("&9&lKi lazer");
+            npc.say(kiLazerLine);
             npc.timers.forceStart(4, telegraphTimer, false);
         }
     } else if(npc.getTempData("Form") == 2) { // Phase 2 attacks
         if(abilityChoice == 0) { // Melee special
-            npc.say("&6&lMelee Special"); 
+            npc.say(meleeSpecialLine); 
             npc.timers.forceStart(5, telegraphTimer, false);
         } else if(abilityChoice == 1) { // Ki lazer barrage
-            npc.say("&1&lKi lazer barrage");
+            npc.say(kiBarrageLine);
             count = 0;
             npc.timers.forceStart(6, telegraphTimer, false);
         }
