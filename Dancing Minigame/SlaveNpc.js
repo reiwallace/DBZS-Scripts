@@ -1,5 +1,5 @@
 var masterNpcName = "The bossman"; // Change to master npc's name
-var selectionDelay = 20; // How long the player needs to stand on the npc to confirm selection
+
 
 var masterNpc;
 var recentCollisions = new Array();
@@ -18,36 +18,29 @@ function init(e) {
 function timer(e) {
     var npc = e.npc;
     var id = e.id;
-    if(id == 0) { // Confirm selection after delay
-        var checkPlayer = npc.getSurroundingEntities(1, 1);
-        if(checkPlayer.length > 0 && npc.getTempData("isRightPose")) {
-            masterNpc.timers.forceStart(3, 1, false); // Fire off win signal to master npc
-        } else if(checkPlayer.length > 0 && !npc.getTempData("isRightPose")) {
-            masterNpc.timers.forceStart(4, 1, false); // Fire off lose signal to master npc
-        } else {
-            for(i = 0; i < recentCollisions.length; i++){ // Check if player has left the npc's hitbox
-                if(recentCollisions[i] != null) {
-                    var animData = recentCollisions[i].getAnimationData();
-                    if(animData.getAnimation() == npc.getAnimationData().getAnimation()) { // Remove animation if player has npc's animation
-                        animData.setEnabled(false);
-                        animData.updateClient();
-                    }
-                }
-            }
-            recentCollisions = new Array(); // Clear array
+    if(id == 0 && npc.hasTempData("isRightPose")) { // Check if player has left pose
+        var search = npc.getSurroundingEntities(0, 1);
+        var searchArray = new Array();
+        for(i = 0; i < search.length; i++) {
+            searchArray.push(search[i]);
         }
-    }
+        if(searchArray.indexOf(npc.getTempData("activePlayer")) < 0) { // Check if player leaves npc collision
+            var animData = npc.getTempData("activePlayer").getAnimationData();
+            if(animData.getAnimation() == npc.getAnimationData().getAnimation()) { // Remove animation if player has npc's animation
+                animData.setEnabled(false);
+                animData.setAnimation(null);
+                animData.updateClient();
+            }
+        }
+    } 
 }
 
 function collide(e) { // Check for player collision
     var npc = e.npc;
     var player = e.getEntity();
-    recentCollisions.push(player);
-    if(npc.hasTempData("isRightPose") && !npc.timers.has(0)) { // Only check player collision if npc posing
-        player.sendMessage("&oPose selected.");
-        player.sendMessage("&oStand still to confirm pose.");
+    if(npc.hasTempData("isRightPose") && player == npc.getTempData("activePlayer")) { // Only check player collision if npc posing
         setPlayerPose(player, npc.getAnimationData().getAnimation());
-        npc.timers.forceStart(0, selectionDelay, false);
+        npc.timers.forceStart(0, 10, true); // Check if player has left the pose
     }
 }
 

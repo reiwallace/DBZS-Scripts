@@ -10,6 +10,8 @@ var winText = "&l&6This is the end. The bitter, bitter end."; // Text on player 
 var questID = 0; // Id of quest to be completed
 var failDamage = 1; // Damage for failing round
 
+var correctPose;
+var activePlayer;
 var wins = 0;
 var currentRound = 0;
 var timerNpc;
@@ -26,6 +28,7 @@ function init(e) {
             silhouettes.push(search[i]);
         } else if(search[i].getName() == "Countdown") {
             timerNpc = search[i];
+            timerNpc.setMaxHealth(roundLength);
         }
     }
     resetAll(npc);
@@ -35,58 +38,77 @@ function timer(e) {
     var npc = e.npc;
     var id = e.id;
     if(id == 0) { // Start round
-        currentRound++;
-        npc.say("&lRound " + currentRound);
-        decidePoses(npc);
-        npc.timers.forceStart(1, roundLength - 1, false); // Start fail timer
-        timerNpc.setHealth(timerNpc.getMaxHealth());
-        countDown = roundLength*0.015;
-        npc.timers.forceStart(2, 19, true); // Start round countdown
-    } else if(id == 1) { // Fail round
-        endRound(npc, true, failText);
-        punishPlayer(npc);
+        if(activePlayer != null) {
+            currentRound++;
+            npc.say("&lRound " + currentRound);
+            decidePoses(npc);
+            npc.timers.forceStart(1, roundLength - 1, false); // Start fail timer
+            timerNpc.setHealth(timerNpc.getMaxHealth());
+            countDown = 3;
+            npc.timers.forceStart(2, 19, true); // Start round countdown
+        }
+    } else if(id == 1) { // Check round outcome
+        if(activePlayer.getAnimationData().getAnimation() == correctPose) { // Pass round if player has correct pose
+            wins++; // Increment wins
+            if(wins == 5) { // If player has enough wins
+                endRound(npc, false, winText);
+                endGame(npc);
+            } else { // If win condition not met
+                endRound(npc, true, passText);
+            }
+        } else { // Fail round
+            endRound(npc, true, failText);
+            punishPlayer(npc);
+        }
     } else if(id == 2) { // Round timer
-        var timerTick = timerNpc.getMaxHealth() / (roundLength / 20); // Calculate a tick of the timer's health
+        var timerTick = timerNpc.getMaxHealth() / (roundLength / 20) + 1; // Calculate a tick of the timer's health
         var currentTimer = timerNpc.getHealth();
-        timerNpc.setShowBossBar(1);
         timerNpc.setHealth(currentTimer - timerTick); // Lower timer's health by 1 tick
-        if(npc.timers.has(1) && npc.timers.ticks(1) < roundLength*0.3) {
+        if(npc.timers.has(1) && npc.timers.ticks(1) < 61) {
             npc.say("" + countDown); // Chat countdown
             countDown--;
         }
-    } else if(id == 3) { // Pass round
-        wins++; // Increment wins
-        if(wins == 5) { // If player has enough wins
-            endRound(npc, false, winText);
-            endGame(npc);
-        } else { // If win condition not met
-            endRound(npc, true, passText);
-        }
-    } else if(id == 4) { // Selected Wrong npc
-        endRound(npc, true, failText);
-        punishPlayer(npc);
-    } else if(id == 5) { // Fireworks!!
+    } else if(id == 3) { // Fireworks!!
         spawnFirework(npc, npc.x + getRandomInt(-5, 5), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-5, 5));
         fireworkIncrement++;
-        if(fireworkIncrement > 10) {
-            npc.timers.stop(5);
+        if(fireworkIncrement > 10) { // Stop after firing off 10 fireworks
+            npc.timers.stop(3);
+        }
+    } else if(id == 10) { // Start grace period after player leaving arena
+        var playerCheck = npc.getSurroundingEntities(30, 1);
+        var playerCheckArray = new Array(); 
+        for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
+            playerCheckArray.push(playerCheck[i]);
+        }
+        for(i = 0; i < playerCheckArray.length; i++){ // Scan new array for player
+            if(playerCheckArray.indexOf(activePlayer) < 0) {
+                npc.timers.forceStart(11, 100, false);
+                break;
+            }
         }
     } else if(id == 10) { // Reset if player leaves the area
-        var playerCheck = npc.getSurroundingEntities(50, 1);
-        if(playerCheck.length == 0) {
-            resetAll(npc);
+        var playerCheck = npc.getSurroundingEntities(30, 1);
+        var playerCheckArray = new Array(); 
+        for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
+            playerCheckArray.push(playerCheck[i]);
+        }
+        for(i = 0; i < playerCheckArray.length; i++){ // Scan new array for player
+            if(playerCheckArray.indexOf(activePlayer) < 0) {
+                resetAll(npc);
+                break;
+            }
         }
     }
 }
 
 function decidePoses(npc) { // Decide the correct pose and hand out incorrect poses
     var poses = getPoses();
-    var correctPose = poses[getRandomInt(0, poses.length - 1)];
-    var correctNpc = getRandomInt(0, silhouettes.length - 1);
+    correctPose = poses[getRandomInt(0, poses.length - 1)];
+    var correctNpcIndex = getRandomInt(0, silhouettes.length - 1);
     poses.splice(poses.indexOf(correctPose), 1);
     setNpcPose(npc, correctPose, true);
     for(i = 0; i < silhouettes.length; i++) { // Set silhouette poses
-        if(i == correctNpc) { // Correct npc
+        if(i == correctNpcIndex) { // Correct npc
             setNpcPose(silhouettes[i], correctPose, true); 
         } else { // Incorrect npcs
             var randomPose = getRandomInt(0, poses.length - 1);
@@ -110,13 +132,13 @@ function setNpcPose(targetNpc, Pose, isRightPose) { // Set an npc's pose and whe
     animData.setAnimation(Pose);
     animData.updateClient();
     targetNpc.setTempData("isRightPose", isRightPose);
+    targetNpc.setTempData("activePlayer", activePlayer);
 }
 
 function endRound(npc, doNext, outcomeText) { // End round stopping timers and reseting poses
     npc.say(outcomeText);
     npc.timers.stop(1);
     npc.timers.stop(2);
-    timerNpc.setShowBossBar(0); // Disable countdown bossbar
     resetPoses(npc);
     if(doNext) {
         npc.timers.forceStart(0, roundBreak, false); // Short break between rounds
@@ -124,27 +146,21 @@ function endRound(npc, doNext, outcomeText) { // End round stopping timers and r
 }
 
 function punishPlayer(npc) { // Punish the player for failing a round
-    var toPunish = npc.getSurroundingEntities(50, 1);
-    for(i = 0; i < toPunish.length; i++) { // Punish players
-        if(toPunish[i] != null) {
-            npc.world.thunderStrike(toPunish[i].getPosition()); // Lightning strike the player
-            toPunish[i].hurt(failDamage);
-        }
-    } 
+    npc.world.thunderStrike(activePlayer.getPosition()); // Lightning strike the player
+    activePlayer.hurt(failDamage);
 }
 
 function endGame(npc) { // End the game, complete quest and reset npcs
-    var players = npc.getSurroundingEntities(50, 1);
-    for(i = 0; i < players.length; i++) {
-        if(players[i] != null) { // Finish player quest
-            npc.executeCommand("/kamkeel quest finish " + players[i].getName() + " " + questID);
-        }
-    }
+    npc.executeCommand("/kamkeel quest finish " + activePlayer.getName() + " " + questID);
     fireworkIncrement = 0;
-    npc.timers.forceStart(5, 8, true);
+    resetAll(npc);
+    npc.timers.forceStart(3, 8, true);
 }
 
-function newGame(npc) { // Start new game
+function newGame(npc, player) { // Start new game
+    activePlayer = player;
+    activePlayer.getAnimationData().setAnimation(null); // Reset player animation
+    timerNpc.setShowBossBar(1);
     wins = 0;
     currentRound = 0;
     npc.timers.forceStart(0, roundBreak, false);
@@ -158,11 +174,9 @@ function resetPoses(npc) { // Reset npc to standing pose
         animData.updateClient();
         targetNpc.removeTempData("isRightPose");
     }
-    var playerSearch = npc.getSurroundingEntities(20, 1); // Reset nearby players
-    for(i = 0; i < playerSearch.length; i++) {
-        if(playerSearch[i] != null) {
-            resetNPC(playerSearch[i]);
-        }
+    if(activePlayer != null) {
+        resetNPC(activePlayer);
+        activePlayer.getAnimationData().setAnimation(null); // Reset player animation
     }
     for(i = 0; i < silhouettes.length; i++) { // Reset silhouettes
         resetNPC(silhouettes[i]);
@@ -185,4 +199,9 @@ function spawnFirework(npc, x, y, z) { // Spawn firework particles at coordinate
 
 function getRandomInt(min, max) {  // Get a random number
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function interact(e) {
+    var npc = e.npc;
+    newGame(npc, e.getPlayer());
 }
