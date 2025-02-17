@@ -26,10 +26,7 @@ function init(e) {
     for(i = 0; i < search.length; i++) { // yes this game sucks (cant splice entity arrays for some reason)
         if(search[i].getName() == silhouetteName) {
             silhouettes.push(search[i]);
-        } else if(search[i].getName() == "Countdown") {
-            timerNpc = search[i];
-            timerNpc.setMaxHealth(roundLength);
-        }
+        } 
     }
     resetAll(npc);
 }
@@ -43,7 +40,6 @@ function timer(e) {
             npc.say("&lRound " + currentRound);
             decidePoses(npc);
             npc.timers.forceStart(1, roundLength - 1, false); // Start fail timer
-            timerNpc.setHealth(timerNpc.getMaxHealth());
             countDown = 3;
             npc.timers.forceStart(2, 19, true); // Start round countdown
         }
@@ -61,9 +57,6 @@ function timer(e) {
             punishPlayer(npc);
         }
     } else if(id == 2) { // Round timer
-        var timerTick = timerNpc.getMaxHealth() / (roundLength / 20) + 1; // Calculate a tick of the timer's health
-        var currentTimer = timerNpc.getHealth();
-        timerNpc.setHealth(currentTimer - timerTick); // Lower timer's health by 1 tick
         if(npc.timers.has(1) && npc.timers.ticks(1) < 61) {
             npc.say("" + countDown); // Chat countdown
             countDown--;
@@ -186,7 +179,6 @@ function resetPoses(npc) { // Reset npc to standing pose
 
 function resetAll(npc) { // Reset game
     npc.timers.clear(); // remove all timers
-    timerNpc.setShowBossBar(0);
     resetPoses(npc);
 }
 
