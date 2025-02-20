@@ -9,7 +9,5 @@ function speak(player, text, color, size, speakID) { // Place speech overlay on 
 }
 
 function cancelSpeak(player, speakID) { // Remove text from player screen
-    var speechOverlay = API.createCustomOverlay(speakID); // Create overlay with overwriting id
-    player.showCustomOverlay(speechOverlay); // Place overriding overlay on player's screen
-    speechOverlay.update(player); // Update to reflect this
+    player.closeOverlay(speakID); 
 }

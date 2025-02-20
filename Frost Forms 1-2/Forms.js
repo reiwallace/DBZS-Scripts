@@ -2,11 +2,13 @@ var baseDam = 10; // Base melee damage
 var baseRegen = 10; // Base health regen
 var formMulti = 1.5; // Form damage multiplier
 var arenaCenter = [-212, 56, -777]; // Spot npc is tped to when transforming
-var increment = 0;
+var resetTime = 600; // Time after last being damage that the npc resets
 
 var transformText1 = "&b&lTransform text1"; // Line spoken at the beginning of transformation
 var transformText2 = "&b&lTransform text2"; // Line spoken in the middle of transformation
 var transformText3 = "&b&lTransform text3"; // Line spoken at the end of transformation
+
+var increment = 0;
 
 function init(e) {
     var npc = e.npc;
@@ -20,8 +22,8 @@ function init(e) {
 function timer(e) { 
     var id = e.id;
     var npc = e.npc;
-    if(id == 10) { // Used for checking player leaving
-
+    if(id == 10) { // Reset boss after set amount of time
+        reset(npc);
     } else if(id == 11) { // Transformation Animation
         if(!npc.timers.has(12)) {
             npc.timers.stop(11);
@@ -45,6 +47,7 @@ function timer(e) {
 
 function damaged(e) { // Hp breakpoint detection
     var npc = e.npc;
+    npc.timers.forceStart(10, resetTime, false);
     var maxHp = npc.getMaxHealth();
     var currentHp = npc.getHealth();
     if(currentHp < maxHp * 0.50 && npc.getTempData("Form") == 1) { // P2 transformation

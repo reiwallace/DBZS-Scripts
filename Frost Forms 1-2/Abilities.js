@@ -14,7 +14,7 @@ var kiLazerLine = "&9&lKi lazer"; // Attack line for ki lazer
 var meleeSpecialLine = "&6&lMelee Special"; // Attack line for special melee attack
 var kiBarrageLine = "&1&lKi lazer barrage"; // Attack line for ki lazer barrage
 
-
+var resetThisMan;
 var nonLethalClock;
 var target;
 var DBCTarget;
@@ -34,13 +34,17 @@ function timer(e) {
     var id = e.id;
     if(id == 0) {
         poisonTick(npc); // Do poison tick on timer
-    } else if(id == 1) {
-        if(npc.getTempData("Form") == 2 && DBCTarget.getJRMCSE().contains("A") && target.getTempData("Lethal Poison") > 0) {
-            target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - 1);
-        }
-    } else if(id == 2) {
+    } else if(id == 1 && target != null && npc.getTempData("Form") == 2 && DBCTarget.getJRMCSE().contains("A") && target.getTempData("Lethal Poison") > 0) {
+        // Lower poison stacks if player is meditating and has at least 1 stack
+        incrementLethalPoison(target, -1)
+    } else if(id == 2) { // Decide ability
         chooseAbility(npc);
-    } else if(id == 3) { // Non-lethal poison timer
+    } else if(id == 3 && DBCTarget != null) { // Non-lethal poison timer
+        resetThisMan = DBCTarget;
+        if(DBCTarget.getSkills().contains("DS")) {
+            resetThisMan = DBCTarget.getSkillLevel("Dash");
+        }
+        target.addPotionEffect​(2, nonLethalClockMax/20, 200, true);
         nonLethalEffects(npc, DBCTarget);
     } else if(id == 4) { // Fire single Ki attack
         fireLazer(npc);
@@ -51,7 +55,7 @@ function timer(e) {
     } else if(id == 7) { // Ki vomit
         fireLazer(npc);
         count++;
-        if(count > 15) {
+        if(count > 15) { // Stop after 15 shots
             npc.timers.stop(7);
         }
     }
@@ -83,18 +87,12 @@ function chooseAbility(npc) { // Decide which attack to use
     }
 }
 
-function addLethalPoison(target) { // Add a stack of lethal poison to a target
-    if(target != null && !target.hasTempData("Lethal Poison")) { // Create temp data if non existent
+function incrementLethalPoison(target, increment) { // Add a stack of lethal poison to a target
+    if(target != null && !target.hasTempData("Lethal Poison") && increment > 0) { // Create temp data if non existent
         target.setTempData("Lethal Poison", 1);
     } else if(target != null) {
-        target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") + 1); // Increment temp data
+        target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") + increment); // Increment temp data
     }
-}
-
-function subtractLethalPoison(target) { // Remove a stack of lethal poison from a target
-    if(target != null && target.getTempData("Lethal Poison") > 0) {
-        target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") - 1); // Lower temp data
-    } 
 }
 
 function resetLethalPoison(target) { // Remove all Lethal poison stacks on a target
@@ -119,7 +117,6 @@ function poisonTick(npc) { // Function to execute poison damage on nearby player
 
 function nonLethalEffects(npc, DBCTarget) { // Applies effects of non-lethal poison
     nonLethalClock++;
-    // INSERT WEIGHT CODE
     if(DBCTarget != null) { // Disable turbo and lower stamina
         var loweredStamina = DBCTarget.getMaxStamina() * nonLethalStaminaMax;
         DBCTarget.setTurboState(false);
