@@ -20,6 +20,7 @@ var meleeSpecialStacks = 15; // Number of stacks applied by p2 melee special att
 var kiLazerTelegraphTimer = 20; // Telegraph for single lazer
 var kiBarrageTelegraphTimer = 30; // Telegraph for ki barrage
 var lazerDamage = 10; // Damage of ki attack
+var lazerSpeed = 1;
 var maxLazers = 15; // Amount of shots per ki vomit
 
 var nonLethalLine = "&2&lNon-lethal Poison"; // Attack line for non-lethal poison
@@ -201,7 +202,7 @@ function findNearestGC(npcPos) { // Find the nearest gravity chamber for a 2d ar
 }
 
 function fireLazer(npc) { // Lazer attack thats actually a blast
-    npc.executeCommand("/dbcspawnki 1 1 " + lazerDamage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+    npc.executeCommand("/dbcspawnki 1 " + lazerSpeed + " " + lazerDamage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
 }
 
 function meleeAttack(e) { // Apply poison on melee swing
