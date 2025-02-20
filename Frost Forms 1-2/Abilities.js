@@ -8,6 +8,7 @@ var nonLethalDuration = 100; // Duration of Non-lethal poison ticks
 var nonLethalGravity = 1000; // Gravity to be put on the player
 
 var overlayID = 0; // ID for poison stacks overlay
+var overlayText = "Lethal Poison: "; // Text displayed on screen to show poison stacks - has the number of stacks added right after
 var lethalDam = 0.02; // Percentage of health done per stack of poison per tick
 var poisonTickSpeed = 40; // Speed poison ticks in well ticks
 var meditationStackRed = 5; // Number ticks between reducing stacks
@@ -103,7 +104,7 @@ function chooseAbility(npc) { // Decide which attack to use
 function incrementLethalPoison(target, increment) { // Add a stack of lethal poison to a target
     if(target != null) {
         target.setTempData("Lethal Poison", target.getTempData("Lethal Poison") + increment); // Increment temp data
-        poisonStackDisplay(target, "Lethal Poison: " + target.getTempData("Lethal Poison"), 3655475, 1, overlayID); // Set poison overlay
+        poisonStackDisplay(target, overlayText + target.getTempData("Lethal Poison"), 3655475, 1, overlayID); // Set poison overlay
     }
 }
 
