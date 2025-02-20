@@ -13,14 +13,14 @@ var nonLethalLine = "&2&lNon-lethal Poison"; // Attack line for non-lethal poiso
 var kiLazerLine = "&9&lKi lazer"; // Attack line for ki lazer
 var meleeSpecialLine = "&6&lMelee Special"; // Attack line for special melee attack
 var kiBarrageLine = "&1&lKi lazer barrage"; // Attack line for ki lazer barrage
+var GCLocations = [[0, 0 ,0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0,0]]; // Locations of gravity chambers
 
-var resetThisMan;
 var nonLethalClock;
 var target;
 var DBCTarget;
 var angle;
 var heightIncrement;
-var count;
+var lazerCount;
 
 function init(e) {
     var npc = e.npc;
@@ -40,11 +40,7 @@ function timer(e) {
     } else if(id == 2) { // Decide ability
         chooseAbility(npc);
     } else if(id == 3 && DBCTarget != null) { // Non-lethal poison timer
-        resetThisMan = DBCTarget;
-        if(DBCTarget.getSkills().contains("DS")) {
-            resetThisMan = DBCTarget.getSkillLevel("Dash");
-        }
-        target.addPotionEffect​(2, nonLethalClockMax/20, 200, true);
+
         nonLethalEffects(npc, DBCTarget);
     } else if(id == 4) { // Fire single Ki attack
         fireLazer(npc);
@@ -54,8 +50,8 @@ function timer(e) {
         npc.timers.forceStart(7, 0, true);
     } else if(id == 7) { // Ki vomit
         fireLazer(npc);
-        count++;
-        if(count > 15) { // Stop after 15 shots
+        lazerCount++;
+        if(lazerCount > 15) { // Stop after 15 shots
             npc.timers.stop(7);
         }
     }
@@ -81,7 +77,7 @@ function chooseAbility(npc) { // Decide which attack to use
             npc.timers.forceStart(5, telegraphTimer, false);
         } else if(abilityChoice == 1) { // Ki lazer barrage
             npc.say(kiBarrageLine);
-            count = 0;
+            lazerCount = 0;
             npc.timers.forceStart(6, telegraphTimer, false);
         }
     }
@@ -117,6 +113,12 @@ function poisonTick(npc) { // Function to execute poison damage on nearby player
 
 function nonLethalEffects(npc, DBCTarget) { // Applies effects of non-lethal poison
     nonLethalClock++;
+    var block = npc.world.getBlock(findNearestGC(npc));
+    var tile = block.getTileEntity();
+    var nbt = tile.getNBT();
+    nbt.setFloat('gravity', nonLethalGravity);
+    nbt.setFloat('BurnTime', nonLethalClockMax);
+    tile.readFromNBT(nbt);
     if(DBCTarget != null) { // Disable turbo and lower stamina
         var loweredStamina = DBCTarget.getMaxStamina() * nonLethalStaminaMax;
         DBCTarget.setTurboState(false);
@@ -129,6 +131,18 @@ function nonLethalEffects(npc, DBCTarget) { // Applies effects of non-lethal poi
     }
 }
 
+function findNearestGC(npc) {
+    var proximity = 1000;
+    var nearestGC = 0;
+    for(i = 0; i < GCLocations.length; i++) {
+        if(proximity > (npc.x - GCLocations[i][0]) + (npc.z - GCLocations[i][2])) {
+            proximity = (npc.x - GCLocations[i][0]) + (npc.z - GCLocations[i][2]);
+            nearestGC = [i]
+        }
+    }
+    return nearestGC;
+}
+
 function fireLazer(npc) { // Lazer attack thats actually a blast
     npc.executeCommand("/dbcspawnki 1 1 " + lazerDamage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
 }
@@ -137,9 +151,7 @@ function poisonAoe(npc) { // Apply poison stacks to player if they are in range
     var playersToHit = npc.getSurroundingEntities(meleeSpecialRange, 1);
     for(i = 0; i < playersToHit.length; i++) {
         if(playersToHit[i] != null) {
-            for(n = 0; n < meleeSpecialStacks; i++) { // Apply adjustable amount of stacks
-                addLethalPoison(playersToHit[i]);
-            }
+            incrementLethalPoison(playersToHit[i], 5);
         }
     }
 }
@@ -149,6 +161,6 @@ function meleeAttack(e) { // Apply poison on melee swing
     target = e.getAttackTarget();
     DBCTarget = target.getDBCPlayer();
     if(npc.getTempData("Form") == 2) {
-        addLethalPoison(target);
+        incrementLethalPoison(target, 1);
     }
 }
