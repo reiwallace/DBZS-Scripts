@@ -1,3 +1,7 @@
+// Forms.js
+// AUTHOR: Noxie
+
+// Tuning knobs
 var baseDam = 10; // Base melee damage
 var baseRegen = 10; // Base health regen
 var movementSpeed = 7; // Boss movement speed
@@ -7,51 +11,75 @@ var resetTime = 600; // Time after last being damage that the npc resets
 var transformPercent = 0.55; // Percent health the boss transforms at 
 var formName = "FrostTransformation"; // Form used to give frost his aura
 
+// Transformation text
 var transformText1 = "&b&lTransform text1"; // Line spoken at the beginning of transformation
 var transformText2 = "&b&lTransform text2"; // Line spoken in the middle of transformation
 var transformText3 = "&b&lTransform text3"; // Line spoken at the end of transformation
 
-var count = 0;
+// Timers
+var RESET = 10;
+var TRANSFORMATION_ANIMATION = 11;
+var END_TRANSFORMATION = 12;
 
-function init(e) {
-    var npc = e.npc;
+// Global variables
+var COUNT = 0;
+
+
+
+/** Reset the npc to base form, set required temp data
+ * @param {InitEvent} event - blame riken for this
+ */
+function init(event)
+{
+    var npc = event.npc;
     DBCAPI.getDBCDisplay(npc).transform(DBCAPI.getForm(formName)); // Ensure right aura is enabled
     npc.setTempData("Movement Speed", movementSpeed);
     npc.setTempData("Reset Time", resetTime)
     reset(npc); // Reset timers and form
 }
 
-function timer(e) { 
-    var id = e.id;
-    var npc = e.npc;
-    if(id == 10) { // Reset boss after set amount of time
-        reset(npc);
-    } else if(id == 11) { // Transformation Animation
-        if(!npc.timers.has(12)) { // Stop timer once transformation is complete
-            npc.timers.stop(11);
-        }
-        if(npc.getTempData("Form") != 2) {
-            npc.setSize(npc.getSize() + 1);  // Grow
-            npc.playSound("jinryuudragonbc:DBC3.force", 100, 1);
-        }
-        if(count == 1) { // Say second line halfway through transforming
-            npc.say(transformText2);
-        }
-        count++;
-    } else if(id == 12) { // End transformation
-        DBCAPI.getDBCDisplay(npc).setEnabled(false); // Disable aura
-        npc.setSpeed(movementSpeed); // Let boss move again
-        npc.setFaction(2); // Make boss targetable
-        npc.say(transformText3);
-        changeForm(npc, baseDam * formMulti, baseRegen * formMulti, 6, 2); // Change model
-        npc.setTempData("Transforming", false);
-        lightningSpam(npc);
+/** Timers
+* @param {TimerEvent} event - blame riken for this 
+*/
+function timer(event)
+{ 
+    var npc = event.npc;
+    switch(event.id) {
+        case(RESET):
+            reset(npc);
+            break;
+        case(TRANSFORMATION_ANIMATION):
+            if(!npc.timers.has(END_TRANSFORMATION)) { // Stop timer once transformation is complete
+                npc.timers.stop(TRANSFORMATION_ANIMATION);
+            }
+            if(npc.getTempData("Form") != 2) {
+                npc.setSize(npc.getSize() + 1); // Grow
+                npc.playSound("jinryuudragonbc:DBC3.force", 100, 1);
+            }
+            if(COUNT == 1) { // Say second line halfway through transforming
+                npc.say(transformText2);
+            }
+            COUNT++;
+            break;
+        case(END_TRANSFORMATION):
+            npc.say(transformText3);
+            DBCAPI.getDBCDisplay(npc).setEnabled(false); // Disable aura
+            npc.setSpeed(movementSpeed); // Let boss move again
+            npc.setFaction(2); // Make boss targetable
+            changeForm(npc, baseDam * formMulti, baseRegen * formMulti, 6, 2); // Change model
+            npc.setTempData("Transforming", false);
+            lightningSpam(npc);
+            break;
     }
 }
 
-function damaged(e) { // Hp breakpoint detection
-    var npc = e.npc;
-    npc.timers.forceStart(10, resetTime, false); // Reset if not hit in a set amount of time
+/** Hp breakpoint detection for transforming
+ * @param {DamagedEvent} event - blame riken for this
+ */
+function damaged(event)
+{
+    var npc = event.npc;
+    npc.timers.forceStart(RESET, resetTime, false); // Reset if not hit in a set amount of time
     if(npc.getHealth() < npc.getMaxHealth() * transformPercent && npc.getTempData("Form") == 1) { // P2 transformation
         npc.say(transformText1);
         npc.setX(arenaCenter[0]);
@@ -59,23 +87,35 @@ function damaged(e) { // Hp breakpoint detection
         npc.setZ(arenaCenter[2]);
         npc.setSpeed(0); // Make npc stand still
         npc.setFaction(0); // Make npc untargetable
-        count = 0;
+        COUNT = 0;
         DBCAPI.getDBCDisplay(npc).setEnabled(true); // Enable aura
         npc.setTempData("Transforming", true);
-        npc.timers.forceStart(11, 50, true); // Grow timer
-        npc.timers.forceStart(12, 200, false); // End transformation timer
+        npc.timers.forceStart(TRANSFORMATION_ANIMATION, 50, true); // Grow timer
+        npc.timers.forceStart(END_TRANSFORMATION, 200, false); // End transformation timer
     }
 }
 
-function killed(e) { // Reset on dying
-    reset(e.npc);
+/** Reset on dying
+ * @param {DiedEvent} event - blame riken for this 
+ */
+function killed(event)
+{
+    reset(event.npc);
 }
 
-function kills(e) { // Reset on killing the player
-    reset(e.npc);
+/** Reset on killing the player
+ * @param {KilledEntityEvent} event - blame riken for this 
+ */
+function kills(event)
+{
+    reset(event.npc);
 }
 
-function reset(npc) { // Revert to first form and clear timers
+/** Revert to first form and clear timers
+ * @param {ICustomNpc} npc - Npc to reset
+ */
+function reset(npc)
+{
     changeForm(npc, baseDam, baseRegen, 5, 1);
     DBCAPI.getDBCDisplay(npc).setEnabled(false);
     npc.setTempData("Transforming", false);
@@ -86,7 +126,15 @@ function reset(npc) { // Revert to first form and clear timers
     }
 }
 
-function changeForm(npc, melee, regen, size, form) { // Change npc's stats, model and temp data
+/** Change npc's stats, model and temp data
+ * @param {ICustomNpc} npc - Npc to change form of
+ * @param {int} melee - Melee damage to set to
+ * @param {int} regen - Regeneration to set to
+ * @param {int} size - Size of the npc to set to
+ * @param {int} form - Form to change to
+ */
+function changeForm(npc, melee, regen, size, form)
+{
     npc.setMeleeStrength(melee);
     npc.setCombatRegen(regen);
     npc.setSize(size);
@@ -95,7 +143,11 @@ function changeForm(npc, melee, regen, size, form) { // Change npc's stats, mode
     npc.setTexture("jinryuudragonbc:npcs/frost" + form + ".png"); // Apply new model's skin
 }
 
-function lightningSpam(npc) { // Transformation lighting animation
+/** Lighting animation at the end of the transforming
+ * @param {ICustomNpc} npc - Npc to spam lightning around
+*/
+function lightningSpam(npc)
+{
     function getRandomInt(min, max) {  // Get a random number
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
