@@ -5,8 +5,11 @@ var silhouetteName = "Silhouette"; // Name of silhouette npcs
 var numberOfWins = 5; // Number of WINS needed
 var roundLength = 200; // Round length in ticks (please use a number that plays nice with seconds)
 var roundBreak = 20; // Time between rounds
-var countDownFrom = 3; // When the npc starts counting down
 var failDamage = 1; // Damage for failing round
+
+var countDownFrom = 60; // When the npc starts counting down
+var overlayText = "&1&lRemaining: "; // Text to display at the top of the screen on the counter
+var overlayID = 1; // ID of the counter overlay
 
 var passText = "&a&lI am glad that this time you did not come &a&lunprepared."; // Text on player passing a round
 var failText = "&c&lWhat a fool you arevent."; // Text on player failing a round
@@ -58,7 +61,7 @@ function timer(event)
         case(START_ROUND):
             if(ACTIVE_PLAYER != null) {
                 CURRENT_ROUND++;
-                COUNTER = countDownFrom;
+                COUNTER = roundLength/20 - 1;
                 npc.say("&lRound " + CURRENT_ROUND);
                 decidePoses(npc);
                 npc.timers.forceStart(END_ROUND, roundLength - 1, false); // End round after timer
@@ -80,10 +83,11 @@ function timer(event)
             }
             break;
         case(ROUND_TIMER):
-            if(npc.timers.has(END_ROUND) && npc.timers.ticks(END_ROUND) < 61) {
+            setCounterOverlay(ACTIVE_PLAYER, overlayText, overlayID, COUNTER);
+            if(npc.timers.has(END_ROUND) && npc.timers.ticks(END_ROUND) < countDownFrom) {
                 npc.say("" + COUNTER); // Chat COUNTER
-                COUNTER--;
             }
+            COUNTER--;
             break;
         case(FIREWORKS):
             spawnFirework(npc, npc.x + getRandomInt(-5, 5), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-5, 5)); // Spawn firework at random position
@@ -238,6 +242,7 @@ function resetPoses(npc)
     if(ACTIVE_PLAYER != null) { // Reset player animation
         resetNPC(ACTIVE_PLAYER);
         ACTIVE_PLAYER.getAnimationData().setAnimation(null);
+        ACTIVE_PLAYER.closeOverlay(overlayID);
     }
     for(i = 0; i < SILHOUETTES.length; i++) { // Reset silhouettes
         resetNPC(SILHOUETTES[i]);
@@ -265,6 +270,26 @@ function resetAll(npc)
     npc.timers.clear();
     resetPoses(npc);
 }
+
+/**
+ * @param {IPlayer} player - The player object on whose screen the overlay will be displayed.
+ * @param {string} text - The text to display on the player's screen.
+ * @param {Int} value - The counter value to be displayed
+ * @param {string} speakID - The ID of the text overlay.
+ */
+function setCounterOverlay(player, text, counterID, value)
+{ // Place speech overlay on player's screen
+    player.closeOverlay(counterID); 
+    var speechOverlay = API.createCustomOverlay(counterID); // Create overlay with id
+    if(value < 10) {
+        speechOverlay.addLabel(1, text + "0" + value, 442, 20, 0, 0);
+    } else {
+        speechOverlay.addLabel(1, text + "" + value, 442, 20, 0, 0);
+    }
+    player.showCustomOverlay(speechOverlay); // Place the overlay on the player's screen
+    speechOverlay.update(player); // Update the label to be visible
+}
+
 
 /** Spawns firework-like particle effects at a target location and plays a random firework sound
  * @param {ICustomNpc} npc - Npc to spawn fireworks from
