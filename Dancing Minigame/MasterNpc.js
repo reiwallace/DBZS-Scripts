@@ -1,117 +1,161 @@
 // Change these
 var poseNames = ["pose1", "pose2", "pose3", "pose4", "pose5"]; // Pose names - can add as many as needed
 var silhouetteName = "Silhouette"; // Name of silhouette npcs
-var numberOfWins = 5; // Number of wins needed
+
+var numberOfWins = 5; // Number of WINS needed
 var roundLength = 200; // Round length in ticks (please use a number that plays nice with seconds)
 var roundBreak = 20; // Time between rounds
-var passText = "&a&lI am glad that this time you did not come &a&lunprepared."; // Text on player passing a round
-var failText = "&c&lWhat a fool you are."; // Text on player failing a round
-var winText = "&l&6This is the end. The bitter, bitter end."; // Text on player winning the game
-var questID = 0; // Id of quest to be completed
+var countDownFrom = 3; // When the npc starts counting down
 var failDamage = 1; // Damage for failing round
 
-var correctPose;
-var activePlayer;
-var wins = 0;
-var currentRound = 0;
-var timerNpc;
-var countDown;
-var silhouettes = new Array();
-var fireworkIncrement = 0;
+var passText = "&a&lI am glad that this time you did not come &a&lunprepared."; // Text on player passing a round
+var failText = "&c&lWhat a fool you arevent."; // Text on player failing a round
+var winText = "&l&6This is the end. The bitter, bitter end."; // Text on player winning the game
 
-function init(e) {
-    var npc = e.npc;
+var playerExitTimer = 100; // Time after leaving the active player leaving the arena for the npc to reset
+
+var questID = 0; // Id of quest to be completed
+
+// Global variables
+var CORRECT_POSE;
+var ACTIVE_PLAYER;
+var WINS = 0;
+var CURRENT_ROUND = 0;
+var COUNTER;
+var SILHOUETTES = new Array();
+
+// Timers
+var START_ROUND = 0;
+var END_ROUND = 1;
+var ROUND_TIMER = 2;
+var FIREWORKS = 3;
+var CHECK_FOR_EXITING = 10;
+var PLAYER_EXITED = 11;
+
+// Event functions
+function init(event)
+{
+    var npc = event.npc;
     var search = npc.getSurroundingEntities(20,2); // Find nearby npcs
-    silhouettes = new Array();
+    SILHOUETTES = new Array();
     for(i = 0; i < search.length; i++) { // yes this game sucks (cant splice entity arrays for some reason)
         if(search[i].getName() == silhouetteName) {
-            silhouettes.push(search[i]);
+            SILHOUETTES.push(search[i]);
         } 
     }
     resetAll(npc);
 }
 
-function timer(e) {
-    var npc = e.npc;
-    var id = e.id;
-    if(id == 0) { // Start round
-        if(activePlayer != null) {
-            currentRound++;
-            npc.say("&lRound " + currentRound);
-            decidePoses(npc);
-            npc.timers.forceStart(1, roundLength - 1, false); // Start fail timer
-            countDown = 3;
-            npc.timers.forceStart(2, 19, true); // Start round countdown
-        }
-    } else if(id == 1) { // Check round outcome
-        if(activePlayer.getAnimationData().getAnimation() == correctPose) { // Pass round if player has correct pose
-            wins++; // Increment wins
-            if(wins == 5) { // If player has enough wins
-                endRound(npc, false, winText);
-                endGame(npc);
-            } else { // If win condition not met
-                endRound(npc, true, passText);
+function interact(event)
+{
+    newGame(event.npc, event.getPlayer());
+}
+
+function timer(event)
+{
+    var npc = event.npc;
+    switch(event.id) {
+        case(START_ROUND):
+            if(ACTIVE_PLAYER != null) {
+                CURRENT_ROUND++;
+                COUNTER = countDownFrom;
+                npc.say("&lRound " + CURRENT_ROUND);
+                decidePoses(npc);
+                npc.timers.forceStart(END_ROUND, roundLength - 1, false); // End round after timer
+                npc.timers.forceStart(ROUND_TIMER, 19, true); // Start round countdown
             }
-        } else { // Fail round
-            endRound(npc, true, failText);
-            punishPlayer(npc);
-        }
-    } else if(id == 2) { // Round timer
-        if(npc.timers.has(1) && npc.timers.ticks(1) < 61) {
-            npc.say("" + countDown); // Chat countdown
-            countDown--;
-        }
-    } else if(id == 3) { // Fireworks!!
-        spawnFirework(npc, npc.x + getRandomInt(-5, 5), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-5, 5));
-        fireworkIncrement++;
-        if(fireworkIncrement > 10) { // Stop after firing off 10 fireworks
-            npc.timers.stop(3);
-        }
-    } else if(id == 10) { // Start grace period after player leaving arena
-        var playerCheck = npc.getSurroundingEntities(30, 1);
-        var playerCheckArray = new Array(); 
-        for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
-            playerCheckArray.push(playerCheck[i]);
-        }
-        for(i = 0; i < playerCheckArray.length; i++){ // Scan new array for player
-            if(playerCheckArray.indexOf(activePlayer) < 0) {
-                npc.timers.forceStart(11, 100, false);
-                break;
+            break;
+        case(END_ROUND):
+            if(ACTIVE_PLAYER.getAnimationData().getAnimation() == CORRECT_POSE) { // Pass round if player has correct pose
+                WINS++; // Increment WINS
+                if(WINS == 5) { // If player has enough WINS
+                    endRound(npc, false, winText);
+                    endGame(npc);
+                } else { // If win condition not met continue game
+                    endRound(npc, true, passText);
+                }
+            } else { // Fail round
+                endRound(npc, true, failText);
+                punishPlayer(npc);
             }
-        }
-    } else if(id == 10) { // Reset if player leaves the area
-        var playerCheck = npc.getSurroundingEntities(30, 1);
-        var playerCheckArray = new Array(); 
-        for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
-            playerCheckArray.push(playerCheck[i]);
-        }
-        for(i = 0; i < playerCheckArray.length; i++){ // Scan new array for player
-            if(playerCheckArray.indexOf(activePlayer) < 0) {
+            break;
+        case(ROUND_TIMER):
+            if(npc.timers.has(END_ROUND) && npc.timers.ticks(END_ROUND) < 61) {
+                npc.say("" + COUNTER); // Chat COUNTER
+                COUNTER--;
+            }
+            break;
+        case(FIREWORKS):
+            spawnFirework(npc, npc.x + getRandomInt(-5, 5), npc.y + getRandomInt(0, 7), npc.z + getRandomInt(-5, 5)); // Spawn firework at random position
+            COUNTER++;
+            if(COUNTER > 10) { // Stop after firing off 10 fireworks
+                npc.timers.stop(FIREWORKS);
+            }
+            break;  
+        case(CHECK_FOR_EXITING):
+            var playerCheck = npc.getSurroundingEntities(30, 1);
+            var foundPlayer = false;
+            for(i = 0; i < playerCheck.length; i++) {
+                if(playerCheck[i] == ACTIVE_PLAYER) {
+                    foundPlayer = true;
+                    break;
+                }
+            }
+            if(!foundPlayer) { // Start reset grace period of player not found
+                npc.timers.forceStart(PLAYER_EXITED, playerExitTimer, false);
+            }
+            break;
+        case(PLAYER_EXITED):
+            var playerCheck = npc.getSurroundingEntities(30, 1);
+            for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
+                if(playerCheck[i] == ACTIVE_PLAYER) {
+                    foundPlayer = true;
+                    break;
+                }
+            }
+            if(!foundPlayer) { // Reset npc
                 resetAll(npc);
-                break;
             }
-        }
+            break;       
     }
 }
 
-function decidePoses(npc) { // Decide the correct pose and hand out incorrect poses
+/** Returns a random number between two values
+* @param {int} min - the minimum number to generate a value from
+* @param {int} max - the minimum number to generate a value from 
+*/
+function getRandomInt(min, max)
+{
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/** Function to randomly select a correct pose for the npc and a random silhouette
+ * as well as assigning random poses to every other npc
+ * @param {ICustomNpc} npc - Master npc who will decide silhouette poses
+ */
+function decidePoses(npc)
+{
     var poses = getPoses();
-    correctPose = poses[getRandomInt(0, poses.length - 1)];
-    var correctNpcIndex = getRandomInt(0, silhouettes.length - 1);
-    poses.splice(poses.indexOf(correctPose), 1);
-    setNpcPose(npc, correctPose, true);
-    for(i = 0; i < silhouettes.length; i++) { // Set silhouette poses
+    var correctNpcIndex = getRandomInt(0, SILHOUETTES.length - 1);
+    CORRECT_POSE = poses[getRandomInt(0, poses.length - 1)]; 
+    poses.splice(poses.indexOf(CORRECT_POSE), 1); // Remove correct pose from pool
+    setNpcPose(npc, CORRECT_POSE, true);
+    for(i = 0; i < SILHOUETTES.length; i++) { // Set silhouette poses
         if(i == correctNpcIndex) { // Correct npc
-            setNpcPose(silhouettes[i], correctPose, true); 
+            setNpcPose(SILHOUETTES[i], CORRECT_POSE, true); 
         } else { // Incorrect npcs
             var randomPose = getRandomInt(0, poses.length - 1);
-            setNpcPose(silhouettes[i], poses[randomPose], false);
-            poses.splice(randomPose, 1);
+            setNpcPose(SILHOUETTES[i], poses[randomPose], false);
+            poses.splice(randomPose, 1); // Remove used pose from the pool
         }
     }
 }
 
-function getPoses() { // Get animations defined by name
+/** Gets an array of poses from aa array of pose names
+ * @returns {IAnimation[]} poses - An array of animations gotten from a list of animation names
+ */
+function getPoses()
+{
     var poses = new Array();
     for(i = 0; i < poseNames.length; i++) { // Initialise animations
         poses.push(API.getAnimations().get(poseNames[i]));
@@ -119,81 +163,119 @@ function getPoses() { // Get animations defined by name
     return poses;
 }
 
-function setNpcPose(targetNpc, Pose, isRightPose) { // Set an npc's pose and whether that pose is correct
+/** Sets a given npc's animation to one provided
+ * Sets two temp datas to define whether an npc is correct or not as well as telling that npc the current player
+ * @param {ICustomNpc} targetNpc - The npc to the animation of
+ * @param {IAnimation} pose - The animation to be applied to the npc
+ * @param {Boolean} isRightPose - Whether this is the correct pose for the round
+ */
+function setNpcPose(targetNpc, Pose, isRightPose)
+{
     var animData = targetNpc.getAnimationData();
     animData.setEnabled(true);
     animData.setAnimation(Pose);
     animData.updateClient();
     targetNpc.setTempData("isRightPose", isRightPose);
-    targetNpc.setTempData("activePlayer", activePlayer);
+    targetNpc.setTempData("ACTIVE_PLAYER", ACTIVE_PLAYER);
 }
 
-function endRound(npc, doNext, outcomeText) { // End round stopping timers and reseting poses
+/** End round stopping poses, timers and giving an round outcome message
+ * @param {ICustomNpc} npc - The master npc to be used to manipulate timers and say
+ * @param {Boolean} doNext - Whether to start a new round or not
+ * @param {String} outcomeText - The text to be said by the npc
+ */
+function endRound(npc, doNext, outcomeText) 
+{
     npc.say(outcomeText);
-    npc.timers.stop(1);
-    npc.timers.stop(2);
+    npc.timers.stop(END_ROUND);
+    npc.timers.stop(ROUND_TIMER);
     resetPoses(npc);
     if(doNext) {
-        npc.timers.forceStart(0, roundBreak, false); // Short break between rounds
+        npc.timers.forceStart(START_ROUND, roundBreak, false); // Short break between rounds
     }
 }
 
-function punishPlayer(npc) { // Punish the player for failing a round
-    npc.world.thunderStrike(activePlayer.getPosition()); // Lightning strike the player
-    activePlayer.hurt(failDamage);
+/** Strikes the failing player with lightning and inflicts them with damage
+ * @param {ICustomNpc} npc - The npc to execute methods with
+ */
+function punishPlayer(npc)
+{
+    npc.world.thunderStrike(ACTIVE_PLAYER.getPosition()); // Lightning strike the player
+    ACTIVE_PLAYER.hurt(failDamage);
 }
 
-function endGame(npc) { // End the game, complete quest and reset npcs
-    npc.executeCommand("/kamkeel quest finish " + activePlayer.getName() + " " + questID);
-    fireworkIncrement = 0;
+/** Ends the game resetting all npcs and starts fireworks
+ * @param {ICustomNpc} npc - Master npc to be reset and execute commands 
+ */
+function endGame(npc)
+{ // End the game, complete quest and reset npcs
+    npc.executeCommand("/kamkeel quest finish " + ACTIVE_PLAYER.getName() + " " + questID);
+    COUNTER = 0;
     resetAll(npc);
-    npc.timers.forceStart(3, 8, true);
+    npc.timers.forceStart(FIREWORKS, 8, true);
 }
 
-function newGame(npc, player) { // Start new game
-    activePlayer = player;
-    activePlayer.getAnimationData().setAnimation(null); // Reset player animation
-    timerNpc.setShowBossBar(1);
-    wins = 0;
-    currentRound = 0;
-    npc.timers.forceStart(0, roundBreak, false);
+/** Sets the active player for the game resets counters and starts a new round
+ * also starts a timer to check if the player leaves the range of the arena
+ * @param {ICustomNpc} npc - The master npc to manipulate timers with
+ * @param {IPlayer} player - The player playing the game
+ */
+function newGame(npc, player)
+{
+    ACTIVE_PLAYER = player;
+    ACTIVE_PLAYER.getAnimationData().setAnimation(null); // Reset player animation
+    WINS = 0;
+    CURRENT_ROUND = 0;
+    npc.timers.forceStart(START_ROUND, roundBreak, false);
     npc.timers.forceStart(10, 20, true);
 }
 
-function resetPoses(npc) { // Reset npc to standing pose
-    function resetNPC(targetNpc) { // Reset specific npc
-        var animData = targetNpc.getAnimationData();
-        animData.setEnabled(false);
-        animData.updateClient();
-        targetNpc.removeTempData("isRightPose");
+/** Resets the poses of the active player as well as silhouettes and the master npc
+ * @param {ICustomNpc} npc - Master npc
+ */
+function resetPoses(npc)
+{
+    if(ACTIVE_PLAYER != null) { // Reset player animation
+        resetNPC(ACTIVE_PLAYER);
+        ACTIVE_PLAYER.getAnimationData().setAnimation(null);
     }
-    if(activePlayer != null) {
-        resetNPC(activePlayer);
-        activePlayer.getAnimationData().setAnimation(null); // Reset player animation
-    }
-    for(i = 0; i < silhouettes.length; i++) { // Reset silhouettes
-        resetNPC(silhouettes[i]);
+    for(i = 0; i < SILHOUETTES.length; i++) { // Reset silhouettes
+        resetNPC(SILHOUETTES[i]);
     }
     resetNPC(npc); // Reset master npc
 }
 
-function resetAll(npc) { // Reset game
-    npc.timers.clear(); // remove all timers
+/** Reset target npc's animations and temp data
+ * @param {ICustomNpc or IPlayer} targetNpc - Player or Npc to reset animation and temp data of 
+ */
+function resetNPC(targetNpc)
+{
+    var animData = targetNpc.getAnimationData();
+    animData.setEnabled(false);
+    animData.setAnimation(null);
+    animData.updateClient();
+    targetNpc.removeTempData("isRightPose");
+}
+
+/** Resets game by stopping timers and resetting all poses
+ * @param {ICustomNpc} npc - Master npc to reset timers and pose of 
+ */
+function resetAll(npc)
+{
+    npc.timers.clear();
     resetPoses(npc);
 }
 
-function spawnFirework(npc, x, y, z) { // Spawn firework particles at coordinates
+/** Spawns firework-like particle effects at a target location and plays a random firework sound
+ * @param {ICustomNpc} npc - Npc to spawn fireworks from
+ * @param {Int} x - X value to spawn firework explosion at
+ * @param {Int} y - Y value to spawn firework explosion at
+ * @param {Int} z - Z value to spawn firework explosion at
+ */
+function spawnFirework(npc, x, y, z)
+{
     var sounds = ["minecraft:fireworks.largeBlast", "minecraft:fireworks.largeBlast_far", "minecraft:fireworks.blast_far", "minecraft:fireworks.blast"];
     npc.world.spawnParticle("fireworksSpark", x, y, z, 0, 0, 0, 0.5, 40);
     npc.world.spawnParticle("spell", x, y, z, 0, 0, 0, 1, 40);
     npc.playSound(sounds[getRandomInt(0, sounds.length - 1)], 100, 1); // Play firework sound from list
-}
-
-function getRandomInt(min, max) {  // Get a random number
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function interact(e) {
-    var npc = e.npc;
-    newGame(npc, e.getPlayer());
 }
