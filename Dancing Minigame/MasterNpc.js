@@ -93,28 +93,26 @@ function timer(event)
             }
             break;  
         case(CHECK_FOR_EXITING):
-            var playerCheck = npc.getSurroundingEntities(30, 1);
-            var foundPlayer = false;
-            for(i = 0; i < playerCheck.length; i++) {
-                if(playerCheck[i] == ACTIVE_PLAYER) {
-                    foundPlayer = true;
-                    break;
-                }
+            var playerCheck = npc.getSurroundingEntities(10, 1);
+            var playerCheckArray = new Array(); 
+            for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
+                playerCheckArray.push(playerCheck[i]);
             }
-            if(!foundPlayer) { // Start reset grace period of player not found
+            if(playerCheckArray.indexOf(ACTIVE_PLAYER) < 0 && !npc.timers.has(PLAYER_EXITED)) {
+                // Check if player is not in range, don't repeat if grace period already active
                 npc.timers.forceStart(PLAYER_EXITED, playerExitTimer, false);
+                break;
             }
             break;
         case(PLAYER_EXITED):
-            var playerCheck = npc.getSurroundingEntities(30, 1);
+            var playerCheck = npc.getSurroundingEntities(10, 1);
+            var playerCheckArray = new Array(); 
             for(i = 0; i < playerCheck.length; i++) { // Pushing entities to new array because of surroundingEntities quirks
-                if(playerCheck[i] == ACTIVE_PLAYER) {
-                    foundPlayer = true;
-                    break;
-                }
+                playerCheckArray.push(playerCheck[i]);
             }
-            if(!foundPlayer) { // Reset npc
+            if(playerCheckArray.indexOf(ACTIVE_PLAYER) < 0) {
                 resetAll(npc);
+                break;
             }
             break;       
     }
@@ -222,12 +220,14 @@ function endGame(npc)
  */
 function newGame(npc, player)
 {
+
     ACTIVE_PLAYER = player;
     ACTIVE_PLAYER.getAnimationData().setAnimation(null); // Reset player animation
     WINS = 0;
     CURRENT_ROUND = 0;
+    npc.timers.stop(FIREWORKS);
     npc.timers.forceStart(START_ROUND, roundBreak, false);
-    npc.timers.forceStart(10, 20, true);
+    npc.timers.forceStart(CHECK_FOR_EXITING, 20, true);
 }
 
 /** Resets the poses of the active player as well as silhouettes and the master npc
