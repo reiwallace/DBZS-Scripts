@@ -1,3 +1,6 @@
+// Kale.js
+// AUTHOR: Noxie
+
 // Changeables
 var cauliflaName = "Caulifla"; // Name of accompanying kale npc
 

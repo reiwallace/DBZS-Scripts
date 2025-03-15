@@ -1,3 +1,6 @@
+// Caulifla.js
+// AUTHOR: Noxie
+
 // Changeables
 var kaleNpcName = "Kale"; // Name of accompanying kale npc
 var abilityInterval = 100; // Time between abilities in ticks
@@ -82,6 +85,7 @@ function getRandomInt(min, max)
 */
 function chooseAbility(npc)
 {
+    playerScan(npc);
     switch(getRandomInt(0, 1)){
         case(HOMING_KI):
             HOMING_KI_ENTITIES = new Array();
@@ -116,19 +120,38 @@ function fireHomingKi(npc)
  * @param {*} target - Target to head towards
  */
 function homeKi(ki, target)
-{
+{ // Credit to InfiniteIke for the math here
     if(ki != null) {
-        /*  Directional math
-         * 
-         */
-        ki.setMotion(x, y, z);
+        var direction = { // we calculate the direction of the rush
+            x: target.x - ki.x,
+            y: target.y - ki.y,
+            z: target.z - ki.z
+        }
+        var length = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2) + Math.pow(direction.z, 2)) //we calculate the length of the direction
+        var direction = [(direction.x / length), (direction.y / length), (direction.z / length)] //and then we normalize it and store it in the direction variable
+        ki.setMotion(direction[0], direction[1], direction[2]);
+    }
+}
+
+/** Finds the two closest players to the npc and saves them as variables
+ * @param {ICustomNpc} npc - The npc to scan for players around
+ */
+function scanPlayers(npc)
+{
+    var playerScan = npc.getSurroundingEntities(40, 1);
+    if(playerScan[0] != null) {
+        TARGET_ONE = playerScan[0];
+    }
+    if(playerScan[1] != null) {
+        TARGET_TWO = playerScan[1];
     }
 }
 
 /** Clear timers and delete extra ki
  * @param {ICustomNpc} npc - Npc to reset
  */
-function reset(npc) {
+function reset(npc)
+{
     for(i = 0; i < HOMING_KI_ENTITIES.length; i++){
         if(HOMING_KI_ENTITIES[i] != null) {
             HOMING_KI_ENTITIES[i].despawn();
