@@ -17,3 +17,8 @@ function init(event) {
         }
     }
 }
+
+function stun(target)
+{
+    if(target,has)
+}

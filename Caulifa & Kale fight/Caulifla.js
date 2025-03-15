@@ -7,6 +7,7 @@ var abilityInterval = 100; // Time between abilities in ticks
 
 var homingKiShots = 8; // Number of homing ki shots to fire
 var homingKiDamage = 100; // Damage of homing ki attack
+var homingSpeed = 1; // Speed homing shots well... home
 
 var KALE;
 var TARGET_ONE;
@@ -47,9 +48,9 @@ function timer(event) {
             }
             for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
                 if(i < homingKiShots/2 || TARGET_TWO == null) {
-                    homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE);
+                    homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE, homingSpeed);
                 } else {
-                    homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO);
+                    homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO, homingSpeed);
                 }
             }
             COUNT++;
@@ -119,7 +120,7 @@ function fireHomingKi(npc)
  * @param {*} ki - Ki attack to change motion of
  * @param {*} target - Target to head towards
  */
-function homeKi(ki, target)
+function homeKi(ki, target, speed)
 { // Credit to InfiniteIke for the math here
     if(ki != null) {
         var direction = { // we calculate the direction of the rush
@@ -129,7 +130,7 @@ function homeKi(ki, target)
         }
         var length = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2) + Math.pow(direction.z, 2)) //we calculate the length of the direction
         var direction = [(direction.x / length), (direction.y / length), (direction.z / length)] //and then we normalize it and store it in the direction variable
-        ki.setMotion(direction[0], direction[1], direction[2]);
+        ki.setMotion(direction[0] * speed, direction[1] * speed, direction[2]) * speed;
     }
 }
 
