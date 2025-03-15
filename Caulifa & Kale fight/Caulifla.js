@@ -22,6 +22,7 @@ var CHOOSE_ABILITY = 1;
 var FIRE
 var HOMING_KI_TIMER = 3;
 
+// Ability no.
 var HOMING_KI = 0;
 
 function init(event)
@@ -43,9 +44,6 @@ function timer(event) {
             chooseAbility(npc);
             break;
         case(HOMING_KI_TIMER):
-            if(count > 8) { 
-                npc.timers.stop(HOMING_KI_TIMER);
-            }
             for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
                 if(i < homingKiShots/2 || TARGET_TWO == null) {
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE, homingSpeed);
@@ -53,7 +51,6 @@ function timer(event) {
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO, homingSpeed);
                 }
             }
-            COUNT++;
             break;
     }
 }
@@ -130,7 +127,7 @@ function homeKi(ki, target, speed)
         }
         var length = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2) + Math.pow(direction.z, 2)) //we calculate the length of the direction
         var direction = [(direction.x / length), (direction.y / length), (direction.z / length)] //and then we normalize it and store it in the direction variable
-        ki.setMotion(direction[0] * speed, direction[1] * speed, direction[2]) * speed;
+        ki.setMotion(direction[0] * speed, direction[1] * speed, direction[2] * speed);
     }
 }
 
