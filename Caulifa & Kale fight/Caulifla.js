@@ -8,7 +8,10 @@ var telegraphTimer = 20; // Time of telegraph in ticks
 
 var homingKiShots = 8; // Number of homing ki shots to fire
 var homingKiDamage = 1; // Damage of homing ki attack
+var homingKiSize = 1; // Size of hominh ki attack
 var homingSpeed = 1; // Speed homing shots well... home
+var homingKiProjectile = "customnpcs:npcOrb"; // Item id of projectile to use
+var homingKiProjectileVariation = 1; // second id
 
 var KALE;
 var TARGET_ONE;
@@ -16,7 +19,6 @@ var TARGET_TWO;
 var COUNT;
 var TO_RESET;
 var HOMING_KI_ENTITIES;
-var NULL_COUNT;
 
 // Timers
 var RESET_TIMER = 0;
@@ -49,20 +51,27 @@ function timer(event) {
             chooseAbility(npc);
             break;
         case(HOMING_KI_TELEGRAPH):
-            for(i = 0; i < homingKiShots; i++) {
-                fireHomingKi(npc);
-            }
+            npc.timers.forceStart(SHOOT_HOMING_KI, 3, false);
             npc.timers.forceStart(HOMING_KI_TIMER, 5, true);
             break;
-        case(HOMING_KI_TIMER):
-            NULL_COUNT = 0;
-            if(HOMING_KI_ENTITIES == null) {
-                break;
+        case(SHOOT_HOMING_KI):
+            fireProjectile(npc, TARGET_ONE);
+            var projectileSearch = npc.getSurroundingEntities(20);
+            for(i = 0; i < projectileSearch.length; i++){
+                if(projectileSearch[i].getType() == 7 && HOMING_KI_ENTITIES.indexOf(projectileSearch[i] < 0)) {
+                    HOMING_KI_ENTITIES.push(projectileSearch[i]);
+                }
             }
+            COUNT++;
+            if(COUNT > homingKiShots) {
+                npc.timers.stop(SHOOT_HOMING_KI);
+            }
+            break;
+        case(HOMING_KI_TIMER):
             for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
                 if(HOMING_KI_ENTITIES[i] == null) {
                     NULL_COUNT++;
-                    if(NULL_COUNT > 7) {
+                    if(NULL_COUNT > homingKiShots - 1) {
                         npc.timers.stop(HOMING_KI_TIMER);
                     }
                 }
@@ -105,9 +114,11 @@ function getRandomInt(min, max)
 function chooseAbility(npc)
 {
     scanPlayers(npc);
-    switch(getRandomInt(0, 1)){
+    switch(getRandomInt(0, 0)){
         case(HOMING_KI):
             HOMING_KI_ENTITIES = new Array();
+            COUNT = 0;
+            scanPlayers(npc);
             npc.timers.forceStart(HOMING_KI_TELEGRAPH, telegraphTimer, false);
             break;
         case(BEAM):
@@ -116,18 +127,14 @@ function chooseAbility(npc)
     }
 }
 
-/** Fires a ki attack and adds it to the ki attack array for homing
- * @param {ICustomNpc} npc - npc to fire ki from
+/** Fires a projectile 
+ * @param {ICustomNpc} npc - npc to fire projectile from
 */
-function fireHomingKi(npc)
+function fireProjectile(npc, target)
 {
-    npc.executeCommand("/dbcspawnki 1 0 " + homingKiDamage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
-    var kiScan = npc.getSurroundingEntities(10);
-    for(i = 0; i < kiScan.length; i++) {
-        if(HOMING_KI_ENTITIES != null && kiScan[i].getType() == 0 && HOMING_KI_ENTITIES.indexOf(kiScan[i]) < 0) {
-            HOMING_KI_ENTITIES.push(kiScan[i])
-            kiScan[i].setMotion(0, 0, 0);
-        }
+    if(target != null) {
+        var item = API.createItem(homingKiProjectile, homingKiProjectileVariation, homingKiSize);
+        npc.shootItem(target, item, 100);
     }
 }
 
@@ -155,10 +162,10 @@ function homeKi(ki, target, speed)
 function scanPlayers(npc)
 {
     var playerScan = npc.getSurroundingEntities(40, 1);
-    if(playerScan[0] != null) {
+    if(playerScan.length > 0 && playerScan[0] != null) {
         TARGET_ONE = playerScan[0];
     }
-    if(playerScan[1] != null) {
+    if(playerScan.length > 1 && playerScan[1] != null) {
         TARGET_TWO = playerScan[1];
     }
 }
