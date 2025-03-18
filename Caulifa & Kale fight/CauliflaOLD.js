@@ -21,7 +21,7 @@ var NULL_COUNT;
 // Timers
 var RESET_TIMER = 0;
 var CHOOSE_ABILITY = 1;
-var FIRE
+var SHOOT_HOMING_KI = 2;
 var HOMING_KI_TIMER = 3;
 var HOMING_KI_TELEGRAPH = 4;
 
@@ -53,6 +53,9 @@ function timer(event) {
                 fireHomingKi(npc);
             }
             npc.timers.forceStart(HOMING_KI_TIMER, 5, true);
+            break;
+        case(SHOOT_HOMING_KI):
+
             break;
         case(HOMING_KI_TIMER):
             NULL_COUNT = 0;

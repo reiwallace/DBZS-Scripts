@@ -13,6 +13,10 @@ var homingSpeed = 1; // Speed homing shots well... home
 var homingKiProjectile = "customnpcs:npcOrb"; // Item id of projectile to use
 var homingKiProjectileVariation = 1; // second id
 
+var beamVoiceline = "Dodge this!!"; // Npc says before shooting the beam attack
+var beamDamage = 1; // Damage of beam attack
+var beamSpeed = 1; // Speed of beam attack
+
 var KALE;
 var TARGET_ONE;
 var TARGET_TWO;
@@ -23,9 +27,10 @@ var HOMING_KI_ENTITIES;
 // Timers
 var RESET_TIMER = 0;
 var CHOOSE_ABILITY = 1;
-var FIRE
+var SHOOT_HOMING_KI = 2;
 var HOMING_KI_TIMER = 3;
 var HOMING_KI_TELEGRAPH = 4;
+var BEAM_TELEGRAPH = 5;
 
 // Ability no.
 var HOMING_KI = 0;
@@ -44,7 +49,8 @@ function init(event)
     }
 }
 
-function timer(event) {
+function timer(event)
+{
     var npc = event.npc;
     switch(event.id) {
         case(CHOOSE_ABILITY):
@@ -54,7 +60,7 @@ function timer(event) {
             npc.timers.forceStart(SHOOT_HOMING_KI, 3, false);
             npc.timers.forceStart(HOMING_KI_TIMER, 5, true);
             break;
-        case(SHOOT_HOMING_KI):
+        case(SHOOT_HOMING_KI): // Fires the projectile and adds it to an array.
             fireProjectile(npc, TARGET_ONE);
             var projectileSearch = npc.getSurroundingEntities(20);
             for(i = 0; i < projectileSearch.length; i++){
@@ -63,24 +69,24 @@ function timer(event) {
                 }
             }
             COUNT++;
-            if(COUNT > homingKiShots) {
+            if(COUNT > homingKiShots) { // Stop timer after firing desired number of shotss
                 npc.timers.stop(SHOOT_HOMING_KI);
             }
             break;
-        case(HOMING_KI_TIMER):
+        case(HOMING_KI_TIMER): // Homes half of the projectiles onto one target and half onto the other.
             for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
-                if(HOMING_KI_ENTITIES[i] == null) {
-                    NULL_COUNT++;
-                    if(NULL_COUNT > homingKiShots - 1) {
-                        npc.timers.stop(HOMING_KI_TIMER);
-                    }
-                }
                 if(i < homingKiShots/2 || TARGET_TWO == null) {
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE, homingSpeed);
                 } else {
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO, homingSpeed);
                 }
             }
+            break;
+        case(DESPAWN_HOMING_KI): // Despawns homing ki before next attack
+            despawnEntities(HOMING_KI_ENTITIES);
+            break;
+        case(BEAM_TELEGRAPH):
+                beamAttack(npc, beamDamage, beamSpeed);
             break;
     }
 }
@@ -115,14 +121,16 @@ function chooseAbility(npc)
 {
     scanPlayers(npc);
     switch(getRandomInt(0, 0)){
-        case(HOMING_KI):
+        case(HOMING_KI): // Reset ki entities array 
+            despawnEntities(HOMING_KI_ENTITIES);
             HOMING_KI_ENTITIES = new Array();
             COUNT = 0;
             scanPlayers(npc);
             npc.timers.forceStart(HOMING_KI_TELEGRAPH, telegraphTimer, false);
             break;
         case(BEAM):
-            npc.say("2")
+            npc.say(beamVoiceline);
+            npc.timers.forceStart(BEAM_TELEGRAPH, telegraphTimer, false);
             break;
     }
 }
@@ -170,15 +178,32 @@ function scanPlayers(npc)
     }
 }
 
+/** Fires a dbc beam from the npc wth a set damage and speed
+ * @param {*} npc - Npc shooting the beam
+ * @param {*} damage - Damage of the beam
+ * @param {*} speed - Speed of the beam
+ */
+function beamAttack(npc, damage, speed)
+{
+    npc.executeCommand("/dbcspawnki 1 " + speed + " " + damage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+}
+
+/** Despawns all entities in an array if valid
+ * @param {*} entityArray 
+ */
+function despawnEntities(entityArray)
+{
+    if(entityArray == null) return;
+    for(i = 0; i < entityArray.length; i++) {
+        if(entityArray[i] != null) entityArray[i].despawn();
+    }
+}
+
 /** Clear timers and delete extra ki
  * @param {ICustomNpc} npc - Npc to reset
  */
 function reset(npc)
 {
-    for(i = 0; i < HOMING_KI_ENTITIES.length; i++){
-        if(HOMING_KI_ENTITIES[i] != null) {
-            HOMING_KI_ENTITIES[i].despawn();
-        }
-    }
+    despawnEntities(HOMING_KI_ENTITIES);
     npc.timers.clear();
 }
