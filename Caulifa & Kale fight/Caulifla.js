@@ -3,7 +3,7 @@
 
 // Changeables
 var kaleNpcName = "Kale"; // Name of accompanying kale npc
-var abilityInterval = 100; // Time between abilities in ticks
+var abilityInterval = 300; // Time between abilities in ticks
 var telegraphTimer = 20; // Time of telegraph in ticks
 
 var homingKiShots = 8; // Number of homing ki shots to fire
