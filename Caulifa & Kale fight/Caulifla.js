@@ -6,6 +6,7 @@ var kaleNpcName = "Kale"; // Name of accompanying kale npc
 var abilityInterval = 300; // Time between abilities in ticks
 var telegraphTimer = 20; // Time of telegraph in ticks
 
+var homingKiVoiceline = "Can you keep up with this?"; // Npc says before firing homing projectiles
 var homingKiShots = 8; // Number of homing ki shots to fire
 var homingKiDamage = 1; // Damage of homing ki attack
 var homingKiSize = 1; // Size of hominh ki attack
@@ -13,7 +14,7 @@ var homingSpeed = 1; // Speed homing shots well... home
 var homingKiProjectile = "customnpcs:npcOrb"; // Item id of projectile to use
 var homingKiProjectileVariation = 1; // second id
 
-var beamVoiceline = "Dodge this!!"; // Npc says before shooting the beam attack
+var beamVoiceline = "Take this!!"; // Npc says before shooting the beam attack
 var beamDamage = 1; // Damage of beam attack
 var beamSpeed = 1; // Speed of beam attack
 
@@ -86,7 +87,7 @@ function timer(event)
             despawnEntities(HOMING_KI_ENTITIES);
             break;
         case(BEAM_TELEGRAPH):
-                beamAttack(npc, beamDamage, beamSpeed);
+            beamAttack(npc, beamDamage, beamSpeed);
             break;
     }
 }
@@ -120,12 +121,13 @@ function getRandomInt(min, max)
 function chooseAbility(npc)
 {
     scanPlayers(npc);
-    switch(getRandomInt(0, 0)){
+    switch(getRandomInt(0, 1)) {
         case(HOMING_KI): // Reset ki entities array 
             despawnEntities(HOMING_KI_ENTITIES);
             HOMING_KI_ENTITIES = new Array();
             COUNT = 0;
             scanPlayers(npc);
+            npc.say(homingKiVoiceline);
             npc.timers.forceStart(HOMING_KI_TELEGRAPH, telegraphTimer, false);
             break;
         case(BEAM):
