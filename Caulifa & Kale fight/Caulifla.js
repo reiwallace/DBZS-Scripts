@@ -150,6 +150,7 @@ function fireProjectile(npc, target)
 /** Sets a ki attack's motion towards a target
  * @param {*} ki - Ki attack to change motion of
  * @param {*} target - Target to head towards
+ * 
  */
 function homeKi(ki, target, speed)
 { // Credit to InfiniteIke for the math here
