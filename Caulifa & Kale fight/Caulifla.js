@@ -17,6 +17,7 @@ var homingKiProjectileVariation = 1; // second id
 var beamVoiceline = "Take this!!"; // Npc says before shooting the beam attack
 var beamDamage = 1; // Damage of beam attack
 var beamSpeed = 1; // Speed of beam attack
+var beamColor = 4; // Color of the beam attack - 4 = red
 
 var KALE;
 var TARGET_ONE;
@@ -76,9 +77,9 @@ function timer(event)
             break;
         case(HOMING_KI_TIMER): // Homes half of the projectiles onto one target and half onto the other.
             for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
-                if(i < homingKiShots/2 || TARGET_TWO == null) {
+                if(i < homingKiShots/2 || TARGET_TWO == null) { // Home half the shots in on target one
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE, homingSpeed);
-                } else {
+                } else { // Home half the shots in on target two
                     homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO, homingSpeed);
                 }
             }
@@ -87,7 +88,7 @@ function timer(event)
             despawnEntities(HOMING_KI_ENTITIES);
             break;
         case(BEAM_TELEGRAPH):
-            beamAttack(npc, beamDamage, beamSpeed);
+            beamAttack(npc, beamDamage, beamSpeed, beamColor);
             break;
     }
 }
@@ -98,9 +99,6 @@ function meleeAttack(event)
     TARGET = npc.getAttackTarget();
     DBC_TARGET = TARGET.getDBCPlayer();
     npc.timers.forceStart(10, npc.getTempData("Reset Time"), false); // Reset if doesn't melee a target for set time
-    if(TO_RESET != null && TO_RESET.indexOf(TARGET) < 0) { // Add reset targets if not in array already
-        TO_RESET.push(TARGET);
-    }
     if(!npc.timers.has(CHOOSE_ABILITY)) {
         npc.timers.forceStart(CHOOSE_ABILITY, abilityInterval, true); // Start ability timer
     }
@@ -121,6 +119,7 @@ function getRandomInt(min, max)
 function chooseAbility(npc)
 {
     scanPlayers(npc);
+    if(npc.hasTimer("Assist Attack")) return; // Don't perform an attack if doing assist ability
     switch(getRandomInt(0, 1)) {
         case(HOMING_KI): // Reset ki entities array 
             despawnEntities(HOMING_KI_ENTITIES);
@@ -180,14 +179,15 @@ function scanPlayers(npc)
     }
 }
 
-/** Fires a dbc beam from the npc wth a set damage and speed
- * @param {*} npc - Npc shooting the beam
- * @param {*} damage - Damage of the beam
- * @param {*} speed - Speed of the beam
+/** Fires a dbc ki attack from the npc wth a set damage and speed
+ * @param {ICustomNpc} npc - Npc shooting the ki
+ * @param {int} damage - Damage of the ki
+ * @param {int} speed - Speed of the ki
+ * @param {int} color - Color of the ki
  */
-function beamAttack(npc, damage, speed)
+function kiAttack(npc, damage, speed, color)
 {
-    npc.executeCommand("/dbcspawnki 1 " + speed + " " + damage + " 0 4 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+    npc.executeCommand("/dbcspawnki 1 " + speed + " " + damage + " 0 " + color + " 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
 }
 
 /** Despawns all entities in an array if valid
