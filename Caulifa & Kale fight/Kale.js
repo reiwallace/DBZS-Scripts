@@ -7,14 +7,21 @@ var arenaCenter = [0, 0, 0]; // Center of arean to knock player towards
 var telegraphTimer = 20; // Timer between announcing attacks and actually using them
 var maxDistanceFromCenter = 10; // Tp player to center if they are too far away
 
+// Ki blast
 var kiBlastVoiceline = "I got this!"; // Line said by kale before shooting her ki blast
 var kiBlastCooldown = 200; // Cooldown of ki blast ability
 var kiBlastDamage = 1; // Damage of ki blast
 var kiBlastSpeed = 2; // Speed of ki blast
 var kiBlastColor = 6; // Color of ki blast - 6 = green
 
+// Assist ability
+var caulifaAssistVoiceline = "Hold them there Kale!"; // Line said by caulifla when charging her beam attack
+var cauliflaFireVoiceline = "No dodging this one!"; // Line said by caulifla when she fires her beam attack
+var kaleAssistVoiceline = "I've got them Caulifla!"; // Line said by kale when holding the player
 var assistAbilityCooldown = 600; // Cooldown of assist ability
 var kickSpeed = 3; // Speed player is moved to the center of the arena (make smaller for smaller arenas)
+var holdDistance = 1; // Distance in blocks kale will be from the player when holding them
+var firingDistance = 8; // Distace in blocks caulifla will fire the beam at the player from
 
 var PLAYER_POS;
 var CAULIFLA;
@@ -74,7 +81,6 @@ function timer(event)
                 npc.executeCommand("/tp " + TARGET.getName() + " " + arenaCenter[0] + " " + arenaCenter[1] + " " + arenaCenter[2]);
                 PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save new player coordinates
                 positionBosses(TARGET, npc, CAULIFLA);
-
             } else {
                 moveEntity(TARGET, PLAYER_POS[0], PLAYER_POS[1], PLAYER_POS[2], 0.05);
             }
@@ -95,6 +101,16 @@ function meleeAttack(event)
         npc.timers.forceStart(KI_BLAST_TELEGRAPH, abilityInterval, true); // Start ability timer
         npc.timers.forceStart(ASSIST_ATTACK, assistAbilityCooldown, true);
     }
+}
+
+/** Resets npc's timers and temp data
+ * @param {ICustomNpc} npc - Npc to reset
+ */
+function reset(npc)
+{
+    npc.timers.clear();
+    npc.setTempData("Attacking", false);
+
 }
 
 /** Fires a dbc ki attack from the npc wth a set damage and speed
@@ -154,4 +170,9 @@ function setPosition(entity, x, y, z)
     entity.setX(x);
     entity.setY(y);
     entity.setZ(z);
+}
+
+function speak()
+{
+
 }
