@@ -79,6 +79,7 @@ function timer(event)
         case(KICK_DELAY):
             PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save player coordinates
             positionBosses(TARGET, npc, CAULIFLA); // Move bosses to hold player and fire attack
+            speak(TARGET, overlayText, overlayColor, overlaySize, overlayID);
             npc.timers.forceStart(HOLD_PLAYER, 0, true);
             npc.timers.forceStart()
             npc.timers.forceStart(STOP_HOLD, holdDuration, false);
@@ -98,6 +99,7 @@ function timer(event)
             break;
         case(STOP_HOLD):
             npc.timers.stop(HOLD_PLAYER);
+            TARGET.closeOverlay(overlayID);
             npc.setTempData("Attacking", false);
             CAULIFLA.setTempData("Attacking", false);
             break
@@ -125,7 +127,7 @@ function reset(npc)
     npc.setTempData("Attacking", false);
     CAULIFLA.setTempData("Attacking", false);
     CAULIFLA.setRotationType(0);
-
+    TARGET.closeOverlay(overlayID);
 }
 
 /** Fires a dbc ki attack from the npc wth a set damage and speed
