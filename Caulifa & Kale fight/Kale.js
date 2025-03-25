@@ -19,6 +19,8 @@ var caulifaAssistVoiceline = "Hold them there Kale!"; // Line said by caulifla w
 var cauliflaFireVoiceline = "No dodging this one!"; // Line said by caulifla when she fires her beam attack
 var kaleAssistVoiceline = "I've got them Caulifla!"; // Line said by kale when holding the player
 var assistAbilityCooldown = 600; // Cooldown of assist ability
+var assistTelegraphTimer = 20; // How long the player has to block in ticks
+var holdDuration = 30; // How long the player is held for by the assist ability (set a little longer than telegraph)
 var kickSpeed = 3; // Speed player is moved to the center of the arena (make smaller for smaller arenas)
 var holdDistance = 1; // Distance in blocks kale will be from the player when holding them
 var firingDistance = 8; // Distace in blocks caulifla will fire the beam at the player from
@@ -30,14 +32,15 @@ var TARGET;
 // Timers
 var KI_BLAST_TELEGRAPH = 0;
 var KI_BLAST = 1;
-var ASSIST_ATTACK = 2;
+var BEGIN_ASSIST = 2;
 var HOLD_PLAYER = 3;
 var STOP_HOLD = 4;
+var ASSIST_FIRE = 5;
 
 function init(event)
 {
     var npc = event.npc;
-    var search = npc.getSurroundingEntities(40,2); // Search for kale
+    var search = npc.getSurroundingEntities(40,2); // Search for caulifla
     for(i = 0; i < search.length; i++) {
         if(search[i].getName() == cauliflaName) {
             CAULIFLA = search[i];
@@ -59,10 +62,12 @@ function timer(event)
         case(KI_BLAST):
             kiAttack(npc, kiBlastDamage, kiBlastSpeed, kiBlastColor);
             break;
-        case(ASSIST_ATTACK):
+        case(BEGIN_ASSIST):
             if(arenaCenter[1] == 0) {
                 npc.say("Cannot use Assist Attack - Please change arena center")
             } else if(TARGET != null) {
+                CAULIFLA.setTempData("Attacking", true);
+                npc.setTempData("Attacking", true);
                 CAULIFLA.say(caulifaAssistVoiceline);
                 npc.say(kaleAssistVoiceline);
                 movePlayer(TARGET, arenaCenter[0], arenaCenter[1], arenaCenter[2], kickSpeed); // Kick player towards center of arena
@@ -73,6 +78,7 @@ function timer(event)
             PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save player coordinates
             positionBosses(TARGET, npc, CAULIFLA); // Move bosses to hold player and fire attack
             npc.timers.forceStart(HOLD_PLAYER, 0, true);
+            npc.timers.forceStart()
             npc.timers.forceStart(STOP_HOLD, holdDuration, false);
             break;
         case(HOLD_PLAYER):
@@ -85,8 +91,13 @@ function timer(event)
                 moveEntity(TARGET, PLAYER_POS[0], PLAYER_POS[1], PLAYER_POS[2], 0.05);
             }
             break;
+        case(ASSIST_FIRE):
+
+            break;
         case(STOP_HOLD):
             npc.timers.stop(HOLD_PLAYER);
+            npc.setTempData("Attacking", false);
+            CAULIFLA.setTempData("Attacking", false);
             break
     }
 }
@@ -99,7 +110,7 @@ function meleeAttack(event)
     npc.timers.forceStart(10, npc.getTempData("Reset Time"), false); // Reset if doesn't melee a target for set time
     if(!npc.timers.has(KI_BLAST_TELEGRAPH)) { // Start timers if not active
         npc.timers.forceStart(KI_BLAST_TELEGRAPH, abilityInterval, true); // Start ability timer
-        npc.timers.forceStart(ASSIST_ATTACK, assistAbilityCooldown, true);
+        npc.timers.forceStart(BEGIN_ASSIST, assistAbilityCooldown, true);
     }
 }
 
@@ -110,6 +121,8 @@ function reset(npc)
 {
     npc.timers.clear();
     npc.setTempData("Attacking", false);
+    CAULIFLA.setTempData("Attacking", false);
+    CAULIFLA.setRotationType(0);
 
 }
 
@@ -155,6 +168,8 @@ function positionBosses(target, holdingNpc, firingNpc)
     var dx = -Math.sin(angle*Math.PI/180);
     var dz = Math.cos(angle*Math.PI/180);
 
+    firingNpc.setRotationType(1);
+    CAULIFLA.setRotation();
     setPosition(holdingNpc, target.getX() + dx * -holdDistance, target.getY(), target.getZ() + dz * -holdDistance);
     setPosition(firingNpc, target.getX() + dx * firingDistance, target.getY(), target.getZ() + dz * firingDistance);
 }
@@ -170,6 +185,15 @@ function setPosition(entity, x, y, z)
     entity.setX(x);
     entity.setY(y);
     entity.setZ(z);
+}
+
+/** Gets the angle from one entity to another
+ * @param {IEntity} entity1 - Initial entity to get angle from 
+ * @param {IEntity} entity2 - Second entity to get angle to
+ */
+function getAngle(entity1, entity2) 
+{
+    
 }
 
 function speak()
