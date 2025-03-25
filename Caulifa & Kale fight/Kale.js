@@ -24,6 +24,8 @@ var holdDuration = 30; // How long the player is held for by the assist ability 
 var kickSpeed = 3; // Speed player is moved to the center of the arena (make smaller for smaller arenas)
 var holdDistance = 1; // Distance in blocks kale will be from the player when holding them
 var firingDistance = 8; // Distace in blocks caulifla will fire the beam at the player from
+var assistOverlayId = 111; // Id of the overlay telling player to block.
+var assistOverlayText = "Caulifla is aiming an attack at you! Block Now!"; // Indicator the player should block during the beam attack
 
 var PLAYER_POS;
 var CAULIFLA;
@@ -193,10 +195,25 @@ function setPosition(entity, x, y, z)
  */
 function getAngle(entity1, entity2) 
 {
-    
+
 }
 
-function speak()
-{
-
+/**
+ * Places a speech overlay on the player's screen.
+ *
+ * @param {IPlayer} player - The player object on whose screen the overlay will be displayed.
+ * @param {string} text - The text to display on the player's screen.
+ * @param {string} color - The color of the text in hexadecimal format.
+ * @param {number} size - The font size of the text.
+ * @param {string} speakID - The ID of the text overlay.
+ */
+function speak(player, text, color, size, speakID) 
+{ 
+    var speechOverlay = API.createCustomOverlay(speakID); // Create overlay with id
+    var x = 480 - Math.floor((text.length) * 2.5) * size; // Calculate centre position
+    var y = 246 - Math.floor(size * 6.5);
+    speechOverlay.addLabel(1, text, x, y, 0, 0, color); // Add label in the middle of the screen with the given color
+    speechOverlay.getComponent(1).setScale(size); // Resize the label
+    player.showCustomOverlay(speechOverlay); // Place the overlay on the player's screen
+    speechOverlay.update(player); // Update the label to be visible
 }
