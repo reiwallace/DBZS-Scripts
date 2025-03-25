@@ -58,18 +58,25 @@ function timer(event)
             } else if(TARGET != null) {
                 CAULIFLA.say(caulifaAssistVoiceline);
                 npc.say(kaleAssistVoiceline);
-                movePlayer(TARGET, arenaCenter[0], arenaCenter[1], arenaCenter[2], kickSpeed);
-                PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()];
-                npc.timers.forceStart(HOLD_PLAYER, 0, true);
-                npc.timers.forceStart(STOP_HOLD, holdDuration, false);
+                movePlayer(TARGET, arenaCenter[0], arenaCenter[1], arenaCenter[2], kickSpeed); // Kick player towards center of arena
+                npc.timers.forceStart(KICKDELAY, 5, false);
             }
+            break;
+        case(KICK_DELAY):
+            PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save player coordinates
+            positionBosses(TARGET, npc, CAULIFLA); // Move bosses to hold player and fire attack
+            npc.timers.forceStart(HOLD_PLAYER, 0, true);
+            npc.timers.forceStart(STOP_HOLD, holdDuration, false);
             break;
         case(HOLD_PLAYER):
             if(Math.abs(Math.abs(TARGET.getX()) - Math.abs(arenaCenter[0])) > maxDistanceFromCenter || Math.abs(Math.abs(TARGET.getY()) - Math.abs(arenaCenter[1])) > maxDistanceFromCenter || Math.abs(Math.abs(TARGET.getZ()) - Math.abs(arenaCenter[2])) > maxDistanceFromCenter) {
+                // If player is more than 10 blocks away from the center of the arena in any direction tp them to the center
                 npc.executeCommand("/tp " + TARGET.getName() + " " + arenaCenter[0] + " " + arenaCenter[1] + " " + arenaCenter[2]);
-                PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()];
+                PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save new player coordinates
+                positionBosses(TARGET, npc, CAULIFLA);
+
             } else {
-                movePlayer(TARGET, PLAYER_POS[0], PLAYER_POS[1], PLAYER_POS[2], 0.05);
+                moveEntity(TARGET, PLAYER_POS[0], PLAYER_POS[1], PLAYER_POS[2], 0.05);
             }
             break;
         case(STOP_HOLD):
@@ -120,4 +127,31 @@ function moveEntity(entity, cx, cy, cz, speed)
         var direction = [(direction.x / length), (direction.y / length), (direction.z / length)] //and then we normalize it and store it in the direction variable
         entity.setMotion(direction[0] * speed, direction[1] * speed, direction[2] * speed);
     }
+}
+/** Sets position of kale and caulifla for kale's assist ability based on the target's position
+ * @param {IEntity} target - Target to base positioning on
+ * @param {ICustomNpc} holdingNpc - Npc(Kale) holding the player
+ * @param {ICustomNpc} firingNpc - Npc(caulifla) firing the attack
+ */
+function positionBosses(target, holdingNpc, firingNpc)
+{
+    var angle = target.getRotation();
+    var dx = -Math.sin(angle*Math.PI/180);
+    var dz = Math.cos(angle*Math.PI/180);
+
+    setPosition(holdingNpc, target.getX() + dx * -holdDistance, target.getY(), target.getZ() + dz * -holdDistance);
+    setPosition(firingNpc, target.getX() + dx * firingDistance, target.getY(), target.getZ() + dz * firingDistance);
+}
+
+/** Sets an entitie's position (doesnt work on players)
+ * @param {IEntity} entity 
+ * @param {double} x - X position 
+ * @param {double} y - Y position
+ * @param {double} z - Z position
+ */
+function setPosition(entity, x, y, z)
+{
+    entity.setX(x);
+    entity.setY(y);
+    entity.setZ(z);
 }
