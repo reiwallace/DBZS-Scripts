@@ -49,6 +49,7 @@ function init(event)
             break;
         }
     }
+    npc.setTempData("Attacking", false);
 }
 
 function timer(event)
@@ -119,7 +120,7 @@ function getRandomInt(min, max)
 function chooseAbility(npc)
 {
     scanPlayers(npc);
-    if(npc.hasTimer("Assist Attack")) return; // Don't perform an attack if doing assist ability
+    if(npc.getTempData("Attacking")) return; // Don't perform an attack if doing assist ability
     switch(getRandomInt(0, 1)) {
         case(HOMING_KI): // Reset ki entities array 
             despawnEntities(HOMING_KI_ENTITIES);
