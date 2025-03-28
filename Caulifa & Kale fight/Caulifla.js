@@ -5,6 +5,8 @@
 var kaleNpcName = "Kale"; // Name of accompanying kale npc
 var abilityInterval = 300; // Time between abilities in ticks
 var telegraphTimer = 20; // Time of telegraph in ticks
+var arenaSize = 40; // Rough size of arena for player scanning
+var resetTime = 600; // Number of seconds since meleeing a player or being hit to reset
 
 var homingKiVoiceline = "Can you keep up with this?"; // Npc says before firing homing projectiles
 var homingKiShots = 8; // Number of homing ki shots to fire
@@ -25,6 +27,7 @@ var TARGET_TWO;
 var COUNT;
 var TO_RESET;
 var HOMING_KI_ENTITIES;
+var ABILITY = true;
 
 // Timers
 var RESET_TIMER = 0;
@@ -33,10 +36,12 @@ var SHOOT_HOMING_KI = 2;
 var HOMING_KI_TIMER = 3;
 var HOMING_KI_TELEGRAPH = 4;
 var BEAM_TELEGRAPH = 5;
+var DESPAWN_HOMING_KI = 6;
+var RESET = 7;
 
 // Ability no.
-var HOMING_KI = 0;
-var BEAM = 1;
+var HOMING_KI = false;
+var BEAM = true;
 
 function init(event)
 {
@@ -56,14 +61,21 @@ function timer(event)
 {
     var npc = event.npc;
     switch(event.id) {
+        case(RESET):
+            reset(npc);
+            break;
         case(CHOOSE_ABILITY):
             chooseAbility(npc);
             break;
         case(HOMING_KI_TELEGRAPH):
-            npc.timers.forceStart(SHOOT_HOMING_KI, 3, false);
+            npc.timers.forceStart(SHOOT_HOMING_KI, 3, true);
             npc.timers.forceStart(HOMING_KI_TIMER, 5, true);
             break;
         case(SHOOT_HOMING_KI): // Fires the projectile and adds it to an array.
+            if(npc.getTempData("Attacking")) {
+                ABILITY = HOMING_KI
+                return;
+            }
             fireProjectile(npc, TARGET_ONE);
             var projectileSearch = npc.getSurroundingEntities(20);
             for(i = 0; i < projectileSearch.length; i++){
@@ -89,20 +101,53 @@ function timer(event)
             despawnEntities(HOMING_KI_ENTITIES);
             break;
         case(BEAM_TELEGRAPH):
-            beamAttack(npc, beamDamage, beamSpeed, beamColor);
+            if(npc.getTempData("Attacking")) {
+                ABILITY = BEAM ;
+                return;
+            }
+            kiAttack(npc, beamDamage, beamSpeed, beamColor);
             break;
     }
 }
 
 function meleeAttack(event)
+{ // Begin reset timer on swing
+    event.npc.timers.forceStart(RESET, resetTime, false);
+}
+
+function damaged(event)
+{ // Begin reset timer on damaged
+    event.npc.timers.forceStart(RESET, resetTime, false);
+}
+
+function killed(event)
+{ // Reset if killed
+    reset(event.npc);
+}
+
+function kills(event)
+{ // Reset if killing a player and no other players around
+    var npc = event.npc;
+    var playerCheck = npc.getSurroundingEntities(50, 1);
+    if(playerCheck.length < 1) reset;
+}
+
+function target(event)
 { // Set target and begin reset timer on swing
     var npc = event.npc;
-    TARGET = npc.getAttackTarget();
-    DBC_TARGET = TARGET.getDBCPlayer();
-    npc.timers.forceStart(10, npc.getTempData("Reset Time"), false); // Reset if doesn't melee a target for set time
+    TARGET = event.getTarget();
     if(!npc.timers.has(CHOOSE_ABILITY)) {
         npc.timers.forceStart(CHOOSE_ABILITY, abilityInterval, true); // Start ability timer
     }
+}
+
+/** Clear timers and delete extra ki
+ * @param {ICustomNpc} npc - Npc to reset
+ */
+function reset(npc)
+{
+    despawnEntities(HOMING_KI_ENTITIES);
+    npc.timers.clear();
 }
 
 /** Returns a random number between two values
@@ -121,7 +166,7 @@ function chooseAbility(npc)
 {
     scanPlayers(npc);
     if(npc.getTempData("Attacking")) return; // Don't perform an attack if doing assist ability
-    switch(getRandomInt(0, 1)) {
+    switch(ABILITY) {
         case(HOMING_KI): // Reset ki entities array 
             despawnEntities(HOMING_KI_ENTITIES);
             HOMING_KI_ENTITIES = new Array();
@@ -135,6 +180,7 @@ function chooseAbility(npc)
             npc.timers.forceStart(BEAM_TELEGRAPH, telegraphTimer, false);
             break;
     }
+    ABILITY = !ABILITY;
 }
 
 /** Fires a projectile 
@@ -143,14 +189,15 @@ function chooseAbility(npc)
 function fireProjectile(npc, target)
 {
     if(target != null) {
+        npc.playSound("jinryuudragonbc:DBC2.blast", 50, 1);
         var item = API.createItem(homingKiProjectile, homingKiProjectileVariation, homingKiSize);
         npc.shootItem(target, item, 100);
     }
 }
 
 /** Sets a ki attack's motion towards a target
- * @param {*} ki - Ki attack to change motion of
- * @param {*} target - Target to head towards
+ * @param {IProjectile} ki - Ki attack to change motion of
+ * @param {IEntity} target - Target to head towards
  * 
  */
 function homeKi(ki, target, speed)
@@ -158,7 +205,7 @@ function homeKi(ki, target, speed)
     if(ki != null) {
         var direction = { // we calculate the direction of the rush
             x: target.x - ki.x,
-            y: target.y - ki.y,
+            y: target.y + 1 - ki.y,
             z: target.z - ki.z
         }
         var length = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2) + Math.pow(direction.z, 2)) //we calculate the length of the direction
@@ -172,7 +219,7 @@ function homeKi(ki, target, speed)
  */
 function scanPlayers(npc)
 {
-    var playerScan = npc.getSurroundingEntities(40, 1);
+    var playerScan = npc.getSurroundingEntities(arenaSize, 1);
     if(playerScan.length > 0 && playerScan[0] != null) {
         TARGET_ONE = playerScan[0];
     }
@@ -187,13 +234,13 @@ function scanPlayers(npc)
  * @param {int} speed - Speed of the ki
  * @param {int} color - Color of the ki
  */
-function kiAttack(npc, damage, speed, color)
+function kiAttack(npc, damage, speed, color, size)
 {
-    npc.executeCommand("/dbcspawnki 1 " + speed + " " + damage + " 0 " + color + " 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+    npc.executeCommand("/dbcspawnki 3 " + speed + " " + damage + " 0 " + color + " 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
 }
 
 /** Despawns all entities in an array if valid
- * @param {*} entityArray 
+ * @param {IEntity[]} entityArray 
  */
 function despawnEntities(entityArray)
 {
@@ -201,13 +248,4 @@ function despawnEntities(entityArray)
     for(i = 0; i < entityArray.length; i++) {
         if(entityArray[i] != null) entityArray[i].despawn();
     }
-}
-
-/** Clear timers and delete extra ki
- * @param {ICustomNpc} npc - Npc to reset
- */
-function reset(npc)
-{
-    despawnEntities(HOMING_KI_ENTITIES);
-    npc.timers.clear();
 }

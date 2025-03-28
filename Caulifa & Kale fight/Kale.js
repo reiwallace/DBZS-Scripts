@@ -6,7 +6,8 @@ var cauliflaName = "Caulifla"; // Name of accompanying kale npc
 var arenaCenter = [-258, 60, -843]; // Center of arean to knock player towards
 var telegraphTimer = 20; // Timer between announcing attacks and actually using them
 var maxDistanceFromCenter = 10; // Tp player to center if they are too far away
-var originalMeleeSpeed = 1; // Melee speed to set back to after reseting
+var originalMeleeSpeed = 20; // Melee speed to set back to after reseting
+var resetTime = 600; // Number of seconds since meleeing a player or being hit to reset
 
 // Ki blast
 var kiBlastVoiceline = "I got this!"; // Line said by kale before shooting her ki blast
@@ -48,6 +49,7 @@ var HOLD_PLAYER = 3;
 var STOP_HOLD = 4;
 var ASSIST_FIRE = 5;
 var KICK_DELAY = 6;
+var RESET = 7;
 
 function init(event)
 {
@@ -66,6 +68,9 @@ function timer(event)
 {
     var npc = event.npc;
     switch(event.id) {
+        case(RESET):
+            reset(npc);
+            break;
         case(KI_BLAST_TELEGRAPH):
             if(!npc.getTempData("Attacking")) {
                 npc.say(kiBlastVoiceline);
@@ -83,7 +88,7 @@ function timer(event)
             } else if(TARGET != null) {
                 CAULIFLA.setTempData("Attacking", true); // Stop npcs from performing other attacks
                 npc.setTempData("Attacking", true);
-                CAULIFLA.setMeleeSpeed(10000);
+                CAULIFLA.setMeleeSpeed(10000); // Make npcs stop meleeing during assist
                 npc.setMeleeSpeed(10000);
                 CAULIFLA.setRotationType(1);
                 CAULIFLA.say(caulifaAssistVoiceline);
@@ -93,6 +98,7 @@ function timer(event)
             }
             break;
         case(KICK_DELAY):
+            npc.playSound("jinryuudragonbc:DBC4.block2", 50, 1);
             PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save player coordinates
             positionBosses(TARGET, npc, CAULIFLA); // Move bosses to hold player and fire attack
             speak(TARGET, assistOverlayText, assistOverlayColor, assistOverlaySize, assistOverlayId);
@@ -107,6 +113,7 @@ function timer(event)
                 PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save new player coordinates
                 positionBosses(TARGET, npc, CAULIFLA);
             } else {
+                // Move player and npc's to their position
                 CAULIFLA.setRotation(getAngle(CAULIFLA, TARGET));
                 moveEntity(CAULIFLA, CAULIFLA_POS[0], CAULIFLA_POS[1], CAULIFLA_POS[2], 0.1);
                 moveEntity(npc, KALE_POS[0], KALE_POS[1], KALE_POS[2], 0.1);
@@ -124,21 +131,41 @@ function timer(event)
         case(STOP_HOLD):
             npc.timers.stop(HOLD_PLAYER);
             TARGET.closeOverlay(assistOverlayId);
-            CAULIFLA.setRotationType(0);
-            CAULIFLA.setMeleeSpeed(originalMeleeSpeed);
+            CAULIFLA.setRotationType(0); // Let caulifla go back to hitting her player
+            CAULIFLA.setMeleeSpeed(originalMeleeSpeed); // Set melee speed back
             npc.setMeleeSpeed(originalMeleeSpeed);
-            npc.setTempData("Attacking", false);
+            npc.setTempData("Attacking", false); // Let bosses go back to attacking
             CAULIFLA.setTempData("Attacking", false);
-            break
+            break;
     }
 }
 
 function meleeAttack(event)
+{ // Begin reset timer on swing
+    event.npc.timers.forceStart(RESET, resetTime, false);
+}
+
+function damaged(event)
+{ // Begin reset timer on damaged
+    event.npc.timers.forceStart(RESET, resetTime, false);
+}
+
+function killed(event)
+{ // Reset if killed
+    reset(event.npc);
+}
+
+function kills(event)
+{ // Reset if killing a player and no other players around
+    var npc = event.npc;
+    var playerCheck = npc.getSurroundingEntities(50, 1);
+    if(playerCheck.length < 1) reset;
+}
+
+function target(event)
 { // Set target and begin reset timer on swing
     var npc = event.npc;
-    TARGET = npc.getAttackTarget();
-    DBC_TARGET = TARGET.getDBCPlayer();
-    npc.timers.forceStart(10, npc.getTempData("Reset Time"), false); // Reset if doesn't melee a target for set time
+    TARGET = event.getTarget();
     if(!npc.timers.has(KI_BLAST_TELEGRAPH)) { // Start timers if not active
         npc.timers.forceStart(KI_BLAST_TELEGRAPH, kiBlastCooldown, true); // Start ability timer
         npc.timers.forceStart(BEGIN_ASSIST, assistAbilityCooldown, true);
