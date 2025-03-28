@@ -8,7 +8,7 @@ var telegraphTimer = 20; // Time of telegraph in ticks
 var arenaSize = 40; // Rough size of arena for player scanning
 var resetTime = 600; // Number of seconds since meleeing a player or being hit to reset
 
-var homingKiVoiceline = "Can you keep up with this?"; // Npc says before firing homing projectiles
+var homingKiVoiceline = "&c&lCan you keep up with this?"; // Npc says before firing homing projectiles
 var homingKiShots = 8; // Number of homing ki shots to fire
 var homingKiDamage = 1; // Damage of homing ki attack
 var homingKiSize = 1; // Size of hominh ki attack
@@ -16,7 +16,7 @@ var homingSpeed = 1; // Speed homing shots well... home
 var homingKiProjectile = "customnpcs:npcOrb"; // Item id of projectile to use
 var homingKiProjectileVariation = 1; // second id
 
-var beamVoiceline = "Take this!!"; // Npc says before shooting the beam attack
+var beamVoiceline = "&c&lTake this!!"; // Npc says before shooting the beam attack
 var beamDamage = 1; // Damage of beam attack
 var beamSpeed = 1; // Speed of beam attack
 var beamColor = 4; // Color of the beam attack - 4 = red

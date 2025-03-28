@@ -2,24 +2,24 @@
 // AUTHOR: Noxie
 
 // Changeables
-var cauliflaName = "Caulifla"; // Name of accompanying kale npc
-var arenaCenter = [-258, 60, -843]; // Center of arean to knock player towards
+var cauliflaName = "Caulifla"; // Name of accompanying caulifla npc
+var arenaCenter = [0, 0, 0]; // Center of arean to knock player towards
 var telegraphTimer = 20; // Timer between announcing attacks and actually using them
 var maxDistanceFromCenter = 10; // Tp player to center if they are too far away
 var originalMeleeSpeed = 20; // Melee speed to set back to after reseting
 var resetTime = 600; // Number of seconds since meleeing a player or being hit to reset
 
 // Ki blast
-var kiBlastVoiceline = "I got this!"; // Line said by kale before shooting her ki blast
+var kiBlastVoiceline = "&2&lI got this!"; // Line said by kale before shooting her ki blast
 var kiBlastCooldown = 200; // Cooldown of ki blast ability
 var kiBlastDamage = 1; // Damage of ki blast
 var kiBlastSpeed = 2; // Speed of ki blast
 var kiBlastColor = 6; // Color of ki blast - 6 = green
 
 // Assist ability
-var caulifaAssistVoiceline = "Hold them there Kale!"; // Line said by caulifla when charging her beam attack
-var cauliflaFireVoiceline = "No dodging this one!"; // Line said by caulifla when she fires her beam attack
-var kaleAssistVoiceline = "I've got them Caulifla!"; // Line said by kale when holding the player
+var caulifaAssistVoiceline = "&c&lHold them there Kale!"; // Line said by caulifla when charging her beam attack
+var cauliflaFireVoiceline = "&c&lNo dodging this one!"; // Line said by caulifla when she fires her beam attack
+var kaleAssistVoiceline = "&2&lI've got them Caulifla!"; // Line said by kale when holding the player
 var assistAbilityCooldown = 600; // Cooldown of assist ability
 var assistTelegraphTimer = 60; // How long the player has to block in ticks
 var holdDuration = 70; // How long the player is held for by the assist ability (set a little longer than telegraph)
