@@ -35,11 +35,11 @@ var assistBeamBlockDamage = 1; // Damage of blocked assist beam
 var assistBeamSpeed = 3; // Speed of assist beam
 var assistBeamColor = 4; // Color of the assist beam - 4 = red
 
-var PLAYER_POS;
-var CAULIFLA_POS;
-var KALE_POS;
-var CAULIFLA;
-var TARGET;
+var playerPos;
+var cauliflaPos;
+var kalePos;
+var caulifla;
+var target;
 
 // Timers
 var KI_BLAST_TELEGRAPH = 0;
@@ -57,7 +57,7 @@ function init(event)
     var search = npc.getSurroundingEntities(40,2); // Search for caulifla
     for(i = 0; i < search.length; i++) {
         if(search[i].getName() == cauliflaName) {
-            CAULIFLA = search[i];
+            caulifla = search[i];
             break;
         }
     }
@@ -83,59 +83,59 @@ function timer(event)
         case(BEGIN_ASSIST):
             if(arenaCenter[1] == 0) {
                 npc.say("Cannot use Assist Attack - Please change arena center")
-            } else if(CAULIFLA == null || CAULIFLA.getHealth() < 1) {
+            } else if(caulifla == null || caulifla.getHealth() < 1) {
                 return;
-            } else if(TARGET != null) {
-                CAULIFLA.setTempData("Attacking", true); // Stop npcs from performing other attacks
+            } else if(target != null) {
+                caulifla.setTempData("Attacking", true); // Stop npcs from performing other attacks
                 npc.setTempData("Attacking", true);
-                CAULIFLA.setMeleeSpeed(10000); // Make npcs stop meleeing during assist
+                caulifla.setMeleeSpeed(10000); // Make npcs stop meleeing during assist
                 npc.setMeleeSpeed(10000);
-                CAULIFLA.setRotationType(1);
-                CAULIFLA.say(caulifaAssistVoiceline);
+                caulifla.setRotationType(1);
+                caulifla.say(caulifaAssistVoiceline);
                 npc.say(kaleAssistVoiceline);
-                moveEntity(TARGET, arenaCenter[0], arenaCenter[1], arenaCenter[2], kickSpeed); // Kick player towards center of arena
+                moveEntity(target, arenaCenter[0], arenaCenter[1], arenaCenter[2], kickSpeed); // Kick player towards center of arena
                 npc.timers.forceStart(KICK_DELAY, 8, false); // Allow the player to travel breifly before being grabbed
             }
             break;
         case(KICK_DELAY):
             npc.playSound("jinryuudragonbc:DBC4.block2", 50, 1);
-            PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save player coordinates
-            positionBosses(TARGET, npc, CAULIFLA); // Move bosses to hold player and fire attack
-            speak(TARGET, assistOverlayText, assistOverlayColor, assistOverlaySize, assistOverlayId);
+            playerPos = [target.getX(), target.getY(), target.getZ()]; // Save player coordinates
+            positionBosses(target, npc, caulifla); // Move bosses to hold player and fire attack
+            speak(target, assistOverlayText, assistOverlayColor, assistOverlaySize, assistOverlayId);
             npc.timers.forceStart(HOLD_PLAYER, 0, true);
             npc.timers.forceStart(ASSIST_FIRE, assistTelegraphTimer,false);
             npc.timers.forceStart(STOP_HOLD, holdDuration, false);
             break;
         case(HOLD_PLAYER):
-            if(Math.abs(Math.abs(TARGET.getX()) - Math.abs(arenaCenter[0])) > maxDistanceFromCenter || Math.abs(Math.abs(TARGET.getY()) - Math.abs(arenaCenter[1])) > maxDistanceFromCenter || Math.abs(Math.abs(TARGET.getZ()) - Math.abs(arenaCenter[2])) > maxDistanceFromCenter) {
+            if(Math.abs(Math.abs(target.getX()) - Math.abs(arenaCenter[0])) > maxDistanceFromCenter || Math.abs(Math.abs(target.getY()) - Math.abs(arenaCenter[1])) > maxDistanceFromCenter || Math.abs(Math.abs(target.getZ()) - Math.abs(arenaCenter[2])) > maxDistanceFromCenter) {
                 // If player is more than 10 blocks away from the center of the arena in any direction tp them to the center
-                npc.executeCommand("/tp " + TARGET.getName() + " " + arenaCenter[0] + " " + arenaCenter[1] + " " + arenaCenter[2]);
-                PLAYER_POS = [TARGET.getX(), TARGET.getY(), TARGET.getZ()]; // Save new player coordinates
-                positionBosses(TARGET, npc, CAULIFLA);
+                npc.executeCommand("/tp " + target.getName() + " " + arenaCenter[0] + " " + arenaCenter[1] + " " + arenaCenter[2]);
+                playerPos = [target.getX(), target.getY(), target.getZ()]; // Save new player coordinates
+                positionBosses(target, npc, caulifla);
             } else {
                 // Move player and npc's to their position
-                CAULIFLA.setRotation(getAngle(CAULIFLA, TARGET));
-                moveEntity(CAULIFLA, CAULIFLA_POS[0], CAULIFLA_POS[1], CAULIFLA_POS[2], 0.1);
-                moveEntity(npc, KALE_POS[0], KALE_POS[1], KALE_POS[2], 0.1);
-                moveEntity(TARGET, PLAYER_POS[0], PLAYER_POS[1], PLAYER_POS[2], 0.1);
+                caulifla.setRotation(getAngle(caulifla, target));
+                moveEntity(caulifla, cauliflaPos[0], cauliflaPos[1], cauliflaPos[2], 0.1);
+                moveEntity(npc, kalePos[0], kalePos[1], kalePos[2], 0.1);
+                moveEntity(target, playerPos[0], playerPos[1], playerPos[2], 0.1);
             }
             break;
         case(ASSIST_FIRE):
-            CAULIFLA.say(cauliflaFireVoiceline);
-            if(TARGET.getDBCPlayer().isBlocking()) { // If target is blocking do reduced damage
-                kiAttack(CAULIFLA, 3, assistBeamBlockDamage, assistBeamSpeed, assistBeamColor);
+            caulifla.say(cauliflaFireVoiceline);
+            if(target.getDBCPlayer().isBlocking()) { // If target is blocking do reduced damage
+                kiAttack(caulifla, 3, assistBeamBlockDamage, assistBeamSpeed, assistBeamColor);
             } else {
-                kiAttack(CAULIFLA, 3, assistBeamDamage, assistBeamSpeed, assistBeamColor);
+                kiAttack(caulifla, 3, assistBeamDamage, assistBeamSpeed, assistBeamColor);
             } 
             break;
         case(STOP_HOLD):
             npc.timers.stop(HOLD_PLAYER);
-            TARGET.closeOverlay(assistOverlayId);
-            CAULIFLA.setRotationType(0); // Let caulifla go back to hitting her player
-            CAULIFLA.setMeleeSpeed(originalMeleeSpeed); // Set melee speed back
+            target.closeOverlay(assistOverlayId);
+            caulifla.setRotationType(0); // Let caulifla go back to hitting her player
+            caulifla.setMeleeSpeed(originalMeleeSpeed); // Set melee speed back
             npc.setMeleeSpeed(originalMeleeSpeed);
             npc.setTempData("Attacking", false); // Let bosses go back to attacking
-            CAULIFLA.setTempData("Attacking", false);
+            caulifla.setTempData("Attacking", false);
             break;
     }
 }
@@ -165,7 +165,7 @@ function kills(event)
 function target(event)
 { // Set target and begin reset timer on swing
     var npc = event.npc;
-    TARGET = event.getTarget();
+    target = event.getTarget();
     if(!npc.timers.has(KI_BLAST_TELEGRAPH)) { // Start timers if not active
         npc.timers.forceStart(KI_BLAST_TELEGRAPH, kiBlastCooldown, true); // Start ability timer
         npc.timers.forceStart(BEGIN_ASSIST, assistAbilityCooldown, true);
@@ -179,11 +179,11 @@ function reset(npc)
 {
     npc.timers.clear();
     npc.setTempData("Attacking", false);
-    CAULIFLA.setTempData("Attacking", false);
-    CAULIFLA.setMeleeSpeed(originalMeleeSpeed);
+    caulifla.setTempData("Attacking", false);
+    caulifla.setMeleeSpeed(originalMeleeSpeed);
     npc.setMeleeSpeed(originalMeleeSpeed);
-    CAULIFLA.setRotationType(0);
-    TARGET.closeOverlay(assistOverlayId);
+    caulifla.setRotationType(0);
+    target.closeOverlay(assistOverlayId);
 }
 
 /** Fires a dbc ki attack from the npc wth a set damage and speed
@@ -233,8 +233,8 @@ function positionBosses(target, holdingNpc, firingNpc)
 
     setPosition(holdingNpc, target.getX() + dx * -holdDistance, target.getY(), target.getZ() + dz * -holdDistance);
     setPosition(firingNpc, target.getX() + dx * firingDistance, target.getY(), target.getZ() + dz * firingDistance);
-    KALE_POS = [holdingNpc.getX(), holdingNpc.getY(), holdingNpc.getZ()];
-    CAULIFLA_POS = [firingNpc.getX(), firingNpc.getY(), firingNpc.getZ()];
+    kalePos = [holdingNpc.getX(), holdingNpc.getY(), holdingNpc.getZ()];
+    cauliflaPos = [firingNpc.getX(), firingNpc.getY(), firingNpc.getZ()];
     firingNpc.setRotation(getAngle(firingNpc, target));
 }
 

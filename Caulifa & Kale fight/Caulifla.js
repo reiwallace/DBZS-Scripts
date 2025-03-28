@@ -21,13 +21,12 @@ var beamDamage = 1; // Damage of beam attack
 var beamSpeed = 1; // Speed of beam attack
 var beamColor = 4; // Color of the beam attack - 4 = red
 
-var KALE;
-var TARGET_ONE;
-var TARGET_TWO;
-var COUNT;
-var TO_RESET;
-var HOMING_KI_ENTITIES;
-var ABILITY = true;
+var kale;
+var targetOne;
+var targetTwo;
+var count;
+var homingKiEntities;
+var ability = true;
 
 // Timers
 var RESET_TIMER = 0;
@@ -50,7 +49,7 @@ function init(event)
     npc.timers.clear();
     for(i = 0; i < search.length; i++) {
         if(search[i].getName() == kaleNpcName) {
-            KALE = search[i];
+            kale = search[i];
             break;
         }
     }
@@ -73,36 +72,36 @@ function timer(event)
             break;
         case(SHOOT_HOMING_KI): // Fires the projectile and adds it to an array.
             if(npc.getTempData("Attacking")) {
-                ABILITY = HOMING_KI
+                ability = HOMING_KI
                 return;
             }
-            fireProjectile(npc, TARGET_ONE);
+            fireProjectile(npc, targetOne);
             var projectileSearch = npc.getSurroundingEntities(20);
             for(i = 0; i < projectileSearch.length; i++){
-                if(projectileSearch[i].getType() == 7 && HOMING_KI_ENTITIES.indexOf(projectileSearch[i] < 0)) {
-                    HOMING_KI_ENTITIES.push(projectileSearch[i]);
+                if(projectileSearch[i].getType() == 7 && homingKiEntities.indexOf(projectileSearch[i] < 0)) {
+                    homingKiEntities.push(projectileSearch[i]);
                 }
             }
-            COUNT++;
-            if(COUNT > homingKiShots) { // Stop timer after firing desired number of shotss
+            count++;
+            if(count > homingKiShots) { // Stop timer after firing desired number of shotss
                 npc.timers.stop(SHOOT_HOMING_KI);
             }
             break;
         case(HOMING_KI_TIMER): // Homes half of the projectiles onto one target and half onto the other.
-            for(i = 0; i < HOMING_KI_ENTITIES.length; i++) {
-                if(i < homingKiShots/2 || TARGET_TWO == null) { // Home half the shots in on target one
-                    homeKi(HOMING_KI_ENTITIES[i], TARGET_ONE, homingSpeed);
+            for(i = 0; i < homingKiEntities.length; i++) {
+                if(i < homingKiShots/2 || targetTwo == null) { // Home half the shots in on target one
+                    homeKi(homingKiEntities[i], targetOne, homingSpeed);
                 } else { // Home half the shots in on target two
-                    homeKi(HOMING_KI_ENTITIES[i], TARGET_TWO, homingSpeed);
+                    homeKi(homingKiEntities[i], targetTwo, homingSpeed);
                 }
             }
             break;
         case(DESPAWN_HOMING_KI): // Despawns homing ki before next attack
-            despawnEntities(HOMING_KI_ENTITIES);
+            despawnEntities(homingKiEntities);
             break;
         case(BEAM_TELEGRAPH):
             if(npc.getTempData("Attacking")) {
-                ABILITY = BEAM ;
+                ability = BEAM ;
                 return;
             }
             kiAttack(npc, beamDamage, beamSpeed, beamColor);
@@ -146,7 +145,7 @@ function target(event)
  */
 function reset(npc)
 {
-    despawnEntities(HOMING_KI_ENTITIES);
+    despawnEntities(homingKiEntities);
     npc.timers.clear();
 }
 
@@ -166,11 +165,11 @@ function chooseAbility(npc)
 {
     scanPlayers(npc);
     if(npc.getTempData("Attacking")) return; // Don't perform an attack if doing assist ability
-    switch(ABILITY) {
+    switch(ability) {
         case(HOMING_KI): // Reset ki entities array 
-            despawnEntities(HOMING_KI_ENTITIES);
-            HOMING_KI_ENTITIES = new Array();
-            COUNT = 0;
+            despawnEntities(homingKiEntities);
+            homingKiEntities = new Array();
+            count = 0;
             scanPlayers(npc);
             npc.say(homingKiVoiceline);
             npc.timers.forceStart(HOMING_KI_TELEGRAPH, telegraphTimer, false);
@@ -180,7 +179,7 @@ function chooseAbility(npc)
             npc.timers.forceStart(BEAM_TELEGRAPH, telegraphTimer, false);
             break;
     }
-    ABILITY = !ABILITY;
+    ability = !ability;
 }
 
 /** Fires a projectile 
@@ -221,10 +220,10 @@ function scanPlayers(npc)
 {
     var playerScan = npc.getSurroundingEntities(arenaSize, 1);
     if(playerScan.length > 0 && playerScan[0] != null) {
-        TARGET_ONE = playerScan[0];
+        targetOne = playerScan[0];
     }
     if(playerScan.length > 1 && playerScan[1] != null) {
-        TARGET_TWO = playerScan[1];
+        targetTwo = playerScan[1];
     }
 }
 
