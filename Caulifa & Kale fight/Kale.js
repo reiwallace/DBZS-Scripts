@@ -3,7 +3,7 @@
 
 // Changeables
 var cauliflaName = "Caulifla"; // Name of accompanying caulifla npc
-var arenaCenter = [0, 0, 0]; // Center of arean to knock player towards
+var ARENA_CENTRE = [0, 0, 0]; // Centre of arean to knock player towards
 var telegraphTimer = 20; // Timer between announcing attacks and actually using them
 var maxDistanceFromCenter = 10; // Tp player to center if they are too far away
 var originalMeleeSpeed = 20; // Melee speed to set back to after reseting
