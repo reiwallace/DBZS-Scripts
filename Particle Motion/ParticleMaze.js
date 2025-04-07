@@ -1,10 +1,28 @@
-// SingleParticleExample.js
+// ParticleMaze.js
 // AUTHOR: Noxie
 
 var PARTICLE_PATH = "plug:textures/blocks/concrete_periwinkle.png";
+var MAZE_POSITIONS = [
+    [-199.5, 57, -766.5],
+    [-199.5, 57, -763.5],
+    [-195.5, 57, -763.5],
+    [-195.5, 57, -761.5],
+    [-201.5, 57, -761.5],
+    [-201.5, 57, -762.5],
+    [-203.5, 57, -762.5],
+    [-203.5, 57, -759.5],
+    [-198.5, 57, -759.5],
+    [-198.5, 57, -756.5],
+    [-200.5, 57, -756.5],
+    [-200.5, 57, -757.5],
+    [-202.5, 57, -757.5],
+    [-202.5, 57, -753.5]
+];
 var newPos = new Array();
 var newMotion = new Array();
 var duration = 0;
+var count = 0;
+
 
 // Timers
 var MOVE_PARTICLES = 0;
@@ -13,11 +31,17 @@ var STOP_MOVEMENT = 1;
 function interact(event)
 { // Starts particle movememnt on interacting with npc
     var npc = event.npc
-    newPos = [npc.x, npc.y + 3, npc.z];
-    newMotion = [0.5, 0, 0.5];
-    duration = 5;
-    particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPos[0], newPos[1], newPos[2], newMotion[0], newMotion[1], newMotion[2], 20, 20);
-    npc.timers.forceStart(MOVE_PARTICLES, duration, true); // Start particle movement
+    newPos = MAZE_POSITIONS[0];
+    // Calculate angle to next maze position
+    var angle = getDirection(MAZE_POSITIONS[0][0], MAZE_POSITIONS[0][2], MAZE_POSITIONS[1][0], MAZE_POSITIONS[1][2]);
+    count = 0;
+    motionX = -Math.cos(angle) * 0.2;
+    motionZ = -Math.sin(angle) * 0.2;
+    newMotion = [motionX, 0, motionZ];
+    // Calculate duration from distance to next maze position
+    duration = Math.max(Math.abs(Math.abs(MAZE_POSITIONS[0][0]) - Math.abs(MAZE_POSITIONS[1][0])), Math.abs(Math.abs(MAZE_POSITIONS[0][2]) - Math.abs(MAZE_POSITIONS[1][2]))) * 5 - 1;
+    particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPos[0], newPos[1], newPos[2], newMotion[0], newMotion[1], newMotion[2], 5, 5);
+    npc.timers.forceStart(MOVE_PARTICLES, duration, false); // Start particle movement
     npc.timers.forceStart(STOP_MOVEMENT, 200, false); // Stop particle movememnt
 }
 
@@ -26,15 +50,34 @@ function timer(event)
     var npc = event.npc;
     switch(event.id) {
         case(MOVE_PARTICLES):
-            newPos = getNewPos(newPos, newMotion, duration); // Set new postion on global variable to be used for the next movement
-            newMotion = [genRand(-1, 1, 3), 0, genRand(-1, 1, 3)] // Save motion as a global variable to be iterated on later
-            particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPos[0], newPos[1], newPos[2], newMotion[0], newMotion[1], newMotion[2], 20, 20);
-            break;
-        case(STOP_MOVEMENT):
-            npc.timers.clear();
+            count++;
+            if(MAZE_POSITIONS[count + 1 ] == null) { // Stop when maze is finished
+                return;
+            }
+            // Calculate angle to next maze position
+            var angle = getDirection(MAZE_POSITIONS[count][0], MAZE_POSITIONS[count][2], MAZE_POSITIONS[count + 1][0], MAZE_POSITIONS[count + 1][2]);
+            newPos = MAZE_POSITIONS[count]
+            motionX = -Math.cos(angle) * 0.2;
+            motionZ = -Math.sin(angle) * 0.2;
+            newMotion = [motionX, 0, motionZ];
+            // Calculate duration from distance to next maze position
+            duration = Math.max(Math.abs(Math.abs(MAZE_POSITIONS[count][0]) - Math.abs(MAZE_POSITIONS[count + 1][0])), Math.abs(Math.abs(MAZE_POSITIONS[count][2]) - Math.abs(MAZE_POSITIONS[count + 1][2]))) * 5 - 1;
+            particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPos[0], newPos[1], newPos[2], newMotion[0], newMotion[1], newMotion[2], 5, 5);
+            npc.timers.forceStart(MOVE_PARTICLES, duration, false);
             break;
     }
     
+}
+
+/** Get direction to coordinates - Function by riken
+ * @param {Double} npcx - Y coordinate of npc
+ * @param {Double} npcz - Z coordinate of npc 
+ * @param {Double} x - X coordinate of destination
+ * @param {Double} z - Z coordinate of destination 
+ * @returns 
+ */
+function getDirection(npcx, npcz, x, z) { 
+    return Math.atan2(npcz-z, npcx-x)
 }
 
 /** Generate a random decimal number

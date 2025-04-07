@@ -1,7 +1,14 @@
-var particlePath = "plug:textures/blocks/concrete_periwinkle.png";
+// MultiParticleExample.js
+// AUTHOR: Noxie
+
+var PARTICLE_PATH = "plug:textures/blocks/concrete_periwinkle.png";
 var newPoses = new Array();
 var newMotions = new Array();
 var duration = 0;
+
+// Timers
+var MOVE_PARTICLES = 0;
+var STOP_MOVEMENT = 1;
 
 function interact(event)
 { // Starts particle movememnt on interacting with npc
@@ -20,26 +27,26 @@ function interact(event)
         [0.5, 0, 0],
         [0, 0, -0.5]
     ];
-    duration = 0;
+    duration = 5;
     for(i = 0; i < newPoses.length; i++) {
-        particleDirectionChange(npc.world, particlePath, duration, newPoses[i][0], newPoses[i][1], newPoses[i][2], newMotions[i][0], newMotions[i][1], newMotions[i][2]);
+        particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPoses[i][0], newPoses[i][1], newPoses[i][2], newMotions[i][0], newMotions[i][1], newMotions[i][2], 20, 20);
     }
-    npc.timers.forceStart(0, duration, true); // Start particle movement
-    npc.timers.forceStart(1, 200, false); // Stop particle movememnt
+    npc.timers.forceStart(MOVE_PARTICLES, duration, true); // Start particle movement
+    npc.timers.forceStart(STOP_MOVEMENT, 200, false); // Stop particle movememnt
 }
 
 function timer(event)
 {
     var npc = event.npc;
     switch(event.id) {
-        case(0):
+        case(MOVE_PARTICLES):
             for(i = 0; i < newPoses.length; i++) {
                 newPoses[i] = getNewPos(newPoses[i], newMotions[i], duration); // Set new postion on global variable to be used for the next movement
                 newMotions[i] = [genRand(-1, 1, 3), 0, genRand(-1, 1, 3)] // Save motion as a global variable to be iterated on later
-                particleDirectionChange(npc.world, particlePath, duration, newPoses[i][0], newPoses[i][1], newPoses[i][2], newMotions[i][0], newMotions[i][1], newMotions[i][2]);
+                particleDirectionChange(npc.world, PARTICLE_PATH, duration, newPoses[i][0], newPoses[i][1], newPoses[i][2], newMotions[i][0], newMotions[i][1], newMotions[i][2], 20, 20);
             }
             break;
-        case(1):
+        case(STOP_MOVEMENT):
             npc.timers.clear();
             break;
     }
@@ -69,12 +76,15 @@ function genRand(min, max, decimalPlaces)
  * @param {Double} mx - X motion of particle
  * @param {Double} my - Y motion of particle
  * @param {Double} mz - Z motion of particle
+ * @param {int} particleWidth - Width of particle for sizing
+ * @param {int} particleHeight - Height of particle for sizing
  */
-function particleDirectionChange(world, particlePath, timerDuration, x, y, z, mx, my, mz)
+function particleDirectionChange(world, particlePath, timerDuration, x, y, z, mx, my, mz, particleWidth, particleHeight)
 {
     var particle = API.createParticle(particlePath);
+    particle.setSize(particleWidth, particleHeight);
     particle.setPosition(x, y, z);
-    particle.setMaxAge(timerDuration + 1);
+    particle.setMaxAge(timerDuration + 2);
     particle.setMotion(mx, my, mz, 0); // Gravity not supported
     particle.spawn(world)
 }
@@ -86,7 +96,6 @@ function particleDirectionChange(world, particlePath, timerDuration, x, y, z, mx
  * @returns {Double[]} - New position of particle calculated from motion and duration
  */
 function getNewPos(oldPos, oldMotion, duration)
-{
-    // Calculates a new position assuming motion is full motion per tick e.g. if motion x was 1 in 10 ticks the particle travels 10 blocks in the x direction
+{ // Calculates a new position assuming motion is full motion per tick e.g. if motion x was 1 in 10 ticks the particle travels 10 blocks in the x direction
     return [oldPos[0] + oldMotion[0] * (duration + 1), oldPos[1] + oldMotion[1] * (duration + 1), oldPos[2] + oldMotion[2] * (duration + 1)];
 }

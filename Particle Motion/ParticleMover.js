@@ -1,3 +1,6 @@
+// ParticleMover.js
+// AUTHOR: Noxie
+
 /** Spawns a particle at a specific coordinates with a specific motion
  * @param {IWorld} world - World to spawn particle in
  * @param {String} particlePath - Path of particle texture to use
@@ -8,12 +11,15 @@
  * @param {Double} mx - X motion of particle
  * @param {Double} my - Y motion of particle
  * @param {Double} mz - Z motion of particle
+ * @param {int} particleWidth - Width of particle for sizing
+ * @param {int} particleHeight - Height of particle for sizing
  */
-function particleDirectionChange(world, particlePath, timerDuration, x, y, z, mx, my, mz)
+function particleDirectionChange(world, particlePath, timerDuration, x, y, z, mx, my, mz, particleWidth, particleHeight)
 {
     var particle = API.createParticle(particlePath);
+    particle.setSize(particleWidth, particleHeight);
     particle.setPosition(x, y, z);
-    particle.setMaxAge(timerDuration + 1);
+    particle.setMaxAge(timerDuration + 2);
     particle.setMotion(mx, my, mz, 0); // Gravity not supported
     particle.spawn(world)
 }
