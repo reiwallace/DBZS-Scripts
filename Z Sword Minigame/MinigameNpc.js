@@ -30,12 +30,13 @@ function timer(event)
     var npc = event.npc;
     switch(event.id) {
         case(ESCAPE_DETECTION): // Timer to keep player in position
-            // Check if the player tries to walk away
+            // Reset if player is null
             if(activePlayer == null) {
                 npc.say("Player is null");
                 reset(npc);
                 break;
             }
+            // Check if player tries to walk away
             var escapeCheck = Boolean(
                 activePlayer.getX() != PLAYER_POSITION[0] ||
                 activePlayer.getY() != PLAYER_POSITION[1] ||
