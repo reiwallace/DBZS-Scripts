@@ -1,3 +1,6 @@
+// MinigameGlobal.js
+// AUTHOR: Noxie
+
 var SPAM_INTERVAL = 7; // Max number of ticks between player spams
 
 // Player timers
