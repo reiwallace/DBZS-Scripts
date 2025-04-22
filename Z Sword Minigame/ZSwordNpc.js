@@ -1,13 +1,13 @@
-// MinigameNpc.js
+// ZSwordNpc.js
 // AUTHOR: Noxie
 
 // Changeables
 var PLAYER_POSITION = [-226.5, 57.0, -759.5]; // Position player is teleported to for the minigame
 var BUTTONS = [0, 1]; // Buttons available in the game 0 = Left click, 1 = Right click
 var ACTIONS = ["SPAM", "HOLD", "SINGLE"]; // Action options, SPAM = spam button, HOLD = hold button, SINGLE = press button once
-var ROUND_DURATION = 200; // Duration of round in ticks
-var ROUND_INTERVAL_DURATION = 20; // Time between rounds in ticks
-var GRACE_DURATION = 20; // Duration of grace period player has before they are checked for failing in ticks
+var ROUND_INTERVAL = 20; // Time between rounds in ticks
+var ROUND_DURATION = 100; // Max duration of rounds
+var GRACE_DURATION = 30; // Duration of grace period player has before they are checked for failing in ticks
 var FAIL_DRAIN = 0.1; // Ki drain from failing 0-1
 var POINTS_TO_WIN = 10;
 
@@ -21,8 +21,8 @@ var PASS_ROUND = 2;
 var FAIL_ROUND = 3;
 
 // Player timers
-var SPAM_GRACE = 0;
-var SPAM_CHECK = 1;
+var SPAM_GRACE = 1;
+var SPAM_CHECK = 0;
 var HOLD_GRACE = 2;
 
 function init(event)
@@ -76,38 +76,45 @@ function timer(event)
             if(activePlayer == null) reset(npc);
             clearPlayerTempData(activePlayer);
             // Decide which button and action for the player to press
-            var button = getRandomInt(0, BUTTONS.length);
-            var action = getRandomInt(0, ACTIONS.length);
+            var button = getRandomInt(0, BUTTONS.length - 1);
+            var action = getRandomInt(0, ACTIONS.length - 1);
             // Configure player data
-            activePlayer.setTempData("action", action);
+            activePlayer.setTempData("action", ACTIONS[action]);
             activePlayer.setTempData("button", button);
             activePlayer.setTempData("gameNpc", npc);
             activePlayer.setTempData("roundPass", false);
+            npc.say("Button " + button);
+            npc.say("Action " + ACTIONS[action]);
             // Change round options based on Button choice
             switch(action) {
-                case(ACTIONS[0]): // Set up for spamming
+                case(0): // Set up for spamming
                     activePlayer.setTempData("spamGrace", true);
-                    activePlayer.setTempData("roundPass", true);
+                    activePlayer.setTempData("spamCount", 0);
                     activePlayer.timers.forceStart(SPAM_GRACE, GRACE_DURATION, false);
-                    activePlayer.timers.forceStart(SPAM_CHECK, GRACE_DURATION, false);
                     break;
-                case(ACTIONS[1]): // Set up for holding
+                case(1): // Set up for holding
                     activePlayer.timers.forceStart(HOLD_GRACE, GRACE_DURATION, false);
                     break;
+                case(2): // Set up for single click
+                    activePlayer.timers.forceStart(HOLD_GRACE, GRACE_DURATION, false); // Using hold grace again tehe
+                    break;
             }
-            npc.timer.forceStart(PASS_ROUND, ROUND_DURATION, false);
+            npc.timers.forceStart(PASS_ROUND, ROUND_DURATION, false);
             break;
         case(FAIL_ROUND):
+            npc.timers.stop(PASS_ROUND);
             var dbcPlayer = activePlayer.getDBCPlayer();
             // Calculate new ki value after round drain
             var newKi = dbcPlayer.getKi() - dbcPlayer.getMaxKi() * FAIL_DRAIN;
+            npc.say("fail");
             if(newKi > 0) { // If the ki isn't below lower ki and start a new round
                 dbcPlayer.setKi(newKi);
-                npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL_DURATION, false);
+                npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL, false);
+                clearPlayerTempData(activePlayer);
             }
             else { // Player loses and sets ki to 0
                 dbcPlayer.setKi(0);
-                lose();
+                lose(npc);
             }
             break;
         case(PASS_ROUND):
@@ -115,26 +122,30 @@ function timer(event)
                 npc.timers.forceStart(FAIL_ROUND, 0, false);
                 return;
             }
+            npc.say("Pass");
             // Check if the player has won
             points++;
-            if(points >= POINTS_TO_WIN) win();
-            else npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL_DURATION, false);
+            if(points >= POINTS_TO_WIN) win(npc);
+            else {
+                npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL, false);
+                clearPlayerTempData(activePlayer);
+            }
             break;
     }
 }
 
 /** Clears temp data put on the player during the game
  * @param {IPlayer} player - Player with temp data to remove
- */
+ */ 
 function clearPlayerTempData(player)
-{
+{ // I love temp data
     player.removeTempData("action");
     player.removeTempData("button");
     player.removeTempData("gameNpc");
     player.removeTempData("roundPass");
     player.removeTempData("spamGrace");
+    player.removeTempData("spamCount");
     player.removeTempData("singleClicked");
-    player.removeTempData("swordGamePlayer");
 }
 
 /** Resets the game
@@ -144,6 +155,7 @@ function reset(npc)
 {   
     npc.timers.clear();
     if(activePlayer == null) return;
+    activePlayer.removeTempData("swordGamePlayer"); // Seperate because I'm a goof
     clearPlayerTempData(activePlayer);
     activePlayer = null;
 }
@@ -167,14 +179,23 @@ function startGame(npc, player)
     activePlayer = player;
     points = 0;
     activePlayer.setTempData("swordGamePlayer", true);
+    npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL, false);
 }
 
-function win()
+/** Function executed on player winning
+ * @param {ICustomNpc} npc - Game npc 
+ */
+function win(npc)
 {
-
+    npc.say("win");
+    reset(npc);
 }
 
-function lose()
+/** Function executed on player losing
+ * @param {ICustomNpc} npc - Game npc 
+ */
+function lose(npc)
 {
-
+    npc.say("lose");
+    reset(npc);
 }
