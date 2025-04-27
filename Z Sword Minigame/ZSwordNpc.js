@@ -15,7 +15,7 @@ var PLAYER_PITCH = 34; // Vertical roation to lock player at (can use player.get
 
 
 // Animation names (can use the same animation for multiple)
-var IDLE_ANIMATION_NAME = "";
+var IDLE_ANIMATION_NAME = "New";
 
 var activePlayer;
 var points = 0;

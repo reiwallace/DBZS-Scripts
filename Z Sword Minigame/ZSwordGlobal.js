@@ -7,12 +7,12 @@ var SINGLE_CLICK_WIN_DELAY = 20; // Delay after single pressing to end the round
 var HOLD_WIN_DELAY = 40; // Delay after single pressing to end the round
 
 // Animation names (can use the same animation for multiple)
-var LEFT_SPAM_ANIMATION_NAME = "";
-var LEFT_HOLD_ANIMATION_NAME = "";
-var LEFT_SINGLE_ANIMATION_NAME = "";
-var RIGHT_SPAM_ANIMATION_NAME = "";
-var RIGHT_HOLD_ANIMATION_NAME = "";
-var RIGHT_SINGLE_ANIMATION_NAME = "";
+var LEFT_SPAM_ANIMATION_NAME = "SPAM";
+var LEFT_HOLD_ANIMATION_NAME = "HOLD";
+var LEFT_SINGLE_ANIMATION_NAME = "SINGLE";
+var RIGHT_SPAM_ANIMATION_NAME = "SPAM";
+var RIGHT_HOLD_ANIMATION_NAME = "HOLD";
+var RIGHT_SINGLE_ANIMATION_NAME = "SINGLE";
 
 // Player timers
 var SPAM_CHECK = 0;
@@ -35,7 +35,7 @@ function mouseClicked(event)
                 if(!event.buttonDown()) return;
                 if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SPAM_ANIMATION_NAME);
                 else var animation = API.getAnimations().get(RIGHT_SPAM_ANIMATION_NAME);
-                setNpcPose(activePlayer, animation);
+                setNpcPose(player, animation);
                 player.timers.forceStart(SPAM_CHECK, SPAM_INTERVAL, false);
                 player.setTempData("spamCount", player.getTempData("spamCount") + 1);
                 
@@ -49,7 +49,7 @@ function mouseClicked(event)
                 if(event.buttonDown) {
                     if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_HOLD_ANIMATION_NAME);
                     else var animation = API.getAnimations().get(RIGHT_HOLD_ANIMATION_NAME);
-                    setNpcPose(activePlayer, animation);
+                    setNpcPose(player, animation);
                     player.setTempData("roundPass", true);
                     npc.timers.forceStart(PASS_ROUND, HOLD_WIN_DELAY, false);
                 }
@@ -61,7 +61,7 @@ function mouseClicked(event)
                 // Fail round if player clicks again
                 if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SINGLE_ANIMATION_NAME);
                 else var animation = API.getAnimations().get(RIGHT_SINGLE_ANIMATION_NAME);
-                setNpcPose(activePlayer, animation);
+                setNpcPose(player, animation);
                 if(player.hasTempData("singleClicked")) npc.timers.forceStart(FAIL_ROUND, 0, false);
                 // Clicking the first time
                 else{
