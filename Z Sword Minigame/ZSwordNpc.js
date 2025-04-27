@@ -10,6 +10,12 @@ var ROUND_DURATION = 100; // Max duration of rounds
 var GRACE_DURATION = 30; // Duration of grace period player has before they are checked for failing in ticks
 var FAIL_DRAIN = 0.1; // Ki drain from failing 0-1
 var POINTS_TO_WIN = 10;
+var PLAYER_ROTATION = 180; // Horizontal roation to lock player at (can use player.getRotation() to find this)
+var PLAYER_PITCH = 34; // Vertical roation to lock player at (can use player.getRotation() to find this)
+
+
+// Animation names (can use the same animation for multiple)
+var IDLE_ANIMATION_NAME = "";
 
 var activePlayer;
 var points = 0;
@@ -67,8 +73,17 @@ function timer(event)
                 break;
             }
             // Teleport player back to position
-            if(escapeCheck) {
-                npc.executeCommand("/tp " + activePlayer.getName() + " " + PLAYER_POSITION[0] + " " + PLAYER_POSITION[1] + " " + PLAYER_POSITION[2]);
+            if(escapeCheck) npc.executeCommand("/tp " + activePlayer.getName() + " " + PLAYER_POSITION[0] + " " + PLAYER_POSITION[1] + " " + PLAYER_POSITION[2]);
+
+            // Camera detection
+            var cameraCheck = Boolean(
+                Math.abs(Math.abs(activePlayer.getPitch()) - Math.abs(PLAYER_PITCH)) > 0 ||
+                Math.abs(Math.abs(activePlayer.getRotation()) - Math.abs(PLAYER_ROTATION)) > 0
+            );
+            // Move player camera back
+            if(cameraCheck) {
+                activePlayer.setPitch(PLAYER_PITCH);
+                activePlayer.setRotation(PLAYER_ROTATION);
             }
             break;
         case(DECIDE_ROUND):
@@ -103,10 +118,11 @@ function timer(event)
             break;
         case(FAIL_ROUND):
             npc.timers.stop(PASS_ROUND);
+            var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
+            setNpcPose(activePlayer, animation);
             var dbcPlayer = activePlayer.getDBCPlayer();
             // Calculate new ki value after round drain
             var newKi = dbcPlayer.getKi() - dbcPlayer.getMaxKi() * FAIL_DRAIN;
-            npc.say("fail");
             if(newKi > 0) { // If the ki isn't below lower ki and start a new round
                 dbcPlayer.setKi(newKi);
                 npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL, false);
@@ -122,7 +138,8 @@ function timer(event)
                 npc.timers.forceStart(FAIL_ROUND, 0, false);
                 return;
             }
-            npc.say("Pass");
+            var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
+            setNpcPose(activePlayer, animation);
             // Check if the player has won
             points++;
             if(points >= POINTS_TO_WIN) win(npc);
@@ -146,6 +163,30 @@ function clearPlayerTempData(player)
     player.removeTempData("spamGrace");
     player.removeTempData("spamCount");
     player.removeTempData("singleClicked");
+    resetNPC(player);
+}
+
+/** Sets a given npc's animation to one provided
+ * @param {IPlayer} player - The npc to the animation of
+ * @param {IAnimation} animation - animation to set npc to
+ */
+function setNpcPose(player, animation)
+{
+    var animData = player.getAnimationData();
+    animData.setEnabled(true);
+    animData.setAnimation(animation);
+    animData.updateClient();
+}
+
+/** Reset target npc's animations
+ * @param {ICustomNpc or IPlayer} targetNpc - Player or Npc to reset animation and temp data of 
+ */
+function resetNPC(targetNpc)
+{
+    var animData = targetNpc.getAnimationData();
+    animData.setEnabled(false);
+    animData.setAnimation(null);
+    animData.updateClient();
 }
 
 /** Resets the game
