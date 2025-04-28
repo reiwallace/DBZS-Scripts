@@ -30,7 +30,7 @@ function mouseClicked(event)
     if(player.getTempData("swordGamePlayer") && event.getButton() == player.getTempData("button")) {
         // If player is an active sword game player and is pressing the right button
         switch(player.getTempData("action")) {
-            case("SPAM"):
+            case("Spam"):
                 // Check if the player is spamming quick enough
                 if(!event.buttonDown()) return;
                 if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SPAM_ANIMATION_NAME);
@@ -44,7 +44,7 @@ function mouseClicked(event)
                     npc.timers.forceStart(PASS_ROUND, 0, false);
                 } 
                 break;
-            case("HOLD"):
+            case("Hold"):
                 // Fail round if player stops holding the key
                 if(event.buttonDown) {
                     if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_HOLD_ANIMATION_NAME);
@@ -56,7 +56,7 @@ function mouseClicked(event)
                 else npc.timers.forceStart(FAIL_ROUND, 0, false);
                 
                 break;
-            case("SINGLE"):
+            case("Single"):
                 if(event.buttonDown()) return;
                 // Fail round if player clicks again
                 if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SINGLE_ANIMATION_NAME);

@@ -4,15 +4,30 @@
 // Changeables
 var PLAYER_POSITION = [-226.5, 57.0, -759.5]; // Position player is teleported to for the minigame
 var BUTTONS = [0, 1]; // Buttons available in the game 0 = Left click, 1 = Right click
-var ACTIONS = ["SPAM", "HOLD", "SINGLE"]; // Action options, SPAM = spam button, HOLD = hold button, SINGLE = press button once
+var ACTIONS = ["Spam", "Hold", "Single"]; // Action options, SPAM = spam button, HOLD = hold button, SINGLE = press button once
 var ROUND_INTERVAL = 20; // Time between rounds in ticks
-var ROUND_DURATION = 100; // Max duration of rounds
-var GRACE_DURATION = 30; // Duration of grace period player has before they are checked for failing in ticks
+var ROUND_DURATION = 200; // Max duration of rounds in ticks
+var GRACE_DURATION = 40; // Duration of grace period player has before they are checked for failing in ticks
 var FAIL_DRAIN = 0.1; // Ki drain from failing 0-1
 var POINTS_TO_WIN = 10;
 var PLAYER_ROTATION = 180; // Horizontal roation to lock player at (can use player.getRotation() to find this)
-var PLAYER_PITCH = 34; // Vertical roation to lock player at (can use player.getRotation() to find this)
+var PLAYER_PITCH = -10; // Vertical roation to lock player at (can use player.getRotation() to find this)
+var WIN_TEXT = "win text"; // Text said by the npc when the player wins
+var LOSE_TEXT = "lose text"; // Text said by the npc when the player loses
 
+var SPAM_TEXT = "&cThe sword seems loose: try repeatedly hitting &c"; // Text before telling the player to spam
+var SPAM_OVERLAY_TEXT = "Spam "; // Text that appears on player's screen when they need to spam
+var SPAM_COLOR = 15014947; // Decimal color code used for spam overlay
+var HOLD_TEXT = "&eGive it some more force: try holding "; // Text before telling the player to hold
+var HOLD_OVERLAY_TEXT = "Hold "; // Text that appears on player's screen when they need to hold
+var HOLD_COLOR = 16764672; // Decimal color code used for spam overlay
+var SINGLE_TEXT = "&3Be gentle: it only needs one "; // Text before telling the player to left click
+var SINGLE_OVERLAY_TEXT = "Tap "; // Text that appears on player's screen when they need to press once
+var SINGLE_COLOR = 6002943; // Decimal color code used for spam overlay
+var SUCESS_TEXT = "&2&lThat's it the sword is breaking loose"; // Text said when a player succeeds in a round
+var FAIL_TEXT = "&4&oThat didn't work"; // Text said when a player fails a round
+var OVERLAY_ID = 111; // Id used for the ingame overlay
+var OVERLAY_SIZE = 2;
 
 // Animation names (can use the same animation for multiple)
 var IDLE_ANIMATION_NAME = "New";
@@ -98,19 +113,24 @@ function timer(event)
             activePlayer.setTempData("button", button);
             activePlayer.setTempData("gameNpc", npc);
             activePlayer.setTempData("roundPass", false);
-            npc.say("Button " + button);
-            npc.say("Action " + ACTIONS[action]);
+            var mouseKey = button ? "Right" : "Left";                                                 // CHANGE HERE FOR ROUND TEXT
             // Change round options based on Button choice
             switch(action) {
                 case(0): // Set up for spamming
+                    npc.say(SPAM_TEXT + mouseKey + " click.");  
+                    speak(activePlayer, SPAM_OVERLAY_TEXT + mouseKey + " click", SPAM_COLOR, OVERLAY_SIZE, OVERLAY_ID);
                     activePlayer.setTempData("spamGrace", true);
                     activePlayer.setTempData("spamCount", 0);
                     activePlayer.timers.forceStart(SPAM_GRACE, GRACE_DURATION, false);
                     break;
                 case(1): // Set up for holding
+                    npc.say(HOLD_TEXT + mouseKey + " click.");  
+                    speak(activePlayer, HOLD_OVERLAY_TEXT + mouseKey + " click", HOLD_COLOR, OVERLAY_SIZE, OVERLAY_ID);
                     activePlayer.timers.forceStart(HOLD_GRACE, GRACE_DURATION, false);
                     break;
                 case(2): // Set up for single click
+                    npc.say(SINGLE_TEXT + mouseKey + " click.");  
+                    speak(activePlayer, SINGLE_OVERLAY_TEXT + mouseKey + " click", SINGLE_COLOR, OVERLAY_SIZE, OVERLAY_ID);
                     activePlayer.timers.forceStart(HOLD_GRACE, GRACE_DURATION, false); // Using hold grace again tehe
                     break;
             }
@@ -118,6 +138,7 @@ function timer(event)
             break;
         case(FAIL_ROUND):
             npc.timers.stop(PASS_ROUND);
+            npc.say(FAIL_TEXT);
             var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
             setNpcPose(activePlayer, animation);
             var dbcPlayer = activePlayer.getDBCPlayer();
@@ -138,6 +159,7 @@ function timer(event)
                 npc.timers.forceStart(FAIL_ROUND, 0, false);
                 return;
             }
+            npc.say(SUCESS_TEXT);
             var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
             setNpcPose(activePlayer, animation);
             // Check if the player has won
@@ -156,6 +178,7 @@ function timer(event)
  */ 
 function clearPlayerTempData(player)
 { // I love temp data
+    if(player == null) return;
     player.removeTempData("action");
     player.removeTempData("button");
     player.removeTempData("gameNpc");
@@ -163,6 +186,7 @@ function clearPlayerTempData(player)
     player.removeTempData("spamGrace");
     player.removeTempData("spamCount");
     player.removeTempData("singleClicked");
+    cancelSpeak(player, OVERLAY_ID);
     resetNPC(player);
 }
 
@@ -228,7 +252,7 @@ function startGame(npc, player)
  */
 function win(npc)
 {
-    npc.say("win");
+    npc.say(WIN_TEXT);
     reset(npc);
 }
 
@@ -237,6 +261,37 @@ function win(npc)
  */
 function lose(npc)
 {
-    npc.say("lose");
+    npc.say(LOSE_TEXT);
     reset(npc);
+}
+
+/**
+ * Places a speech overlay on the player's screen.
+ *
+ * @param {IPlayer} player - The player object on whose screen the overlay will be displayed.
+ * @param {string} text - The text to display on the player's screen.
+ * @param {string} color - The color of the text in hexadecimal format.
+ * @param {number} size - The font size of the text.
+ * @param {string} speakID - The ID of the text overlay.
+ */
+function speak(player, text, color, size, speakID) 
+{ 
+    var speechOverlay = API.createCustomOverlay(speakID); // Create overlay with id
+    var x = 480 - Math.floor((text.length) * 2.5) * size; // Calculate centre position
+    var y = (246 - Math.floor(size * 6.5)) * 1.4;
+    speechOverlay.addLabel(1, text, x, y, 0, 0, color); // Add label in the middle of the screen with the given color
+    speechOverlay.getComponent(1).setScale(size); // Resize the label
+    player.showCustomOverlay(speechOverlay); // Place the overlay on the player's screen
+    speechOverlay.update(player); // Update the label to be visible
+}
+
+/**
+ * Removes the speech overlay from the player's screen.
+ *
+ * @param {IPlayer} player - The player object from whose screen the overlay will be removed.
+ * @param {string} speakID - The ID of the text overlay to remove.
+ */
+function cancelSpeak(player, speakID) 
+{ 
+    player.closeOverlay(speakID); 
 }
