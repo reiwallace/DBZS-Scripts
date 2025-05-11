@@ -1,11 +1,7 @@
 // ZSwordGlobal.js
 // AUTHOR: Noxie
 
-var SPAM_INTERVAL = 7; // Max number of ticks between player spams
-var SPAM_COUNT = 10; // Number of spams needed
-var SINGLE_CLICK_WIN_DELAY = 20; // Delay after single pressing to end the round
-var HOLD_WIN_DELAY = 40; // Delay after single pressing to end the round
-
+// CHANGE THESE
 // Animation names (can use the same animation for multiple)
 var LEFT_SPAM_ANIMATION_NAME = "SPAM";
 var LEFT_HOLD_ANIMATION_NAME = "HOLD";
@@ -14,6 +10,13 @@ var RIGHT_SPAM_ANIMATION_NAME = "SPAM";
 var RIGHT_HOLD_ANIMATION_NAME = "HOLD";
 var RIGHT_SINGLE_ANIMATION_NAME = "SINGLE";
 
+// CONFIG
+var SPAM_INTERVAL = 7; // Max number of ticks between player spams
+var SPAM_COUNT = 10; // Number of spams needed
+var SINGLE_CLICK_WIN_DELAY = 20; // Delay after single pressing to end the round
+var HOLD_WIN_DELAY = 40; // Delay after single pressing to end the round
+
+// DONT CHANGE THESE
 // Player timers
 var SPAM_CHECK = 0;
 var SPAM_GRACE = 1;
@@ -27,50 +30,50 @@ function mouseClicked(event)
 {
     var player = event.player;
     var npc = player.getTempData("gameNpc")
-    if(player.getTempData("swordGamePlayer") && event.getButton() == player.getTempData("button")) {
-        // If player is an active sword game player and is pressing the right button
-        switch(player.getTempData("action")) {
-            case("Spam"):
-                // Check if the player is spamming quick enough
-                if(!event.buttonDown()) return;
-                if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SPAM_ANIMATION_NAME);
-                else var animation = API.getAnimations().get(RIGHT_SPAM_ANIMATION_NAME);
-                setNpcPose(player, animation);
-                player.timers.forceStart(SPAM_CHECK, SPAM_INTERVAL, false);
-                player.setTempData("spamCount", player.getTempData("spamCount") + 1);
+    if(!(player.getTempData("swordGamePlayer") && event.getButton() == player.getTempData("button"))) return;
+    // If player is an active sword game player and is pressing the right button
+    switch(player.getTempData("action")) {
+        case("Spam"):
+            // Check if the player is spamming quick enough
+            if(event.buttonDown()) return;
+            if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SPAM_ANIMATION_NAME);
+            else var animation = API.getAnimations().get(RIGHT_SPAM_ANIMATION_NAME);
+            setNpcPose(player, animation);
+            player.timers.forceStart(SPAM_CHECK, SPAM_INTERVAL, false);
+            player.setTempData("spamCount", player.getTempData("spamCount") + 1);
                 
-                if(player.getTempData("spamCount") >= SPAM_COUNT) {
-                    player.setTempData("roundPass", true)
-                    npc.timers.forceStart(PASS_ROUND, 0, false);
-                } 
-                break;
-            case("Hold"):
-                // Fail round if player stops holding the key
-                if(event.buttonDown) {
-                    if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_HOLD_ANIMATION_NAME);
-                    else var animation = API.getAnimations().get(RIGHT_HOLD_ANIMATION_NAME);
-                    setNpcPose(player, animation);
-                    player.setTempData("roundPass", true);
-                    npc.timers.forceStart(PASS_ROUND, HOLD_WIN_DELAY, false);
-                }
-                else npc.timers.forceStart(FAIL_ROUND, 0, false);
-                
-                break;
-            case("Single"):
-                if(event.buttonDown()) return;
-                // Fail round if player clicks again
-                if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SINGLE_ANIMATION_NAME);
-                else var animation = API.getAnimations().get(RIGHT_SINGLE_ANIMATION_NAME);
+            // Check if player passes spam count
+            if(player.getTempData("spamCount") <= SPAM_COUNT) return;
+            player.setTempData("roundPass", true)
+            npc.timers.forceStart(PASS_ROUND, 0, false);
+            break;
+
+        case("Hold"):
+            // Fail round if player stops holding the key
+            if(event.buttonDown) {
+                if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_HOLD_ANIMATION_NAME);
+                else var animation = API.getAnimations().get(RIGHT_HOLD_ANIMATION_NAME);
                 setNpcPose(player, animation);
-                if(player.hasTempData("singleClicked")) npc.timers.forceStart(FAIL_ROUND, 0, false);
-                // Clicking the first time
-                else{
-                    player.setTempData("singleClicked", true);
-                    player.setTempData("roundPass", true);
-                    npc.timers.forceStart(PASS_ROUND, SINGLE_CLICK_WIN_DELAY, false);
-                }
-                break;
-        }
+                player.setTempData("roundPass", true);
+                npc.timers.forceStart(PASS_ROUND, HOLD_WIN_DELAY, false);
+            }
+            else npc.timers.forceStart(FAIL_ROUND, 0, false);
+            break;
+    
+        case("Single"):
+            if(event.buttonDown()) return;
+            // Fail round if player clicks again
+            if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SINGLE_ANIMATION_NAME);
+            else var animation = API.getAnimations().get(RIGHT_SINGLE_ANIMATION_NAME);
+            setNpcPose(player, animation);
+            if(player.hasTempData("singleClicked")) npc.timers.forceStart(FAIL_ROUND, 0, false);
+            // Clicking the first time
+            else{
+                player.setTempData("singleClicked", true);
+                player.setTempData("roundPass", true);
+                npc.timers.forceStart(PASS_ROUND, SINGLE_CLICK_WIN_DELAY, false);
+            }
+            break;
     }
 }
 
