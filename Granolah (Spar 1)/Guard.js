@@ -1,10 +1,11 @@
-var GUARD_SIZE = 10;
+var GUARD_SIZE = 10; // Size of guard
+var GUARD_IFRAMES = 10; // Ticks between guard hits
 var npcGuard;
 
 function init(event)
 { // Initialise guard object
     var npc = event.npc;
-    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange());
+    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange(), GUARD_IFRAMES);
 }
 
 function damaged(event)
@@ -22,9 +23,11 @@ function damaged(event)
  * @param {int} initialGuardSize - Initial health of the guard
  * @param {int} scanRange - Range to scan players to message
  */
-function guard(npc, initialGuardSize, scanRange)
+function guard(npc, initialGuardSize, scanRange, iFrames)
 {
     this.npc = npc;
+    this.time = this.npc.world.getTime();
+    this.iFrames = iFrames;
     this.scanRange = scanRange;
     this.npcAnimData = npc.getAnimationData(); 
     this.guard_level = initialGuardSize;
@@ -53,9 +56,12 @@ guard.prototype.setGuardBar = function(value)
 guard.prototype.damageGuard = function(value)
 {
     // Perform blocking animation
+    var newTime = this.npc.world.getTime();
+    if(newTime - this.time < this.iFrames) return;
     this.npcAnimData.setAnimation(API.getAnimations().get("DBCBlock"));
     this.npcAnimData.setEnabled(true);
     this.npcAnimData.updateClient();
+    this.time = this.npc.world.getTime();
     this.setGuardBar(this.guard_level - value);
 }
 

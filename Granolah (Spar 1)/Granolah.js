@@ -2,16 +2,30 @@
 // AUTHOR: Noxie, Delka, XO
 
 // CHANGE THESE
-var ARENA_CENTRE = [0, 0, 0]; // Point to backstep to if the npc would collide with a wall
+var ARENA_CENTRE = [-258, 56, -843]; // Point to backstep to if the npc would collide with a wall
 
-// Backstep configurables
-var BACKSTEP_SPEED = 1; // Speed of backstep motion
-var BACKSTEP_HEIGHT = 0.2; // Height of backstep motion
-var BACKSHOT_DURATION = 40; // Amount of time to perform all backshots
-var BACKSHOT_COUNT = 100; // Number of backshots to perform after backstepping
-var recoil1Name = "Recoil1"; // Recoil animation names to pull them from the API
-var recoil2Name = "Recoil2";
-var recoil3Name = "Recoil3";
+// BACKSTEP CONFIG
+var BACKSTEP_COOLDOWN = 200; // Cooldown of backstep in ticks
+var BACKSTEP_SPEED = 3; // Speed of backstep motion
+var BACKSTEP_HEIGHT = 0.4; // Height of backstep motion
+var BACKSHOT_DURATION = 20; // Amount of time to perform all backshots
+var BACKSHOT_COUNT = 5; // Number of backshots to perform after backstepping
+var BACKSHOT_PROJECTILE = "customnpcs:npcBlackBullet"; // Item to use for backshot projectile
+var BACKSHOT_PROJECTILE_VARIATION = 0; // Variation of item leave at 0 unless using a variation item
+var BACKSHOT_PROJECTILE_SIZE = 1; // Size of backshot projectile
+var BACKSHOT_ACCURACY = 100; // Accuracy of backshots
+var BACKSHOT_SOUND = "customnpcs:gun.pistol.shot"; // Sound played when performing backshots
+var recoil1Name = "GranolahBarrage"; // Recoil animation names to pull them from the API
+var recoil2Name = "GranolahBarrageLeft";
+var recoil3Name = "GranolahBarrageRight";
+
+// GUARD CONFIG
+var GUARD_SIZE = 10; // Size of guard
+var GUARD_DAMAGE = 1; // Damage to guard per hit
+
+// BOSS CONFIG
+var RESET_TIME = 600; // Number of ticks since player activity to reset
+
 
 // Attack checks
 var performingStanceChange = false;
@@ -22,6 +36,7 @@ var npcGuard;
 var npcAnimHandler;
 var target;
 var recoil = null;
+var count = 0;
 
 // Timers
 var BACKSTEP = 0;
@@ -41,6 +56,7 @@ function timer(event)
             if(performingQTE) return;
             backstep(npc, target, BACKSTEP_SPEED, BACKSTEP_HEIGHT, ARENA_CENTRE);
             recoil = null;
+            count = 0;
             npc.timers.forceStart(BACKSHOTS, BACKSHOT_DURATION/BACKSHOT_COUNT, true);
             break;
 
@@ -51,14 +67,27 @@ function timer(event)
                 npc.timers.stop(BACKSHOTS);
                 return;
             }
+
             // Cycle through recoil animations
             if(recoil == null) { 
                 npcAnimHandler.setAnimation(recoil1Name);
                 recoil = true;
-            }
-            else recoilAnimation = recoil ? npcAnimHandler.setAnimation(recoil2Name) : npcAnimHandler.setAnimation(recoil3Name);
-            // NYI
-            recoil = !recoil;
+            } else {
+                recoilAnimation = recoil ? npcAnimHandler.setAnimation(recoil2Name) : npcAnimHandler.setAnimation(recoil3Name);
+                recoil = !recoil;
+            } 
+            
+            // Shoot projectile at player
+            if(target == null) return;
+            npc.playSound(BACKSHOT_SOUND, 1, 1);
+            var item = API.createItem(BACKSHOT_PROJECTILE, BACKSHOT_PROJECTILE_VARIATION, BACKSHOT_PROJECTILE_SIZE);
+            npc.shootItem(target, item, BACKSHOT_ACCURACY);
+
+            // Timer break
+            count++;
+            if(count <= BACKSHOT_COUNT) return;
+            npcAnimHandler.removeAnimation;
+            npc.timers.stop(BACKSHOTS);
             break;
     }
 }
@@ -66,8 +95,10 @@ function timer(event)
 function init(event)
 {
     var npc = event.npc;
+    npc.timers.clear();
     npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange());
     npcAnimHandler = new animationHandler(npc);
+    npcAnimHandler.removeAnimation();
 }
 
 function target(event)
@@ -81,18 +112,18 @@ function target(event)
 
 function meleeAttack(event)
 { // Begin reset timer on swing
-    event.npc.timers.forceStart(RESET, resetTime, false);
+    event.npc.timers.forceStart(RESET, RESET_TIME, false);
 }
 
 function damaged(event)
 { 
     // Begin reset timer on damaged
-    event.npc.timers.forceStart(RESET, resetTime, false);
+    event.npc.timers.forceStart(RESET, RESET_TIME, false);
 
     // Damage Guard if not empty
     if(npcGuard.isGuardBarEmpty()) return;
     event.setDamage(0);
-    npcGuard.damageGuard(1);
+    npcGuard.damageGuard(GUARD_DAMAGE);
 }
 
 function killed(event)
@@ -112,7 +143,6 @@ function kills(event)
  */
 function reset(npc)
 {
-    npcAnimHandler.removeAnimation();
     npc.reset();
     npc.timers.clear();
 }
