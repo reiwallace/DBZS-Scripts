@@ -1,3 +1,5 @@
+// Deck Class --------------------------------------------------------------------------
+
 /** Deck class.
  * @constructor
  * @param {int} size - Deck size - number of items to cycle through.
@@ -36,3 +38,5 @@ deck.prototype.reset = function() {
 deck.prototype.fillDeck = function() {
     for(i = 0; i < this.maxSize; i++) this.deck[i] = i;
 }
+
+// --------------------------------------------------------------------------
