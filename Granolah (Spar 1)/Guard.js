@@ -1,11 +1,10 @@
-var ARENA_SIZE = 20;
 var GUARD_SIZE = 10;
 var npcGuard;
 
 function init(event)
 { // Initialise guard object
     var npc = event.npc;
-    npcGuard = new guard(npc, GUARD_SIZE, ARENA_SIZE);
+    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange());
 }
 
 function damaged(event)
@@ -21,12 +20,12 @@ function damaged(event)
  * @constructor
  * @param {ICustomNpc} npc - Npc assigning guard to
  * @param {int} initialGuardSize - Initial health of the guard
- * @param {int} arenaSize - Size of arena for player scanning
+ * @param {int} scanRange - Range to scan players to message
  */
-function guard(npc, initialGuardSize, arenaSize)
+function guard(npc, initialGuardSize, scanRange)
 {
     this.npc = npc;
-    this.arenaSize = arenaSize;
+    this.scanRange = scanRange;
     this.npcAnimData = npc.getAnimationData(); 
     this.guard_level = initialGuardSize;
 }
@@ -40,9 +39,9 @@ guard.prototype.setGuardBar = function(value)
     
     // Update player on guard status
     var message = "";
-    if (this.guard_level > 0) message = "GUARD LEVEL: " + guard_level;
+    if (this.guard_level > 0) message = "GUARD LEVEL: " + this.guard_level;
     else message = "GUARD BROKEN";
-    var entities = npc.getSurroundingEntities(ARENA_SIZE, 1);
+    var entities = this.npc.getSurroundingEntities(this.scanRange, 1);
     for (var i in entities) {
         entities[i].sendMessage(message);
     }
@@ -54,9 +53,9 @@ guard.prototype.setGuardBar = function(value)
 guard.prototype.damageGuard = function(value)
 {
     // Perform blocking animation
-    npc_anim.setAnimation(API.getAnimations().get("DBCBlock"));
-    npc_anim.setEnabled(true);
-    npc_anim.updateClient();
+    this.npcAnimData.setAnimation(API.getAnimations().get("DBCBlock"));
+    this.npcAnimData.setEnabled(true);
+    this.npcAnimData.updateClient();
     this.setGuardBar(this.guard_level - value);
 }
 
@@ -68,4 +67,4 @@ guard.prototype.isGuardBarEmpty = function()
     return this.guard_level <= 0;
 }
 
-// Guard Class ---------------------------------------------------------
+// ---------------------------------------------------------

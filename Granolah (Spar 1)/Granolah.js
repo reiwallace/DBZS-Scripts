@@ -1,10 +1,12 @@
 // Granolah.js
 // AUTHOR: Noxie, Delka, XO
 
+// CHANGE THESE
+var ARENA_CENTRE = [0, 0, 0]; // Point to backstep to if the npc would collide with a wall
+
 // Backstep configurables
 var BACKSTEP_SPEED = 1; // Speed of backstep motion
 var BACKSTEP_HEIGHT = 0.2; // Height of backstep motion
-var ARENA_CENTRE = [0, 0, 0]; // Point to backstep to if the npc would collide with a wall
 var BACKSHOT_DURATION = 40; // Amount of time to perform all backshots
 var BACKSHOT_COUNT = 100; // Number of backshots to perform after backstepping
 var recoil1Name = "Recoil1"; // Recoil animation names to pull them from the API
@@ -16,17 +18,24 @@ var performingStanceChange = false;
 var performingQTE = false;
 var performingBackshots = false;
 
+var npcGuard;
+var npcAnimHandler;
 var target;
 var recoil = null;
 
 // Timers
 var BACKSTEP = 0;
 var BACKSHOTS = 1;
+var RESET = 2;
 
 function timer(event)
 {
     var npc = event.npc;
     switch(event.id) {
+        case(RESET):
+            reset(npc);
+            break;
+
         case(BACKSTEP):
             // Perform backstep and start backshots timer
             if(performingQTE) return;
@@ -34,9 +43,9 @@ function timer(event)
             recoil = null;
             npc.timers.forceStart(BACKSHOTS, BACKSHOT_DURATION/BACKSHOT_COUNT, true);
             break;
+
         case(BACKSHOTS):
             // Shoot at the player and perform recoil animation
-            var recoilAnimation = null;
             if(performingQTE) {
                 // Stop firing to perform quick time event
                 npc.timers.stop(BACKSHOTS);
@@ -44,14 +53,21 @@ function timer(event)
             }
             // Cycle through recoil animations
             if(recoil == null) { 
-                recoilAnimation = API.getAnimations().get(recoil1Name);
+                npcAnimHandler.setAnimation(recoil1Name);
                 recoil = true;
             }
-            else recoilAnimation = recoil ? API.getAnimations().get(recoil2Name) : API.getAnimations().get(recoil3Name);
+            else recoilAnimation = recoil ? npcAnimHandler.setAnimation(recoil2Name) : npcAnimHandler.setAnimation(recoil3Name);
             // NYI
             recoil = !recoil;
             break;
     }
+}
+
+function init(event)
+{
+    var npc = event.npc;
+    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange());
+    npcAnimHandler = new animationHandler(npc);
 }
 
 function target(event)
@@ -69,10 +85,14 @@ function meleeAttack(event)
 }
 
 function damaged(event)
-{ // Begin reset timer on damaged
+{ 
+    // Begin reset timer on damaged
+    event.npc.timers.forceStart(RESET, resetTime, false);
+
+    // Damage Guard if not empty
+    if(npcGuard.isGuardBarEmpty()) return;
     event.setDamage(0);
     npcGuard.damageGuard(1);
-    event.npc.timers.forceStart(RESET, resetTime, false);
 }
 
 function killed(event)
@@ -83,7 +103,7 @@ function killed(event)
 function kills(event)
 { // Reset if killing a player and no other players around
     var npc = event.npc;
-    var playerCheck = npc.getSurroundingEntities(50, 1);
+    var playerCheck = npc.getSurroundingEntities(npc.getAggroRange(), 1);
     if(playerCheck.length < 1) reset;
 }
 
@@ -92,6 +112,8 @@ function kills(event)
  */
 function reset(npc)
 {
+    npcAnimHandler.removeAnimation();
+    npc.reset();
     npc.timers.clear();
 }
 
@@ -143,11 +165,12 @@ function getDirection(npc, x, z)
  * @constructor
  * @param {ICustomNpc} npc - Npc assigning guard to
  * @param {int} initialGuardSize - Initial health of the guard
- * @param {int} arenaSize - Size of arena for player scanning
+ * @param {int} scanRange - Range to scan players to message
  */
-function guard(npc, initialGuardSize, arenaSize) {
+function guard(npc, initialGuardSize, scanRange)
+{
     this.npc = npc;
-    this.arenaSize = arenaSize;
+    this.scanRange = scanRange;
     this.npcAnimData = npc.getAnimationData(); 
     this.guard_level = initialGuardSize;
 }
@@ -155,14 +178,15 @@ function guard(npc, initialGuardSize, arenaSize) {
 /** Set guard bar level
  * @param {int} value - Value to set guard to 
  */
-guard.prototype.setGuardBar = function(value) {
+guard.prototype.setGuardBar = function(value)
+{
     this.guard_level = value;
     
     // Update player on guard status
     var message = "";
-    if (this.guard_level > 0) message = "GUARD LEVEL: " + guard_level;
+    if (this.guard_level > 0) message = "GUARD LEVEL: " + this.guard_level;
     else message = "GUARD BROKEN";
-    var entities = npc.getSurroundingEntities(ARENA_SIZE, 1);
+    var entities = this.npc.getSurroundingEntities(this.scanRange, 1);
     for (var i in entities) {
         entities[i].sendMessage(message);
     }
@@ -171,19 +195,54 @@ guard.prototype.setGuardBar = function(value) {
 /** Damage guard by value and perform a block animation
  * @param {int} value - Damage to do to guard 
  */
-guard.prototype.damageGuard = function(value) {
+guard.prototype.damageGuard = function(value)
+{
     // Perform blocking animation
-    npc_anim.setAnimation(API.getAnimations().get("DBCBlock"));
-    npc_anim.setEnabled(true);
-    npc_anim.updateClient();
+    this.npcAnimData.setAnimation(API.getAnimations().get("DBCBlock"));
+    this.npcAnimData.setEnabled(true);
+    this.npcAnimData.updateClient();
     this.setGuardBar(this.guard_level - value);
 }
 
 /** Checks if guard level is less than or equal to 0
  * @returns {Boolean} 
  */
-guard.prototype.isGuardBarEmpty = function() {
+guard.prototype.isGuardBarEmpty = function()
+{
     return this.guard_level <= 0;
 }
 
-// Guard Class ---------------------------------------------------------
+// ---------------------------------------------------------
+
+// Animation Handler class --------------------------------------------------------------------------
+
+/**
+ * @constructor
+ * @param {IEntity} entity - Entity managed by animation handler
+ */
+function animationHandler(entity)
+{
+    this.entity = entity;
+    this.entityAnimData = entity.getAnimationData();
+}
+
+/** Set entity animation
+ * @param {String} animationName - Animation name as appears in game
+ */
+animationHandler.prototype.setAnimation = function(animationName) 
+{
+    this.entityAnimData.setEnabled(true);
+    this.entityAnimData.setAnimation(API.getAnimations().get(animationName));
+    this.entityAnimData.updateClient();
+}
+
+/** Removes animation, setting player back to their default animation
+ */
+animationHandler.prototype.removeAnimation = function()
+{
+    this.entityAnimData.setEnabled(false);
+    this.entityAnimData.setAnimation(null);
+    this.entityAnimData.updateClient();
+}
+
+// ---------------------------------------------------------------------------
