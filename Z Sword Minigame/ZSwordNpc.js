@@ -32,6 +32,7 @@ var OVERLAY_SIZE = 2;
 
 // DONT CHANGE THESE
 var activePlayer;
+var activePlayerAnimationHandler;
 var points = 0;
 var losses = 0;
 var BUTTONS = [0, 1]; // Buttons available in the game 0 = Left click, 1 = Right click
@@ -176,8 +177,7 @@ function timer(event)
             }
 
             // Reset animation
-            var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
-            setNpcPose(activePlayer, animation);
+            activePlayerAnimationHandler.setAnimation(IDLE_ANIMATION_NAME);
             break;
 
         case(PASS_ROUND):
@@ -196,8 +196,7 @@ function timer(event)
             }
 
             // Reset Animation
-            var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
-            setNpcPose(activePlayer, animation);
+            activePlayerAnimationHandler.setAnimation(IDLE_ANIMATION_NAME);
             break;
     }
 }
@@ -218,29 +217,6 @@ function clearPlayerTempData(player)
     cancelSpeak(player, OVERLAY_ID);
 }
 
-/** Sets a given npc's animation to one provided
- * @param {IPlayer} player - The npc to the animation of
- * @param {IAnimation} animation - animation to set npc to
- */
-function setNpcPose(player, animation)
-{
-    var animData = player.getAnimationData();
-    animData.setEnabled(true);
-    animData.setAnimation(animation);
-    animData.updateClient();
-}
-
-/** Reset target npc's animations
- * @param {ICustomNpc or IPlayer} targetNpc - Player or Npc to reset animation and temp data of 
- */
-function resetNPC(targetNpc)
-{
-    var animData = targetNpc.getAnimationData();
-    animData.setEnabled(false);
-    animData.setAnimation(null);
-    animData.updateClient();
-}
-
 /** Resets the game
  * @param {ICustomNpc} npc 
  */
@@ -250,7 +226,8 @@ function reset(npc)
     if(activePlayer == null) return;
     activePlayer.removeTempData("swordGamePlayer"); // Seperate because I'm a goof
     clearPlayerTempData(activePlayer);
-    resetNPC(activePlayer);
+    activePlayerAnimationHandler.removeAnimation();
+    activePlayerAnimationHandler = null;
     activePlayer = null;
 }
 
@@ -272,12 +249,13 @@ function startGame(npc, player)
     if(activePlayer != null) return;
     npc.timers.forceStart(ESCAPE_DETECTION, 5, true);
     activePlayer = player;
+    activePlayerAnimationHandler = new animationHandler(activePlayer);
+    activePlayerAnimationHandler.setAnimation(IDLE_ANIMATION_NAME);
     points = 0;
     losses = 0;
     activePlayer.setTempData("swordGamePlayer", true);
+    activePlayer.setTempData("animationHandler", activePlayerAnimationHandler);
     npc.timers.forceStart(DECIDE_ROUND, ROUND_INTERVAL, false);
-    var animation = API.getAnimations().get(IDLE_ANIMATION_NAME);
-    setNpcPose(activePlayer, animation);
 }
 
 /** Function executed on player winning
@@ -327,4 +305,35 @@ function speak(player, text, color, size, speakID)
 function cancelSpeak(player, speakID) 
 { 
     player.closeOverlay(speakID); 
+}
+
+// Animation Handler class ---------------------------------------------------------------------------
+
+/**
+ * @constructor
+ * @param {IEntity} entity - Entity managed by animation handler
+ */
+function animationHandler(entity)
+{
+    this.entity = entity;
+    this.entityAnimData = entity.getAnimationData();
+}
+
+/** Set entity animation
+ * @param {String} animationName - Animation name as appears in game
+ */
+animationHandler.prototype.setAnimation = function(animationName) 
+{
+    this.entityAnimData.setEnabled(true);
+    this.entityAnimData.setAnimation(API.getAnimations().get(animationName));
+    this.entityAnimData.updateClient();
+}
+
+/** Removes animation, setting player back to their default animation
+ */
+animationHandler.prototype.removeAnimation = function()
+{
+    this.entityAnimData.setEnabled(false);
+    this.entityAnimData.setAnimation(null);
+    this.entityAnimData.updateClient();
 }

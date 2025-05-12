@@ -29,6 +29,7 @@ var FAIL_ROUND = 3;
 function mouseClicked(event)
 {
     var player = event.player;
+    var playerAnimationHandler = player.getTempData("animationHandler");
     var npc = player.getTempData("gameNpc")
     if(!(player.getTempData("swordGamePlayer") && event.getButton() == player.getTempData("button"))) return;
     // If player is an active sword game player and is pressing the right button
@@ -36,9 +37,8 @@ function mouseClicked(event)
         case("Spam"):
             // Check if the player is spamming quick enough
             if(event.buttonDown()) return;
-            if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SPAM_ANIMATION_NAME);
-            else var animation = API.getAnimations().get(RIGHT_SPAM_ANIMATION_NAME);
-            setNpcPose(player, animation);
+            if(event.getButton() == 0) playerAnimationHandler.setAnimation(LEFT_SPAM_ANIMATION_NAME);
+            else playerAnimationHandler.setAnimation(RIGHT_SPAM_ANIMATION_NAME);
             player.timers.forceStart(SPAM_CHECK, SPAM_INTERVAL, false);
             player.setTempData("spamCount", player.getTempData("spamCount") + 1);
                 
@@ -51,9 +51,8 @@ function mouseClicked(event)
         case("Hold"):
             // Fail round if player stops holding the key
             if(event.buttonDown) {
-                if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_HOLD_ANIMATION_NAME);
-                else var animation = API.getAnimations().get(RIGHT_HOLD_ANIMATION_NAME);
-                setNpcPose(player, animation);
+                if(event.getButton() == 0) playerAnimationHandler.setAnimation(LEFT_HOLD_ANIMATION_NAME);
+                else playerAnimationHandler.setAnimation(RIGHT_HOLD_ANIMATION_NAME);
                 player.setTempData("roundPass", true);
                 npc.timers.forceStart(PASS_ROUND, HOLD_WIN_DELAY, false);
             }
@@ -63,9 +62,8 @@ function mouseClicked(event)
         case("Single"):
             if(event.buttonDown()) return;
             // Fail round if player clicks again
-            if(event.getButton() == 0) var animation = API.getAnimations().get(LEFT_SINGLE_ANIMATION_NAME);
-            else var animation = API.getAnimations().get(RIGHT_SINGLE_ANIMATION_NAME);
-            setNpcPose(player, animation);
+            if(event.getButton() == 0) playerAnimationHandler.setAnimation(LEFT_SINGLE_ANIMATION_NAME);
+            else playerAnimationHandler.setAnimation(RIGHT_SINGLE_ANIMATION_NAME);
             if(player.hasTempData("singleClicked")) npc.timers.forceStart(FAIL_ROUND, 0, false);
             // Clicking the first time
             else{
@@ -103,16 +101,4 @@ function timer(event)
             if(!player.getTempData("roundPass")) npc.timers.forceStart(FAIL_ROUND, 0, false); 
             break;
     }
-}
-
-/** Sets a given npc's animation to one provided
- * @param {IPlayer} player - The npc to the animation of
- * @param {IAnimation} animation - animation to set npc to
- */
-function setNpcPose(player, animation)
-{
-    var animData = player.getAnimationData();
-    animData.setEnabled(true);
-    animData.setAnimation(animation);
-    animData.updateClient();
 }
