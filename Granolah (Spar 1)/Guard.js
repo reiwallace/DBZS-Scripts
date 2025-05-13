@@ -1,5 +1,6 @@
 var GUARD_SIZE = 10; // Size of guard
 var GUARD_IFRAMES = 10; // Ticks between guard hits
+var GUARD_DAMAGE = 1; // Damage done to guard per hit
 var npcGuard;
 
 function init(event)
@@ -12,7 +13,7 @@ function damaged(event)
 { // Damage guard if not empty
     if(npcGuard.isGuardBarEmpty()) return;
     event.setDamage(0);
-    npcGuard.damageGuard(1);
+    npcGuard.damageGuard(GUARD_DAMAGE);
 }
 
 // Guard Class ---------------------------------------------------------

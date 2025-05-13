@@ -9,7 +9,7 @@ var BACKSTEP_COOLDOWN = 200; // Cooldown of backstep in ticks
 var BACKSTEP_SPEED = 3; // Speed of backstep motion
 var BACKSTEP_HEIGHT = 0.4; // Height of backstep motion
 var BACKSHOT_DURATION = 20; // Amount of time to perform all backshots
-var BACKSHOT_COUNT = 5; // Number of backshots to perform after backstepping
+var BACKSHOT_COUNT = 4; // Number of backshots to perform after backstepping
 var BACKSHOT_PROJECTILE = "customnpcs:npcBlackBullet"; // Item to use for backshot projectile
 var BACKSHOT_PROJECTILE_VARIATION = 0; // Variation of item leave at 0 unless using a variation item
 var BACKSHOT_PROJECTILE_SIZE = 1; // Size of backshot projectile
@@ -22,6 +22,7 @@ var recoil3Name = "GranolahBarrageRight";
 // GUARD CONFIG
 var GUARD_SIZE = 10; // Size of guard
 var GUARD_DAMAGE = 1; // Damage to guard per hit
+var GUARD_IFRAMES = 10; // Min ticks between guard hits
 
 // BOSS CONFIG
 var RESET_TIME = 600; // Number of ticks since player activity to reset
@@ -86,7 +87,7 @@ function timer(event)
             // Timer break
             count++;
             if(count <= BACKSHOT_COUNT) return;
-            npcAnimHandler.removeAnimation;
+            npcAnimHandler.removeAnimation();
             npc.timers.stop(BACKSHOTS);
             break;
     }
@@ -96,30 +97,28 @@ function init(event)
 {
     var npc = event.npc;
     npc.timers.clear();
-    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange());
+    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange(), GUARD_IFRAMES);
     npcAnimHandler = new animationHandler(npc);
     npcAnimHandler.removeAnimation();
 }
 
 function target(event)
 { // Set target and begin reset timer on target
-    var npc = event.npc;
     target = event.getTarget();
-    if(!npc.timers.has(BACKSTEP)) { // Start timers if not active
-        npc.timers.forceStart(BACKSTEP, BACKSTEP_COOLDOWN, true); // Start ability timer
-    }
+    startTimers(event.npc);
 }
 
 function meleeAttack(event)
 { // Begin reset timer on swing
     event.npc.timers.forceStart(RESET, RESET_TIME, false);
+    startTimers(event.npc);
 }
 
 function damaged(event)
 { 
     // Begin reset timer on damaged
     event.npc.timers.forceStart(RESET, RESET_TIME, false);
-
+    startTimers(event.npc);
     // Damage Guard if not empty
     if(npcGuard.isGuardBarEmpty()) return;
     event.setDamage(0);
@@ -145,6 +144,16 @@ function reset(npc)
 {
     npc.reset();
     npc.timers.clear();
+}
+
+/** Starts unstarted mechanic timers
+ * @param {ICustomNpc} npc - Npc to start timers on
+ */
+function startTimers(npc)
+{
+    if(!npc.timers.has(BACKSTEP)) { // Start timers if not active
+        npc.timers.forceStart(BACKSTEP, BACKSTEP_COOLDOWN, true); // Start ability timer
+    }
 }
 
 /** Performs a backstep away from the target, backstepping to the center if the motion would result in collision with a wall
@@ -197,9 +206,11 @@ function getDirection(npc, x, z)
  * @param {int} initialGuardSize - Initial health of the guard
  * @param {int} scanRange - Range to scan players to message
  */
-function guard(npc, initialGuardSize, scanRange)
+function guard(npc, initialGuardSize, scanRange, iFrames)
 {
     this.npc = npc;
+    this.time = this.npc.world.getTime();
+    this.iFrames = iFrames;
     this.scanRange = scanRange;
     this.npcAnimData = npc.getAnimationData(); 
     this.guard_level = initialGuardSize;
@@ -228,9 +239,12 @@ guard.prototype.setGuardBar = function(value)
 guard.prototype.damageGuard = function(value)
 {
     // Perform blocking animation
+    var newTime = this.npc.world.getTime();
+    if(newTime - this.time < this.iFrames) return;
     this.npcAnimData.setAnimation(API.getAnimations().get("DBCBlock"));
     this.npcAnimData.setEnabled(true);
     this.npcAnimData.updateClient();
+    this.time = this.npc.world.getTime();
     this.setGuardBar(this.guard_level - value);
 }
 
