@@ -6,10 +6,35 @@ var ARENA_CENTRE = [0, 0, 0];
 
 // CONFIG
 var BEAM_CHARGE = 200; // Time player has to hit the correct clone in ticks
+var BEAM_DAMAGE = 1; // Damage of fail beam
+var BEAM_COLOR = 1; // Colour of fail beam
+var BEAM_SPEED = 1; // Speed of fail beam
+var BEAM_SIZE = 1; // Size of fail beam
 
 // DON'T CHANGE
 var chargingAttack = false;
 var multiForms;
+
+// TIMERS  
+var RESET = 0;
+var MULTI_FORM = 1;
+
+function timers(event)
+{
+    var npc = event.npc;
+    switch(event.id) {
+        case(RESET):
+
+            break;
+        case(MULTI_FORM):
+            multiFormAttack(npc, ARENA_CENTRE);
+            break;
+        case(FIRE_BEAM):
+            despawnClones(npc);
+            kiAttack(npc, BEAM_DAMAGE, BEAM_SPEED, BEAM_COLOR, BEAM_SIZE);
+            break;
+    }
+}
 
 function init(event)
 { // Check clones on spawn
@@ -32,6 +57,9 @@ function damaged(event)
 { // Begin reset timer on damaged
     event.npc.timers.forceStart(RESET, resetTime, false);
     startTimers(event.npc.timers);
+    if(chargingAttack) {
+
+    }
 }
 
 function killed(event)
@@ -103,4 +131,20 @@ function despawnClones(npc)
         if(i == null) continue;
         i.despawn();
     }
+}
+
+function stunNpc(npc)
+{
+    
+}
+
+/** Fires a dbc ki attack from the npc wth a set damage and speed
+ * @param {ICustomNpc} npc - Npc shooting the ki
+ * @param {int} damage - Damage of the ki
+ * @param {int} speed - Speed of the ki
+ * @param {int} color - Color of the ki
+ */
+function kiAttack(npc, damage, speed, color, size)
+{
+    npc.executeCommand("/dbcspawnki 3 " + speed + " " + damage + " 0 " + color + " 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
 }
