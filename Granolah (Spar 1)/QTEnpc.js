@@ -88,8 +88,7 @@ function timer(event)
     }
 }
 
-/** qteHandler class ---------------------------------------------------------------------
- */
+// qteHandler class ---------------------------------------------------------------------
 
 /** Performs a quick time event
  * @param {ICustomNpc} npc - Npc performing qte
