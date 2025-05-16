@@ -1,132 +1,201 @@
-var gui = API.createCustomGui(GUI_ID, 0, 0, false);
+// CHANGE THESE
+var ARENA_CENTRE = [-257, 56, -842];
 
-var arenaCenter = [555, 2, 151];
-var npcRotation = 90; // Direction npc facing when teleported to middle of arena
-var playerRotation = 270; // Direction player facing when teleported to middle of arena
+// CONFIG
+var NPC_SPEED = 5;
 
-var npcSpeed = 5;
+// DON'T EDIT
+var npcAnimHandler;
+var quickTimeEvent;
 
-var failedMessage = "&cFailed!";
-
-var npcWindupAnimation = "ParryStance";
-var playerWindupAnimation = "ParryStance";
-var qteSuccessAnimation = "GuardBreak";
-var qteFailedAnimation = "BigBangAttack";
-var playerFailedAnimation = "GuardBreak";
-
-var qteTime = 30; // Time for player to click the qte
-
-var GUI_ID = 72;
-var BUTTON_ID = 72;
-
-var QTE_CHECK = 1;
+// TIMERS
 var QTE_TIMER = 2;
 
-function init(e) {
-    e.npc.setSpeed(npcSpeed);
-}
-function damaged(e) {
-    var npc = e.npc;
-    var player = e.getSource();
+// QTE CONFIG
+qteHandler.prototype.qteConfig = function()
+{
+    this.QTE_LENGTH = 30; // Time for player to click the qte
 
-    if (npc.isAlive() && player != null && player.getMode() != 1 && player.getType() == 1) {
-        quickTimeEvent(npc, player);
+    // BUTTON CONFIG
+    this.BUTTON_COLOUR = 0x705C7D; // Decimal colour of buttom
+    this.BUTTON_WIDTH = 50; // Because we cant change the height of the button
+    this.BUTTON_SCALE = 1; // Height of button in pixels
+    this.RANDOM_SCALE = true;
+    this.RANDOM_RANGE = [0.2, 3];
+    this.BUTTON_TEXT = "Click!"; // Text on button
+
+    // ANIMATIONS
+    this.NPC_WINDUP_ANIMATION = "DBCBlock"; 
+    this.PLAYER_WINDUP_ANIMATION = "DBCBlock";
+    this.NPC_SUCCESS_ANIMATION = "DBCBlock";
+    this.NPC_FAILED_ANIMATION = "DBCBlock";
+    this.PLAYER_FAILED_ANIMATION = "DBCBlock";
+    this.PLAYER_SUCCESS_ANIMATION = "DBCBlock";
+
+    // QTE MESSAGES
+    this.FAILED_MESSAGE = "&cFailed!"; // Text displayed on failing qte
+    this.SUCCESS_MESSAGE = "&aSuccess!"; // Text displayed on passing qte
+
+    // ENTITY ROTATIONS
+    this.NPC_ROTATION = 90; // Direction npc facing when teleported to middle of arena
+    this.PLAYER_ROTATION = 270; // Direction player facing when teleported to middle of arena
+
+    this.GUI_ID = 72;
+    this.BUTTON_ID = 72;
+}
+
+function init(event)
+{
+    var npc = event.npc;
+    npc.timers.clear();
+    npcAnimHandler = new animationHandler(npc);
+    quickTimeEvent = new qteHandler(npc, npcAnimHandler, ARENA_CENTRE, QTE_TIMER, NPC_SPEED);
+    npc.setSpeed(NPC_SPEED);
+}
+
+function damaged(event)
+{
+    var npc = event.npc;
+    var player = event.getSource();
+    if(npc.isAlive() && player != null && player.getMode() != 1 && player.getType() == 1 && !npc.timers.has(QTE_TIMER)) {
+        var playerAnimHandler = new animationHandler(player);
+        quickTimeEvent.newQTE(player, playerAnimHandler);
     }
 }
-function meleeAttack(e) {
-    var npc = e.npc;
-    var ti = npc.getTimers();
-    if (ti.has(QTE_TIMER)) {
-        e.setCancelled(true);
-    }
+
+function meleeAttack(event)
+{
+    // Cancel melee if performing qte
+    if(quickTimeEvent != null && quickTimeEvent.isPerformingQTE()) event.setCancelled(true);
 }
-function killed(e) {
-    var npc = e.npc;
-    var player = e.getSource();
-    var ti = npc.getTimers();
+
+function killed(event)
+{
+    var npc = event.npc;
+    var player = event.player;
     if (player != null && player.getType() == 1) {
         player.closeGui();
-        ti.clear();
+        npc.timers.clear();
     }
 }
-function timer(e) {
-    var npc = e.npc;
-    var player = npc.getWorld().getClosestVulnerablePlayer(npc.getPosition(), 50.0);
 
-    switch (e.id) {
-        case QTE_CHECK:
-            var countered = npc.getTempData("countered");
-            if (countered == 1 && npc.isAlive()) {
-                successQTE(npc, qteSuccessAnimation);
-            }
-            break;
-
+function timer(event)
+{
+    switch (event.id) {
         case QTE_TIMER:
-            if (player != null && npc.isAlive()) {
-                failQTE(npc, player, qteFailedAnimation, playerFailedAnimation);
-            }
+            if(quickTimeEvent != null) quickTimeEvent.failQTE();
             break;
     }
 }
 
-/**
- * @param {ICustomNpc} npc - npc to trigger the QTE
- * @param {IPlayer} player - player who gets the QTE button
+/** qteHandler class ---------------------------------------------------------------------
  */
-function quickTimeEvent(npc, player) {
-    var ti = npc.getTimers();
-    if (player != null) {
-        var x = Math.floor(Math.random() * 401) - 200
-        var y = Math.floor(Math.random() * 401) - 200
-        var button = gui.addButton(BUTTON_ID, "CLICK!", x, y, 70, 20);
-        button.setColor(0x705C7D)
-        player.showCustomGui(gui)
-        ti.forceStart(QTE_CHECK, 0, true);
-        ti.forceStart(QTE_TIMER, qteTime, false);
-        npc.setPosition(arenaCenter[0] + 1, arenaCenter[1], arenaCenter[2]);
-        player.setPosition(arenaCenter[0] - 1, arenaCenter[1], arenaCenter[2]);
-        npc.setRotation(npcRotation);
-        player.setRotation(playerRotation);
-        npc.setSpeed(0);
-        doAnimation(npc, npcWindupAnimation);
-        doAnimation(player, playerWindupAnimation);
-    }
+
+/** Performs a quick time event
+ * @param {ICustomNpc} npc - Npc performing qte
+ * @param {animationHandler} npcAnimationHandler  - Npc's animation handler
+ * @param {Double[]} arenaCenter - Center 
+ * @param {int} qteTimer - Timer id for qte
+ * @param {int} npcSpeed - Initial speed of npc
+ */
+function qteHandler(npc, npcAnimationHandler, arenaCenter, qteTimer, npcSpeed)
+{
+    // Don't accept null npcs
+    if(npc == null || npcAnimationHandler == null) return;
+
+    // Set up class variables
+    this.qteConfig();
+    this.arenaCenter = arenaCenter;
+    this.qteTimer = qteTimer;
+    this.npcSpeed = npcSpeed;
+    this.gui = API.createCustomGui(this.GUI_ID, 0, 0, false);
+    this.npc = npc;
+    this.npcAnimationHandler = npcAnimationHandler;
 }
 
-/**
- * @param {IEntity} entity - Entity who plays the animation
- * @param {string} name - Name of the animation
+/** Perform a quick time event on a player
+ * @param {IPlayer} player - Player performing qte
+ * @param {animationHandler} playerAnimationHandler - Player's animation handler
  */
-function doAnimation(entity, name) { // Executes animations
-    var anim = API.getAnimations().get(name);
-    var animData = entity.getAnimationData();
-    animData.setEnabled(true);
-    animData.setAnimation(anim);
-    animData.updateClient();
+qteHandler.prototype.newQTE = function(player, playerAnimationHandler)
+{
+    // Set player
+    this.playerAnimationHandler = playerAnimationHandler;
+    this.player = player;
+
+    // Get random position for button
+    var x = Math.floor(Math.random() * 401) - 200;
+    var y = Math.floor(Math.random() * 401) - 200;
+    var button = this.gui.addButton(this.BUTTON_ID, this.BUTTON_TEXT, x, y, this.BUTTON_WIDTH, 20);
+    if(this.RANDOM_SCALE) button.setScale(Math.random() * (this.RANDOM_RANGE[1] - this.RANDOM_RANGE[0]) + this.RANDOM_RANGE[0]);
+    else button.setScale(this.BUTTON_SCALE);
+    button.setColor(this.BUTTON_COLOUR);
+    this.player.showCustomGui(this.gui);
+
+    // Set up fail timer and temp data
+    this.npc.timers.forceStart(this.qteTimer, this.QTE_LENGTH, false);
+    this.player.setTempData("qteNpc", this.npc);
+    this.player.setTempData("qteHandler", this);
+    this.player.setTempData("animationHandler", this.playerAnimationHandler);
+
+    // Set player & npc position and rotation
+    this.npc.setPosition(this.arenaCenter[0] + 1, this.arenaCenter[1], this.arenaCenter[2]);
+    this.player.setPosition(this.arenaCenter[0] - 1, this.arenaCenter[1], this.arenaCenter[2]);
+    this.npc.setRotation(this.NPC_ROTATION);
+    this.player.setRotation(this.PLAYER_ROTATION);
+    this.npc.setSpeed(0);
+
+    // Start windup animations
+    this.npcAnimationHandler.setAnimation(this.NPC_WINDUP_ANIMATION);
+    this.playerAnimationHandler.setAnimation(this.PLAYER_WINDUP_ANIMATION);
 }
 
-/**
- * @param {ICustomNpc} npc - npc that plays animation and change speed 
- * @param {IPlayer} player - player who recieve message, play animation and gets the GUI closed
- * @param {string} npcAnimation - Name of the npc animation
- * @param {string} playerAnimation - Name of the player animation
- */
-function failQTE(npc, player, npcAnimation, playerAnimation) {
-    doAnimation(npc, npcAnimation);
-    doAnimation(player, playerAnimation);
-    player.sendMessage("&cFailed!");
-    player.closeGui();
-    npc.setSpeed(npcSpeed);
+/** Performs player and npc fail animations and closes gui
+*/
+qteHandler.prototype.failQTE = function()
+{
+    // Npc succeeds
+    this.npcAnimationHandler.setAnimation(this.NPC_FAILED_ANIMATION);
+    this.npc.setSpeed(this.NPC_SPEED);
+
+    // Player fails
+    this.playerAnimationHandler.setAnimation(this.PLAYER_FAILED_ANIMATION);
+    this.player.sendMessage(this.FAILED_MESSAGE);
+    this.player.closeGui();
+
+    this.performingQTE = false;
 }
 
-/**
- * @param {ICustomNpc} npc - npc who plays animation, change speed and change itself tempdata
- * @param {string} npcAnimation - Name of the animation
+/** Performs player and npc success animations and closes gui
  */
-function successQTE(npc, npcAnimation) {
-    var ti = npc.getTimers();
-    ti.stop(QTE_TIMER);
-    doAnimation(npc, npcAnimation);
-    npc.setSpeed(npcSpeed);
-    npc.setTempData("countered", 0);
+qteHandler.prototype.passQTE = function()
+{
+    // Npc fails
+    this.npc.timers.stop(this.qteTimer);
+    this.npcAnimationHandler.setAnimation(this.NPC_SUCCESS_ANIMATION);
+    this.npc.setSpeed(this.NPC_SPEED);
+
+    // Player succeeds
+    this.playerAnimationHandler.setAnimation(this.PLAYER_SUCCESS_ANIMATION);
+    this.player.sendMessage(this.SUCCESS_MESSAGE);
+    this.player.closeGui();
+    this.performingQTE = false;
 }
+
+/** Return if qte is active
+ * @returns {Boolean}
+ */
+qteHandler.prototype.isPerformingQTE = function()
+{
+    return this.performingQTE;
+}
+
+/** Return gui button id
+ * @returns {int}
+ */
+qteHandler.prototype.getButtonId = function()
+{
+    return this.BUTTON_ID;
+}
+
+// ----------------------------------------------------------------------------------------------------
