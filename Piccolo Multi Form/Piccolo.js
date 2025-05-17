@@ -6,19 +6,26 @@ var ARENA_CENTRE = [-257, 56, -842];
 var BASE_MOVEMENT_SPEED = 5;
 
 // CONFIG
-var MULTI_FORM_CD = 240; // Cooldown of multiform attack in ticks
+var MULTI_FORM_CD = 400; // Cooldown of multiform attack in ticks
 var TELEGRAPH_DURATION = 20; // Duration of telegraph for multiform attack
 
 var BEAM_CHARGE = 200; // Time player has to hit the correct clone in ticks
 var BEAM_DAMAGE = 1; // Damage of fail beam
 var BEAM_COLOUR = 8; // Colour of fail beam
 var BEAM_SPEED = 0; // Colour of fail beam
+var PARTICLE_FREQUENCY = 2; // Frequency particles are spawned
 
 var STUN_DURATION = 80; // Duration ofstun in ticks
 
 var TELEGRAPH_LINE = "&a&lPiccolo begins charging a powerful attack";
 var CLONE_NAME = "Piccolo(Multi-Form)"; // Server clone name
 var SPECIAL_BEAM_ANIMATION = "PiccoloBeam"; // Name of special beam cannon animation
+var CHARGE_SOUND = "jinryuudragonbc:DBC2.deathball_charge";
+
+var PARTICLE_HEIGHT = 20; 
+var PARTICLE_WIDTH = 20;
+var PARTICLE = "flame";
+var PARTICLE_LIFETIME = 20;
 
 var RESET_TIME = 600; // Number of ticks without player activity before reseting
 
@@ -34,6 +41,7 @@ var MULTI_FORM = 1;
 var FIRE_BEAM = 2;
 var STUN = 3;
 var MULTI_FORM_TELEGRAPH = 4;
+var CHARGE_PARTICLES = 5;
 
 function timer(event)
 {
@@ -44,7 +52,7 @@ function timer(event)
             break;
 
         case(MULTI_FORM): // Starts telegraph for multiform attack
-            npc.timers.foceStart(MULTI_FORM_TELEGRAPH, TELEGRAPH_DURATION, false);
+            npc.timers.forceStart(MULTI_FORM_TELEGRAPH, TELEGRAPH_DURATION, false);
             if(npc.getAttackTarget() == null) return;
             npc.getAttackTarget().sendMessage(TELEGRAPH_LINE); 
             break;
@@ -57,6 +65,16 @@ function timer(event)
             endAttack();
             npc.setSpeed(BASE_MOVEMENT_SPEED);
             kiAttack(npc, BEAM_DAMAGE, BEAM_COLOUR, BEAM_SPEED);
+            break;
+
+        case(CHARGE_PARTICLES): // Spawn charging particles
+            // Stop timer if no longer charging 
+            if(!npc.timers.has(FIRE_BEAM)) {
+                npc.timers.stop(CHARGE_PARTICLES);
+                return;
+            }
+
+            spawnParticle(npc);
             break;
 
         case(STUN): // Stun for duration of timer
@@ -76,6 +94,7 @@ function init(event)
     stunned = false;
     npc.setSpeed(BASE_MOVEMENT_SPEED);
     npcAnimHandler = new animationHandler(npc);
+    npcAnimHandler.removeAnimation();
 
     // Check for leftover clones on init
     var cloneScan = npc.getSurroundingEntities(100, 0);
@@ -116,7 +135,7 @@ function damaged(event)
 
 function killed(event)
 { // Reset if killed
-    npc.timers.clear();
+    event.npc.timers.clear();
 }
 
 function kills(event)
@@ -165,9 +184,10 @@ function multiFormAttack(npc, arenaCentre)
     
     // Start telegraph
     npc.timers.forceStart(FIRE_BEAM, BEAM_CHARGE, false);
+    npc.timers.forceStart(CHARGE_PARTICLES, PARTICLE_FREQUENCY, true);
     npc.setSpeed(0);
     npcAnimHandler.setAnimation(SPECIAL_BEAM_ANIMATION);
-    npc.
+    npc.playSound(CHARGE_SOUND, 10, 1);
     chargingAttack = true;
 }
 
@@ -198,6 +218,18 @@ function endAttack()
     }
 }
 
+/** Spawns a particle at npc's head
+ * @param {ICustomNpc} npc - Npc to spawn particle at
+ */
+function spawnParticle(npc)
+{
+    // Calculate particle position
+    var angle = npc.getRotation();
+    var dx = -Math.sin(angle*Math.PI/180) * 0.3;
+    var dz = Math.cos(angle*Math.PI/180) * 0.3;
+    npc.world.spawnParticle(PARTICLE, npc.x+dx, npc.y+1.8, npc.z+dz, getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.2, 0.2), 0);
+}
+
 /** Fires a dbc ki attack from the npc wth a set damage and speed
  * @param {ICustomNpc} npc - Npc shooting the ki
  * @param {int} damage - Damage of the ki
@@ -207,6 +239,15 @@ function endAttack()
 function kiAttack(npc, damage, color, speed)
 {
     npc.executeCommand("/dbcspawnki 4 " + speed + " " + damage + " 0 " + color + " 10 1 100 " + npc.x + " " + npc.y + " " + npc.z + "");
+}
+
+/** Returns a random number between two values
+* @param {int} min - the minimum number to generate a value from
+* @param {int} max - the minimum number to generate a value from 
+*/
+function getRandomDecimal(min, max)
+{  
+    return Math.random() * (max - min + 1) + min;
 }
 
 // Animation Handler class --------------------------------------------------------------------------
