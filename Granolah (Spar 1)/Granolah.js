@@ -19,27 +19,15 @@ var recoil1Name = "GranolahBarrage"; // Recoil animation names to pull them from
 var recoil2Name = "GranolahBarrageLeft";
 var recoil3Name = "GranolahBarrageRight";
 
-// GUARD CONFIG
-var GUARD_SIZE = 10; // Size of guard
-var GUARD_DAMAGE = 1; // Damage to guard per hit
-var GUARD_IFRAMES = 10; // Min ticks between guard hits
-
 // BOSS CONFIG
 var RESET_TIME = 600; // Number of ticks since player activity to reset
 var NPC_SPEED = 5; // Default move speed of boss
+var GUARD_DAMAGE = 1; // Damage to guard per hit
+var GUARD_BREAKPOINTS = [0.25, 0.5, 0.75]; // Points to perform a stance change
 
 // ATTACK CHECKS
 var performingStanceChange = false;
 var performingBackshots = false;
-
-// DON'T EDIT
-var npcGuard;
-var npcAnimHandler;
-var playerAnimHandler;
-var qte;
-var target;
-var recoil = null;
-var count = 0;
 
 // TIMERS
 var BACKSTEP = 0;
@@ -47,10 +35,20 @@ var BACKSHOTS = 1;
 var RESET = 2;
 var QTE_TIMER = 3;
 
+// GUARD CONFIG
+guard.prototype.guardConfig = function()
+{
+    // GUARD CONFIG
+    this.GUARD_SIZE = 10; // Size of guard
+    this.GUARD_IFRAMES = 10; // Min ticks between guard hits
+}
+
 // QTE CONFIG
 qteHandler.prototype.qteConfig = function()
 {
     this.QTE_LENGTH = 30; // Time for player to click the qte
+    this.QTE_PASS_DAMAGE = 0.33; // Percent damage to do to npc when passing qte
+    this.QTE_FAIL_DAMAGE = 0.33; // Percent damage to do to player when passing qte
 
     // BUTTON CONFIG
     this.BUTTON_COLOUR = 0x705C7D; // Decimal colour of buttom
@@ -79,6 +77,16 @@ qteHandler.prototype.qteConfig = function()
     this.GUI_ID = 72;
     this.BUTTON_ID = 72;
 }
+
+// DON'T EDIT
+var npcGuard;
+var breakPoints = new Array();
+var npcAnimHandler;
+var playerAnimHandler;
+var qte;
+var target;
+var recoil = null;
+var count = 0;
 
 function timer(event)
 {
@@ -139,12 +147,15 @@ function init(event)
     var npc = event.npc;
     npc.timers.clear();
     npc.setSpeed(NPC_SPEED);
-    
+
+    // Initalise guard breakpoints
+    for(var i in GUARD_BREAKPOINTS) breakPoints.push(false);
+
     // Initalise ability handlers
     npcAnimHandler = new animationHandler(npc);
     npcAnimHandler.removeAnimation();
     qte = new qteHandler(npc, npcAnimHandler, ARENA_CENTRE, QTE_TIMER, NPC_SPEED);
-    npcGuard = new guard(npc, npcAnimHandler, GUARD_SIZE, npc.getAggroRange(), GUARD_IFRAMES, qte);
+    npcGuard = new guard(npc, npcAnimHandler, npc.getAggroRange(), qte);
 }
 
 function target(event)
@@ -162,13 +173,22 @@ function meleeAttack(event)
 
 function damaged(event)
 { 
+    var npc = event.npc;
+
     // Begin reset timer on damaged
-    event.npc.timers.forceStart(RESET, RESET_TIME, false);
-    startTimers(event.npc);
+    npc.timers.forceStart(RESET, RESET_TIME, false);
+    startTimers(npc);
+
     // Damage Guard if not empty
     if(npcGuard.isGuardBarEmpty()) return;
     event.setDamage(0);
     npcGuard.damageGuard(GUARD_DAMAGE);
+
+    // Trigger stance change if guard brought below breakpoints
+    var guardPercent = npcGuard.getGuardLevel() / npcGuard.getInitialGuard();
+    if(guardPercent < GUARD_BREAKPOINTS[0] && !breakPoints[0]) { stanceChange(npc, 0); }
+    else if(guardPercent < GUARD_BREAKPOINTS[1] && !breakPoints[1]) { stanceChange(npc, 1); }
+    else if(guardPercent < GUARD_BREAKPOINTS[2] && !breakPoints[2]) { stanceChange(npc, 2); }
 }
 
 function killed(event)
@@ -250,22 +270,31 @@ function getDirection(npc, x, z)
     return Math.atan2(npc.getZ()-z, npc.getX()-x)
 }
 
+/** NYI
+ */
+function stanceChange(npc, breakPoint)
+{
+    breakPoints[breakPoint] = true;
+    npc.say("Stance change at " + GUARD_BREAKPOINTS[breakPoint] * 100 + "%");
+}
+
 // Guard Class ---------------------------------------------------------
 
 /** A guard bar that takes damage and performs a block animation
  * @constructor
  * @param {ICustomNpc} npc - Npc assigning guard to
- * @param {int} initialGuardSize - Initial health of the guard
- * @param {int} scanRange - Range to scan players to message
+ * @param {animationHandler} npcAnimationHandler - Animation handler for guard npc
+ * @param {int} scanRange - Range to scan for players 
+ * @param {qteHandler} qte - Quick time event to perform on guard break  
  */
-function guard(npc, npcAnimationHandler, initialGuardSize, scanRange, iFrames, qte)
+function guard(npc, npcAnimationHandler, scanRange, qte)
 {
+    this.guardConfig();
     this.npc = npc;
     this.npcAnimationHandler = npcAnimationHandler;
     this.time = this.npc.world.getTime();
-    this.iFrames = iFrames;
     this.scanRange = scanRange;
-    this.guard_level = initialGuardSize;
+    this.guardLevel = this.GUARD_SIZE;
     this.qte = qte;
 }
 
@@ -274,14 +303,13 @@ function guard(npc, npcAnimationHandler, initialGuardSize, scanRange, iFrames, q
  */
 guard.prototype.setGuardBar = function(value)
 {
-    this.guard_level = value;
+    this.guardLevel = value;
     
     // Update player on guard status
     var message = "";
-    if (this.guard_level > 0) message = "GUARD LEVEL: " + this.guard_level;
+    if (this.guardLevel > 0) message = "GUARD LEVEL: " + this.guardLevel;
     else {
         message = "GUARD BROKEN";
-
         this.qte.newQTE(target, new animationHandler(target));
     } 
     var entities = this.npc.getSurroundingEntities(this.scanRange, 1);
@@ -297,10 +325,10 @@ guard.prototype.damageGuard = function(value)
 {
     // Perform blocking animation
     var newTime = this.npc.world.getTime();
-    if(newTime - this.time < this.iFrames) return;
+    if(newTime - this.time < this.GUARD_IFRAMES) return;
     this.npcAnimationHandler.setAnimation("DBCBlock");
     this.time = this.npc.world.getTime();
-    this.setGuardBar(this.guard_level - value);
+    this.setGuardBar(this.guardLevel - value);
 }
 
 /** Checks if guard level is less than or equal to 0
@@ -308,8 +336,11 @@ guard.prototype.damageGuard = function(value)
  */
 guard.prototype.isGuardBarEmpty = function()
 {
-    return this.guard_level <= 0;
+    return this.guardLevel <= 0;
 }
+
+guard.prototype.getInitialGuard = function() { return this.GUARD_SIZE; }
+guard.prototype.getGuardLevel = function() { return this.guardLevel; }
 
 // ---------------------------------------------------------
 
@@ -385,6 +416,8 @@ qteHandler.prototype.failQTE = function()
     // Player fails
     this.playerAnimationHandler.setAnimation(this.PLAYER_FAILED_ANIMATION);
     this.player.sendMessage(this.FAILED_MESSAGE);
+    var dbcPlayer = this.player.getDBCPlayer();
+    dbcPlayer.setBody(dbcPlayer.getBody() - dbcPlayer.getMaxBody() * this.QTE_PASS_DAMAGE)
     this.player.closeGui();
 
     this.performingQTE = false;
@@ -398,11 +431,13 @@ qteHandler.prototype.passQTE = function()
     this.npc.timers.stop(this.qteTimer);
     this.npcAnimationHandler.setAnimation(this.NPC_SUCCESS_ANIMATION);
     this.npc.setSpeed(this.npcSpeed);
+    this.npc.setHealth(this.npc.getHealth() - this.npc.getMaxHealth() * this.QTE_PASS_DAMAGE)
 
     // Player succeeds
     this.playerAnimationHandler.setAnimation(this.PLAYER_SUCCESS_ANIMATION);
     this.player.sendMessage(this.SUCCESS_MESSAGE);
     this.player.closeGui();
+    
     this.performingQTE = false;
 }
 
