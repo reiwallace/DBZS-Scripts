@@ -215,6 +215,8 @@ function endGame(npc)
     COUNTER = 0;
     resetAll(npc);
     npc.timers.forceStart(FIREWORKS, 8, true);
+    ACTIVE_PLAYER.closeOverlay(overlayID);
+    ACTIVE_PLAYER == null;
 }
 
 /** Sets the active player for the game resets counters and starts a new round
@@ -224,7 +226,7 @@ function endGame(npc)
  */
 function newGame(npc, player)
 {
-
+    if(ACTIVE_PLAYER != null) return;
     ACTIVE_PLAYER = player;
     ACTIVE_PLAYER.getAnimationData().setAnimation(null); // Reset player animation
     WINS = 0;
