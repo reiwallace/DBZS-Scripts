@@ -283,9 +283,11 @@ function setCounterOverlay(player, text, counterID, value)
 { // Place speech overlay on player's screen
     player.closeOverlay(counterID); 
     var speechOverlay = API.createCustomOverlay(counterID); // Create overlay with id
-    if(value < 10) {
+    if(value < 1) {
+        speechOverlay.addLabel(1, "", 442, 20, 0, 0);
+    } else if(value < 10) {
         speechOverlay.addLabel(1, text + "0" + value, 442, 20, 0, 0);
-    } else {
+    }  else {
         speechOverlay.addLabel(1, text + "" + value, 442, 20, 0, 0);
     }
     player.showCustomOverlay(speechOverlay); // Place the overlay on the player's screen
