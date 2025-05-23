@@ -13,7 +13,6 @@ var BEAM_CHARGE = 200; // Time player has to hit the correct clone in ticks
 var BEAM_DAMAGE = 1; // Damage of fail beam
 var BEAM_COLOUR = 8; // Colour of fail beam
 var BEAM_SPEED = 0; // Colour of fail beam
-var PARTICLE_FREQUENCY = 2; // Frequency particles are spawned
 
 var STUN_DURATION = 80; // Duration ofstun in ticks
 
@@ -22,10 +21,10 @@ var CLONE_NAME = "Piccolo(Multi-Form)"; // Server clone name
 var SPECIAL_BEAM_ANIMATION = "PiccoloBeam"; // Name of special beam cannon animation
 var CHARGE_SOUND = "jinryuudragonbc:DBC2.deathball_charge";
 
-var PARTICLE_HEIGHT = 20; 
-var PARTICLE_WIDTH = 20;
-var PARTICLE = "flame";
-var PARTICLE_LIFETIME = 20;
+var BIG_PARTICLE_SCALEX = 13; 
+var BIG_PARTICLE_SCALEY = 13;
+var BIG_PARTICLE_PATH = "plug:textures/items/artifacts/dark_orb.png";
+var PARTICLE_FREQUENCY = 2; // Frequency particles are spawned
 
 var RESET_TIME = 600; // Number of ticks without player activity before reseting
 
@@ -223,11 +222,22 @@ function endAttack()
  */
 function spawnParticle(npc)
 {
+    // Create particle
+    var particleBig = API.createParticle(BIG_PARTICLE_PATH);
+    particleBig.setSize(16, 16);
+    particleBig.setMaxAge(PARTICLE_FREQUENCY + 2);
+    particleBig.setHEXColor(16747008, 16761600, 0, 1);
+    particleBig.setAnim(1, true, 0, 6);
+    particleBig.setScale(BIG_PARTICLE_SCALEX, BIG_PARTICLE_SCALEY, 0, 0);
+
     // Calculate particle position
     var angle = npc.getRotation();
     var dx = -Math.sin(angle*Math.PI/180) * 0.3;
     var dz = Math.cos(angle*Math.PI/180) * 0.3;
-    npc.world.spawnParticle(PARTICLE, npc.x+dx, npc.y+1.8, npc.z+dz, getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.1, 0.1), getRandomDecimal(-0.2, 0.2), 0);
+    particleBig.setPosition(dx+npc.x, npc.y+1.8, dz+npc.z);
+
+    // Spawn particle
+    particleBig.spawn(npc.world);
 }
 
 /** Fires a dbc ki attack from the npc wth a set damage and speed
