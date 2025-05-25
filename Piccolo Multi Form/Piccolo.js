@@ -2,7 +2,7 @@
 // Author: Noxie
 
 // CHANGE THESE
-var ARENA_CENTRE = [-257, 56, -842];
+var ARENA_CENTRE = [0, 0, 0];
 var BASE_MOVEMENT_SPEED = 5;
 
 // CONFIG
@@ -72,7 +72,6 @@ function timer(event)
                 npc.timers.stop(CHARGE_PARTICLES);
                 return;
             }
-
             spawnParticle(npc);
             break;
 
@@ -88,7 +87,7 @@ function init(event)
     var npc = event.npc;
     npc.timers.clear();
 
-    // Reset variables
+    // Reset variables to default
     chargingAttack = false;
     stunned = false;
     npc.setSpeed(BASE_MOVEMENT_SPEED);
@@ -101,11 +100,6 @@ function init(event)
         if(cloneScan[i] == null || cloneScan[i].getName() != CLONE_NAME) continue;
         cloneScan[i].despawn();
     }
-}
-
-function interact(event)
-{
-    startTimers(event.npc.timers);
 }
 
 function meleeAttack(event)
@@ -141,7 +135,7 @@ function kills(event)
 { // Reset if killing a player and no other players around
     var npc = event.npc;
     var playerCheck = npc.getSurroundingEntities(npc.getAggroRange(), 1);
-    if(playerCheck.length < 1) reset;
+    if(playerCheck.length < 1) reset();
 }
 
 /** Resets npc's timers and temp data
@@ -153,6 +147,9 @@ function reset(npc)
     npc.reset();
 }
 
+/** Starts relevant attack timers
+ * @param {ITimers} timers - Npc timers
+ */
 function startTimers(timers)
 {
     if(!timers.has(MULTI_FORM)) { 
@@ -161,6 +158,10 @@ function startTimers(timers)
     }
 }
 
+/** Creates 7 clones of the npc and begins charging an attack
+ * @param {ICustomNpc} npc - Real npc
+ * @param {int[]} arenaCentre
+ */
 function multiFormAttack(npc, arenaCentre)
 {  
     // Defines targets and clone positions
