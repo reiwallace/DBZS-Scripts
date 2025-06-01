@@ -1,5 +1,5 @@
 // Granolah.js
-// AUTHOR: Noxie, Delka, XO
+// AUTHOR: Noxie, Delka, XO, Ike
 
 // CHANGE THESE
 var ARENA_CENTRE = [-258, 56, -843]; // Point to backstep to if the npc would collide with a wall
@@ -19,11 +19,18 @@ var recoil1Name = "GranolahBarrage"; // Recoil animation names to pull them from
 var recoil2Name = "GranolahBarrageLeft";
 var recoil3Name = "GranolahBarrageRight";
 
+// STANCE CHANGE CONFIG
+var GUARD_BREAKPOINTS = [0.25, 0.5, 0.75]; // Points to perform a stance change
+var STANCE_CHANGE_PARTICLE = "LARGE_SMOKE"; // IParticle or particle string to dispaly on stance change
+var STANCE_CHANGE_BOOL = false; // if particle is a iParticle object or a string identifier(true for iParticle, false for string identifier)
+var STANCE_CHANGE_PARTICLE_COUNT = 20; // Number of particles generated on stance change
+var STANCE_CHANGE_PARTICLE_RADIUS = 4; // Radius to spawn particles around the npc
+var STANCE_CHANGE_SOUND = "minecraft:ambient.weather.thunder"; // Sound to play to player on stance change
+
 // BOSS CONFIG
 var RESET_TIME = 600; // Number of ticks since player activity to reset
 var NPC_SPEED = 5; // Default move speed of boss
 var GUARD_DAMAGE = 1; // Damage to guard per hit
-var GUARD_BREAKPOINTS = [0.25, 0.5, 0.75]; // Points to perform a stance change
 
 // ATTACK CHECKS
 var performingStanceChange = false;
@@ -186,9 +193,12 @@ function damaged(event)
 
     // Trigger stance change if guard brought below breakpoints
     var guardPercent = npcGuard.getGuardLevel() / npcGuard.getInitialGuard();
-    if(guardPercent < GUARD_BREAKPOINTS[0] && !breakPoints[0]) { stanceChange(npc, 0); }
-    else if(guardPercent < GUARD_BREAKPOINTS[1] && !breakPoints[1]) { stanceChange(npc, 1); }
-    else if(guardPercent < GUARD_BREAKPOINTS[2] && !breakPoints[2]) { stanceChange(npc, 2); }
+    for(var i = 0; i < GUARD_BREAKPOINTS.length; i++) {
+        if(guardPercent < GUARD_BREAKPOINTS[i] && !breakPoints[i]) {
+            stanceChange(npc, GUARD_BREAKPOINTS[i]);
+            return;
+        }
+    }
 }
 
 function killed(event)
@@ -275,7 +285,93 @@ function getDirection(npc, x, z)
 function stanceChange(npc, breakPoint)
 {
     breakPoints[breakPoint] = true;
-    npc.say("Stance change at " + GUARD_BREAKPOINTS[breakPoint] * 100 + "%");
+    //npc.say("Stance change at " + GUARD_BREAKPOINTS[breakPoint] * 100 + "%");
+    stanceChangeVisuals(
+        npc, 
+        STANCE_CHANGE_PARTICLE, 
+        STANCE_CHANGE_BOOL, 
+        STANCE_CHANGE_PARTICLE_COUNT,
+        STANCE_CHANGE_PARTICLE_RADIUS,
+        STANCE_CHANGE_SOUND,
+        target 
+    );
+
+    // STAT CHANGES
+    switch(breakPoint) {
+        case(GUARD_BREAKPOINTS[0]):
+
+            break;
+
+        case(GUARD_BREAKPOINTS[1]):
+
+            break;
+
+        case(GUARD_BREAKPOINTS[2]):
+
+            break;
+    }
+}
+
+/**
+ * Handles the visual and audio effects for an NPC's stance change.
+ *
+ * @param {Object} npc - The NPC entity object, containing position and world information.
+ * @param {Object} particle - The particle could be both a iParticle object or a particle identifier string(example: "snowshovel").
+ * @param {boolean} iParticleBoolean - Determines if the particle is a iParticle object or a string identifier(true for iParticle, false for string identifier).
+ * @param {number} particlesCount - The number of particles to generate.
+ * @param {number} particleRadius - The radius within which to spawn particles around the NPC.
+ * @param {string|null} sound - The identifier for the sound to play, or null if no sound. (example: "minecraft:ambient.weather.thunder")
+ * @param {Object|null} player - The player entity to associate with the sound, or null if not applicable.
+ */
+function stanceChangeVisuals(npc, particle, iParticleBoolean, particlesCount, particleRadius, sound, player)
+{
+    var randomPoints = generateRandomPoints(npc.x, npc.y, npc.z, particleRadius, particlesCount)
+    if (iParticleBoolean) {
+        for (var i = 0; i < randomPoints.length; i++) {
+            var point = randomPoints[i]
+            particle.setPosition(point.x, point.y, point.z)
+            particle.spawn(npc.world)
+        }
+    }
+    else {
+        for (var i = 0; i < randomPoints.length; i++) {
+            var point = randomPoints[i]
+            npc.world.spawnParticle(particle, point.x, point.y, point.z, Math.random(), Math.random(), Math.random(), 0.1, 1);
+        }
+    }
+
+    if (sound == null || player == null) return;
+    var soundPlayed = API.createSound(sound)
+    soundPlayed.setEntity(player)
+    API.playSound(1, soundPlayed)
+    
+}
+
+/**
+ * Generates an array of random points within a given radius around a central position.
+ *
+ * @param {number} x - The x-coordinate of the center point.
+ * @param {number} y - The y-coordinate of the center point.
+ * @param {number} z - The z-coordinate of the center point.
+ * @param {number} radius - The radius within which to generate points.
+ * @param {number} count - The number of random points to generate.
+ * @returns {Array<{x: number, y: number, z: number}>} An array of point objects with x, y, and z properties.
+ */
+function generateRandomPoints(cx, cy, cz, radius, count)
+{
+    var points = []
+    for (var i = 0; i < count; i++) {
+        var theta = Math.random() * 2 * Math.PI
+        var phi = Math.acos(2 * Math.random() - 1)
+        var r = Math.random() * radius
+
+        var x = cx + r * Math.sin(phi) * Math.cos(theta)
+        var y = cy + r * Math.sin(phi) * Math.sin(theta)
+        var z = cz + r * Math.cos(phi)
+
+        points.push({ x: x, y: y, z: z })
+    }
+    return points
 }
 
 // Guard Class ---------------------------------------------------------
