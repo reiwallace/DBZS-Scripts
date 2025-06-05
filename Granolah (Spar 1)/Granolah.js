@@ -280,7 +280,9 @@ function getDirection(npc, x, z)
     return Math.atan2(npc.getZ()-z, npc.getX()-x)
 }
 
-/** NYI
+/** Changing npc stats and performs a visual animation
+ * @param {ICustomNpc} npc - Npc performing the stance change
+ * @param {Double} breakPoint - Breakpoint hit
  */
 function stanceChange(npc, breakPoint)
 {
@@ -296,7 +298,7 @@ function stanceChange(npc, breakPoint)
         target 
     );
 
-    // STAT CHANGES
+    // STAT CHANGES - Add more if more breakpoints are added
     switch(breakPoint) {
         case(GUARD_BREAKPOINTS[0]):
 
