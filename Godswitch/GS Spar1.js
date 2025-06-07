@@ -1,10 +1,16 @@
+// GS Spar1.js
+// AUTHOR: Trent
+
 // CONFIG
-var SSBFormName = "[NPC] SSB";
-var SSGFormName = "[NPC] SSG";
+var NPC_SSB_NAME = "[NPC] SSB"; // Name of npc's SSB form
+var NPC_SSG_NAME = "[NPC] SSG"; // Name of npc's SSG form
+var PLAYER_SSB_ID = 10; // ID of player SSB form
+var PLAYER_SSG_ID = 9; // ID of player SSG form
 
 var SWITCH_FORM_DELAY = 200; // Cooldown to switching forms
 var FLAG_SWITCH_DELAY = 82; // Delay after transforming to switch transform flag
 
+var FAIL_VOICELINE = "You can't harm me in this form!";
 var SPAM_DELAY = 40; // Number of ticks between telling the player to switch form
 
 // TIMERS
@@ -15,14 +21,17 @@ var SPAM_PREVENTION = 50;
 // DON'T EDIT
 var isSSG = true; // Starts in SSG
 
-function init(event) {
-    var world = event.npc.world;
+function init(event)
+{
     var npc = event.npc;
+    reset(npc);
+
     // Form switching timer
-    if(!world.getClosestVulnerablePlayer(npc.getPosition(),50.0)) npc.timers.forceStart(SWITCH_FORM, SWITCH_FORM_DELAY, true);
+    npc.timers.forceStart(SWITCH_FORM, SWITCH_FORM_DELAY, true);
 }
 
-function timer(event) {
+function timer(event)
+{
     var npc = event.npc;
     var display = DBCAPI.getDBCDisplay(npc);
 
@@ -32,70 +41,79 @@ function timer(event) {
 
             // Set DBCDisplay to visible and change form based on state
             display.setEnabled(true);
-            if(isSSG) display.transform(DBCAPI.getForm(SSBFormName)) // Switch to SSB
-            else display.transform(DBCAPI.getForm(SSGFormName)); // Switch to SSG
+            if(isSSG) display.transform(DBCAPI.getForm(NPC_SSB_NAME)) // Switch to SSB
+            else display.transform(DBCAPI.getForm(NPC_SSG_NAME)); // Switch to SSG
             npc.updateClient();
-
+            
             // Allow for transformation delay before changing flag
             npc.timers.forceStart(FLAG_SWITCH, FLAG_SWITCH_DELAY, false);
             break;
         
-        case(SWITCH_DELAY):
+        case(FLAG_SWITCH):
             isSSG = !isSSG;
             break;
     }
 }
 
-function damaged(event) {
+function damaged(event)
+{
     var npc = event.npc
     var player = event.source;
-    if(player && player.getType() == 1) player.getDBCPlayer().getCurrentForm()
-    var dbcPlayer = player.getDBCPlayer()
-    var currentForm = dbcPlayer.getForm()
 
-    if ((isSSG && currentForm == DBCAPI.getForm(SSGFormName).getId()) || (!isSSG && currentForm != 10)) {
-        event.setCanceled(true) // Prevent damage if the player’s form does not match the NPC’s form
-        if(!npc.getTimers().has(3)) {
-          npc.say("You can't harm me in this form!")
-          npc.getTimers().forceStart(SPAM_PREVENTION, 40, false)
-        }
+    // Return if not a player or player is null
+    if(!(player && player.getType() == 1)) {
+        event.setCanceled(true);
+        return;
     }
+    
+    // Check if player is in correct form
+    var currentForm = player.getDBCPlayer().getCurrentForm();
+    var formCheck = Boolean(
+        currentForm &&
+        ((isSSG && currentForm.getName() == NPC_SSG_NAME) || 
+        (!isSSG && currentForm.getName() == NPC_SSB_NAME))
+    );
+    if(formCheck) return;
+
+    // Prevent damage if the player’s form does not match the NPC’s form
+    event.setCanceled(true);
+    if(npc.getTimers().has(SPAM_PREVENTION)) return;
+    npc.say(FAIL_VOICELINE);
+    npc.getTimers().forceStart(SPAM_PREVENTION, 40, false);
 }
 
-function reset(event) {
-    var npc = event.npc
+function killed(event)
+{
+    reset(event);
+}
+
+// Reset detection
+function tick(event)
+{
+    var npc = event.npc;
+    var temptarget = npc.getTempData("npctarget");
+    var target = npc.getAttackTarget();
+    if (temptarget != null && target == null && temptarget.getHealth() == 0 && npc.world.getClosestVulnerablePlayer(npc.getPosition(), 50.0) == null) {
+        reset(npc);
+        npc.reset()
+    }
+    npc.setTempData("npctarget", npc.getAttackTarget());
+}
+
+/** Reverts to god form and clears timers
+ * @param {ICustomNpc} npc - This npc 
+ */
+function reset(npc)
+{
     var display = DBCAPI.getDBCDisplay(npc)
-    var setGod = DBCAPI.getForm("[NPC] SSG")
-    var ti = npc.getTimers()
     
-    npc.setHealth(npc.getMaxHealth())
+    // Reset health and timers
+    npc.setHealth(npc.getMaxHealth());
+    npc.timers.clear();
 
+    // Change form to god
     display.setEnabled(true)
-
-    display.transform(setGod)
-
+    display.transform(DBCAPI.getForm(NPC_SSG_NAME));
     npc.updateClient()
-
     isSSG = true
-    
-    ti.stop(1)
-    ti.stop(2)
-    ti.stop(3)
-    
-}
-
-function killed(event) {
-    reset(event)
-}
-
-function targetLost(event) {
-    var world = event.getNpc().getWorld()
-    var npc = event.getNpc()
-    if(world.getClosestVulnerablePlayer(npc.getPosition(),50.0) == null) {
-        reset(event)
-    }
-}
-
-function kills(event) {
-    reset(event)
 }
