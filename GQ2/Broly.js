@@ -3,12 +3,13 @@
 
 // CONFIG
 var RAGE_STAT_MULTIPLIER = 2; // Multiplier to stats during rage mode
-var PASSIVE_RAGE_INCREASE = 0.05; // Percent increase to rage per rage tick
-var PASSIVE_RAGE_DECREASE = 0.2; // Percent decrease to rage per rage tick
+var PASSIVE_RAGE_GENERATION = 0.05; // Percent of rage bar to generate per rage tick
 var RAGE_TICK_SPEED = 20; // Number of game ticks between each rage tick
+var RAGE_MODE_DRAIN_MULTIPLIER = 4; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
+var RAGE_TO_HEALTH = 0.25; // Percent of health to fill a rage bar - e.g. it would take doing 25% of bosses hp to fill rage purely from damage
 
 var WEAKENED_DURATION = 100; // Duration of weakened state in ticks
-var WEAKENED_DAMAGE_AMP = 1.2; // Percent damage increase while broly is weakened
+var WEAKENED_DAMAGE_AMP = 0.2; // Percent damage increase while broly is weakened
 
 // EDIT WITH NPC BASE STATS
 function setDefaultStats(npc, multi) {
@@ -55,12 +56,13 @@ var WEAKENED = 50;
 var rageMode = false;
 var rage;
 var target;
-var maxRage = 1000;
+var previousHp;
 
 function init(event)
 {
     var npc = event.npc;
-    rage = new progressBar(maxRage, 0, [0]);
+    rage = new progressBar(npc.getMaxHealth() * RAGE_TO_HEALTH, 0, [0]);
+    previousHp = npc.getMaxHealth();
     reset(npc);
 }
 
@@ -71,6 +73,7 @@ function reset(npc)
         if(!nearby[i] || !rage) continue;
         rage.removeBar(nearby[i]);
     }
+    if(target) rage.removeBar(target);
     npc.timers.clear();
     setDefaultStats(npc, 1);
     rageMode = false;
@@ -83,8 +86,11 @@ function timer(event)
     var timers = npc.timers;
     switch(event.id) {
         case(RAGE_PASSIVE):
-            var passive = rageMode ? PASSIVE_RAGE_DECREASE : PASSIVE_RAGE_INCREASE;
-            updateRage(npc, rage.maxValue * passive)
+            updateRage(npc, rage.maxValue * PASSIVE_RAGE_GENERATION);
+            
+            break;
+
+        case(KI_BLAST):
             
             break;
     }
@@ -93,16 +99,26 @@ function timer(event)
 // Start timers on player interaction
 function target(event)
 {
-    startTimers(event.npc.timers);
+    var npc = event.npc;
+    target = npc.getAttackTarget();
+    startTimers(npc.timers);
+    rage.displayBar(npc.getAttackTarget());
 }
 
 function damaged(event)
 {
-    var timers = event.npc.timers;
+    var npc = event.npc;
+    var timers = npc.timers;
+    target = npc.getAttackTarget();
     startTimers(timers);
 
+    var damage = previousHp - npc.getHealth();
+    previousHp = npc.getHealth();
+    updateRage(npc, damage);
+
     if(!timers.has(WEAKENED)) return;
-    event.setDamage(event.getDamage() * WEAKENED_DAMAGE_AMP);
+    event.setDamage(damage * WEAKENED_DAMAGE_AMP);
+    previousHp = npc.getHealth();
 }
 
 function meleeSwing(event)
@@ -122,7 +138,7 @@ function updateRage(npc, value)
     if(timers.has(WEAKENED)) return;
 
     // Update rage depending on rage state
-    var updatedValue = rageMode ? -value : value;
+    var updatedValue = rageMode ? -value * RAGE_MODE_DRAIN_MULTIPLIER : value;
     rage.setBar(rage.progress + updatedValue);
     rage.displayBar(npc.getAttackTarget());
 
@@ -138,6 +154,17 @@ function updateRage(npc, value)
         setDefaultStats(npc, RAGE_STAT_MULTIPLIER);
     }
 
+}
+
+function shootKi(npc, randomDir)
+{
+    DBCAPI.fireKiAttack(npc, 1, KI_BLAST_SPEED, KI_BLAST_DAMAGE, false, 6, 0, true, 100);
+
+    if(!randomDir) return;
+    var kiScan = npc.getSurroundingEntities(5);
+    for(var i = 0; i < kiScan.length; i++) {
+        
+    }
 }
 
 /** Starts timers if not present
