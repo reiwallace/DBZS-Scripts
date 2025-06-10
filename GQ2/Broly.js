@@ -8,19 +8,31 @@ var RAGE_TICK_SPEED = 20; // Number of game ticks between each rage tick
 var RAGE_MODE_DRAIN_MULTIPLIER = 4; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
 var RAGE_TO_HEALTH = 0.25; // Percent of health to fill a rage bar - e.g. it would take doing 25% of bosses hp to fill rage purely from damage
 
-var RAGE_PARTICLES = ["plug:textures/items/pills/pills_spirit.png", ""];
-var RAGE_PARTICLE_FREQUENCY = 10;
-var RAGE_PARTICLE_SCALE = { x: 1, y: 1 };
+var RAGE_PARTICLE = "plug:textures/items/artifacts/infinity_catalyst.png"; // Item texture to use for rage particles
+var RAGE_PARTICLE_COLOURS = [35328, 51712, 60416, 65280]; // Randomised colours to use for rage particle
+var RAGE_PARTICLE_RADIUS = 0.8; // Radius to spawn rage particles around npc
+var RAGE_PARTICLE_AGE = 10; // Rage particle age in ticks
+var RAGE_PARTICLE_FREQUENCY = 0; // How often rage particles are spawned
+var RAGE_PARTICLE_SCALE = { x: 1, y: 1 }; //    
 
-var RAGE_BLAST_ITEM = API.createItem("plug:energyBlock", 4, 1);
+var RAGE_BLAST_ITEM = API.createItem("plug:energyBlock", 4, 1); // Item to use for rage ki blast - Item ID, Type, Count(ignore)
+var RAGE_KI_BLAST_CD = 5; // CD of rage ki attack in ticks
 
 var WEAKENED_DURATION = 100; // Duration of weakened state in ticks
 var WEAKENED_DAMAGE_AMP = 0.2; // Percent damage increase while broly is weakened
 
+var REGULAR_KI_BLAST = createKiAttack(
+    1, // Type
+    0, // Speed
+    1, // Damage
+    false, 6, 0, true, 100 // Effect, colour, density, sound, charge
+);
+var REG_KI_BLAST_CD = 100; // CD of regular ki blast in ticks
 
 // EDIT WITH NPC BASE STATS
 function setDefaultStats(npc, multi) {
-
+    // Follow template npc.setStat(AMOUNT * multi)
+    npc.setStrength(1 * multi);
 }
 
 // RAGE BAR CONFIG
@@ -58,8 +70,9 @@ progressBar.prototype.config = function() {
 // TIMERS
 var RAGE_PASSIVE = 0;
 var WEAKENED = 50;
-var MOVE_KI_NPC = 1;
+var KI_BLAST = 1;
 var RAGE_KI = 2;
+var RAGE_PARTICLES = 3;
 
 // DO NOT EDIT
 var rageMode = false;
@@ -100,8 +113,27 @@ function timer(event)
             break;
 
         case(KI_BLAST):
-            
+            // Shoot a ki blast if not in rage mode or 
+            if(rageMode || timers.has(WEAKENED)) return;
+            DBCAPI.fireKi(npc, REGULAR_KI_BLAST);
+            break;
 
+        case(RAGE_KI):
+            // Shoots random ki, cancels timer if not in rage mode
+            if(!rageMode) {
+                npc.timers.stop(RAGE_KI);
+                return;
+            }
+            shootKi(npc);
+            break;
+
+        case(RAGE_PARTICLES):
+            // Spawns particles around npc, cancels timer if not in rage mode
+            if(!rageMode) {
+                npc.timers.stop(RAGE_KI);
+                return;
+            }
+            rageParticles(npc);
             break;
     }
 }
@@ -161,6 +193,8 @@ function updateRage(npc, value)
     // Enter rage mode upon reaching max rage
     else if(!rageMode && rage.progress >= rage.maxValue) {
         rageMode = true;
+        timers.forceStart(RAGE_KI, RAGE_KI_BLAST_CD, true);
+        timers.forceStart(RAGE_PARTICLES, RAGE_PARTICLE_FREQUENCY, true);
         setDefaultStats(npc, RAGE_STAT_MULTIPLIER);
     }
 
@@ -168,23 +202,32 @@ function updateRage(npc, value)
 
 function rageParticles(npc)
 {
-    var particle = API.createParticle("plug:textures/items/artifacts/infinity_catalyst.png");
-    particle.setMaxAge(10);
-    particle.setScale(getRandomInt(RAGE_PARTICLE_SCALE.minX, RAGE_PARTICLE_SCALE.maxX), getRandomInt(RAGE_PARTICLE_SCALE.minY, RAGE_PARTICLE_SCALE.maxY), 0, 0);
+    // Particle setup
+    var particle = API.createParticle(RAGE_PARTICLE);
+    particle.setMaxAge(RAGE_PARTICLE_AGE);
+    particle.setScale(
+        getRandom(RAGE_PARTICLE_SCALE.minX, RAGE_PARTICLE_SCALE.maxX, true),
+        getRandom(RAGE_PARTICLE_SCALE.minY, RAGE_PARTICLE_SCALE.maxY, true), 0, 0
+    );
     particle.setAlpha(1, 0, 0.5, 6);
-    particle.setSize(16,16);
+    particle.setSize(16, 16);
     particle.setAnim(1, true, 0, 6);
-    var colr = [35328, 51712, 60416, 65280]
-    particle.setHEXColor(colr[getRandomInt(0, colr.length)], 5242624, 0, 1);
-particle.setMotion(0, 0.02, 0, 0);
+    particle.setHEXColor(RAGE_PARTICLE_COLOURS[getRandomInt(0, RAGE_PARTICLE_COLOURS.length)], 5242624, 0, 1);
+    // Give particle a slow rise
+    particle.setMotion(0, 0.02, 0, 0);
 
+    // Spawn particle at a random position around npc
     particle.setPosition(npc.x + getRandDec(-0.8, 0.8), npc.y + getRandDec(-0.2, 2.4), npc.z + getRandDec(-0.8, 0.8));
     particle.spawn(npc.world);
 }
 
-function shootKi(npc, target)
+/** Shoots a projectile "Ki" attack in a random direction
+ * @param {ICustomNpc} npc - Npc shooting the attack
+ */
+function shootKi(npc)
 {
-    npc.shootItem(target, RAGE_BLAST_ITEM, 100);
+    // Shoots the item and finds it with an entity scan
+    npc.shootItem(npc, RAGE_BLAST_ITEM, 100);
     var projectileScan = npc.getSurroundingEntities(1);
     var ki = null;
     for(var i = 0; i < projectileScan.length; i++) {
@@ -195,13 +238,14 @@ function shootKi(npc, target)
     }
     if(!ki) return;
     
+    // Calculates a random position around the npc to shoot in
     var randomPos = {
         x: (npc.x + getRandom(-3, 3, true)) - npc.x , 
         y: (npc.y + getRandom(0, 3, true)) - npc.y,
         z: (npc.z + getRandom(-3, 3, true)) - npc.z
     };
 
-    // MATH CREDIT TO IKES OLD HOMING KI SCRIPT
+    // Shoots the projectile in a direction calculated from random pos - MATH CREDIT TO IKES OLD HOMING KI SCRIPT
     var length = Math.sqrt(Math.pow(randomPos.x, 2) + Math.pow(randomPos.y, 2) + Math.pow(randomPos.z, 2)) //we calculate the length of the direction
     var direction = [(randomPos.x / length), (randomPos.y / length), (randomPos.z / length)] //and then we normalize it and store it in the direction variable
     ki.setPosition(npc.x, npc.y, npc.z);
@@ -211,13 +255,13 @@ function shootKi(npc, target)
 /** Returns a random number between two values
 * @param {int} min - the minimum number to generate a value from
 * @param {int} max - the minimum number to generate a value from 
+* @param {Boolean} getInt - Only returns integer values if true
 */
-function getRandom(min, max, int)
+function getRandom(min, max, getInt)
 {  
-    if(int) return Math.floor(Math.random() * (max - min + 1)) + min;
+    if(getInt) return Math.floor(Math.random() * (max - min + 1)) + min;
     else return Math.random() * (max - min + 1) + min;
 }
-
 
 /** Starts timers if not present
  * @param {ITimers} timers - Npc's timers 
@@ -226,6 +270,7 @@ function startTimers(timers)
 {
     if(timers.has(RAGE_PASSIVE)) return;
     timers.forceStart(RAGE_PASSIVE, RAGE_TICK_SPEED, true);
+    timers.forceStart(KI_BLAST, REG_KI_BLAST_CD, true);
 }
 
 /** progressBar constructor
