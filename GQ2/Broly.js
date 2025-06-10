@@ -13,7 +13,7 @@ var RAGE_PARTICLE_COLOURS = [35328, 51712, 60416, 65280]; // Randomised colours 
 var RAGE_PARTICLE_RADIUS = 0.8; // Radius to spawn rage particles around npc
 var RAGE_PARTICLE_AGE = 10; // Rage particle age in ticks
 var RAGE_PARTICLE_FREQUENCY = 0; // How often rage particles are spawned
-var RAGE_PARTICLE_SCALE = { x: 1, y: 1 }; //    
+var RAGE_PARTICLE_SCALE = { minX: 5, minY: 5, maxX: 12, maxY: 12 }; //    
 
 var RAGE_BLAST_ITEM = API.createItem("plug:energyBlock", 4, 1); // Item to use for rage ki blast - Item ID, Type, Count(ignore)
 var RAGE_KI_BLAST_CD = 5; // CD of rage ki attack in ticks
@@ -200,6 +200,9 @@ function updateRage(npc, value)
 
 }
 
+/** Spawns particles in a random position around the npc
+ * @param {ICustomNpc} npc 
+ */
 function rageParticles(npc)
 {
     // Particle setup
