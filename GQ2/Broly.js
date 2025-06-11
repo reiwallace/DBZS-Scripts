@@ -2,37 +2,42 @@
 // AUTHOR: Noxie
 
 // CONFIG
-var RAGE_STAT_MULTIPLIER = 2; // Multiplier to stats during rage mode
-var PASSIVE_RAGE_GENERATION = 0.05; // Percent of rage bar to generate per rage tick
-var RAGE_TICK_SPEED = 20; // Number of game ticks between each rage tick
-var RAGE_MODE_DRAIN_MULTIPLIER = 4; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
-var RAGE_TO_HEALTH = 0.25; // Percent of health to fill a rage bar - e.g. it would take doing 25% of bosses hp to fill rage purely from damage
+var rageStatMultiplier = 2; // Multiplier to stats during rage mode
+var passiveRageGeneration = 0.05; // Percent of rage bar to generate per rage tick
+var rageTickSpeed = 10; // Number of game ticks between each rage tick
+var rageModeDrainMultiplier = 5; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
+var rageToHealth = 0.25; // Percent of health to fill a rage bar - e.g. it would take doing 25% of bosses hp to fill rage purely from damage
 
-var RAGE_PARTICLE = "plug:textures/items/artifacts/infinity_catalyst.png"; // Item texture to use for rage particles
-var RAGE_PARTICLE_COLOURS = [35328, 51712, 60416, 65280]; // Randomised colours to use for rage particle
-var RAGE_PARTICLE_RADIUS = 0.8; // Radius to spawn rage particles around npc
-var RAGE_PARTICLE_AGE = 10; // Rage particle age in ticks
-var RAGE_PARTICLE_FREQUENCY = 0; // How often rage particles are spawned
-var RAGE_PARTICLE_SCALE = { minX: 5, minY: 5, maxX: 12, maxY: 12 }; //    
+var rageParticle = "plug:textures/items/artifacts/infinity_catalyst.png"; // Item texture to use for rage particles
+var rageAuraId = 4; // Set to appropriate ID for dbc aura
+var rageParticleColours = [35328, 51712, 60416, 65280]; // Randomised colours to use for rage particle
+var rageParticleRadius = 0.8; // Radius to spawn rage particles around npc
+var rageParticleAge = 10; // Rage particle age in ticks
+var rageParticleFrequency = 0; // How often rage particles are spawned
+var rageParticleScale = { minX: 8, minY: 8, maxX: 12, maxY: 12 }; //    
 
-var RAGE_BLAST_ITEM = API.createItem("plug:energyBlock", 4, 1); // Item to use for rage ki blast - Item ID, Type, Count(ignore)
-var RAGE_KI_BLAST_CD = 5; // CD of rage ki attack in ticks
+var rageBlastItem = API.createItem("plug:energyBlock", 4, 1); // Item to use for rage ki blast - Item ID, Type, Count(ignore)
+var rageKiBlastCd = 1; // CD of rage ki attack in ticks
 
-var WEAKENED_DURATION = 100; // Duration of weakened state in ticks
-var WEAKENED_DAMAGE_AMP = 0.2; // Percent damage increase while broly is weakened
+var weakenedDuration = 100; // Duration of weakened state in ticks
+var weakenedDamagedAmp = 0.2; // Percent damage increase while broly is weakened
 
-var REGULAR_KI_BLAST = createKiAttack(
+var rageStartVoiceline = "&4&lRAAARGH!";
+var rageEndVoiceline = "&2Impossible!";
+var highRageVoiceline = "&aMy power is rising... It's overflowing!";
+
+var regularKiBlast = DBCAPI.createKiAttack(
     1, // Type
     0, // Speed
     1, // Damage
     false, 6, 0, true, 100 // Effect, colour, density, sound, charge
 );
-var REG_KI_BLAST_CD = 100; // CD of regular ki blast in ticks
+var regKiBlastCd = 100; // CD of regular ki blast in ticks
 
 // EDIT WITH NPC BASE STATS
 function setDefaultStats(npc, multi) {
     // Follow template npc.setStat(AMOUNT * multi)
-    npc.setStrength(1 * multi);
+    npc.setMeleeStrength(1 * multi);
 }
 
 // RAGE BAR CONFIG
@@ -73,17 +78,24 @@ var WEAKENED = 50;
 var KI_BLAST = 1;
 var RAGE_KI = 2;
 var RAGE_PARTICLES = 3;
+var KI_BLAST_TELEGRAPH;
 
 // DO NOT EDIT
 var rageMode = false;
 var rage;
-var target;
+var target = null;
+var voiceFlag = true;
 var previousHp;
 
 function init(event)
 {
     var npc = event.npc;
-    rage = new progressBar(npc.getMaxHealth() * RAGE_TO_HEALTH, 0, [0]);
+    var dbcDisplay = DBCAPI.getDBCDisplay(npc);
+    dbcDisplay.setEnabled(true);
+    dbcDisplay.toggleAura(false);
+    npc.updateClient();
+    rageMode = false;
+    rage = new progressBar(npc.getMaxHealth() * rageToHealth, 0, [0]);
     previousHp = npc.getMaxHealth();
     reset(npc);
 }
@@ -98,6 +110,7 @@ function reset(npc)
     if(target) rage.removeBar(target);
     npc.timers.clear();
     setDefaultStats(npc, 1);
+    voiceFlag = true;
     rageMode = false;
     rage.setBar(0);
 }
@@ -109,13 +122,19 @@ function timer(event)
     switch(event.id) {
         case(RAGE_PASSIVE):
             // Generate rage each rage tick
-            updateRage(npc, rage.maxValue * PASSIVE_RAGE_GENERATION);
+            updateRage(npc, rage.maxValue * passiveRageGeneration);
+            break;
+
+        case(KI_BLAST_TELEGRAPH):
+            // Telegraphs ki blast before shooting
+            npc.say(kiBlastTelegraph);
+            npc.timers.forceStart(KI_BLAST, kiBlastDelay, false);
             break;
 
         case(KI_BLAST):
             // Shoot a ki blast if not in rage mode or 
             if(rageMode || timers.has(WEAKENED)) return;
-            DBCAPI.fireKi(npc, REGULAR_KI_BLAST);
+            DBCAPI.fireKiAttack(npc, regularKiBlast);
             break;
 
         case(RAGE_KI):
@@ -124,7 +143,8 @@ function timer(event)
                 npc.timers.stop(RAGE_KI);
                 return;
             }
-            shootKi(npc);
+            // Two for good luck
+            shootKi(npc, npc.getAttackTarget());
             break;
 
         case(RAGE_PARTICLES):
@@ -159,7 +179,7 @@ function damaged(event)
     updateRage(npc, damage);
 
     if(!timers.has(WEAKENED)) return;
-    event.setDamage(damage * WEAKENED_DAMAGE_AMP);
+    event.setDamage(damage * weakenedDamagedAmp);
     previousHp = npc.getHealth();
 }
 
@@ -180,22 +200,34 @@ function updateRage(npc, value)
     if(timers.has(WEAKENED)) return;
 
     // Update rage depending on rage state
-    var updatedValue = rageMode ? -value * RAGE_MODE_DRAIN_MULTIPLIER : value;
+    var updatedValue = rageMode ? -value * rageModeDrainMultiplier : value;
     rage.setBar(rage.progress + updatedValue);
     rage.displayBar(npc.getAttackTarget());
 
     // Enter weakened state upon reaching 0 rage
     if(rageMode && rage.progress <= 0) {
-        timers.forceStart(WEAKENED, WEAKENED_DURATION, false);
+        timers.forceStart(WEAKENED, weakenedDuration, false);
         setDefaultStats(npc, 1)
+        npc.say(rageEndVoiceline);
         rageMode = false;
+        voiceFlag = true;
     } 
     // Enter rage mode upon reaching max rage
     else if(!rageMode && rage.progress >= rage.maxValue) {
         rageMode = true;
-        timers.forceStart(RAGE_KI, RAGE_KI_BLAST_CD, true);
-        timers.forceStart(RAGE_PARTICLES, RAGE_PARTICLE_FREQUENCY, true);
-        setDefaultStats(npc, RAGE_STAT_MULTIPLIER);
+        // Set up aura
+        var dbcDisplay = DBCAPI.getDBCDisplay(npc);
+        dbcDisplay.setAura(rageAuraId);
+        dbcDisplay.toggleAura(true);
+
+        // Start timers and set stats
+        npc.say(rageStartVoiceline);
+        timers.forceStart(RAGE_KI, rageKiBlastCd, true);
+        timers.forceStart(RAGE_PARTICLES, rageParticleFrequency, true);
+        setDefaultStats(npc, rageStatMultiplier);
+    } else if(rage.progress >= rage.maxValue * 0.8 && voiceFlag) {
+        npc.say(highRageVoiceline);
+        voiceFlag = false;
     }
 
 }
@@ -206,31 +238,33 @@ function updateRage(npc, value)
 function rageParticles(npc)
 {
     // Particle setup
-    var particle = API.createParticle(RAGE_PARTICLE);
-    particle.setMaxAge(RAGE_PARTICLE_AGE);
+    var particle = API.createParticle(rageParticle);
+    particle.setMaxAge(rageParticleAge);
     particle.setScale(
-        getRandom(RAGE_PARTICLE_SCALE.minX, RAGE_PARTICLE_SCALE.maxX, true),
-        getRandom(RAGE_PARTICLE_SCALE.minY, RAGE_PARTICLE_SCALE.maxY, true), 0, 0
+        getRandom(rageParticleScale.minX, rageParticleScale.maxX, true),
+        getRandom(rageParticleScale.minY, rageParticleScale.maxY, true), 0, 0
     );
     particle.setAlpha(1, 0, 0.5, 6);
     particle.setSize(16, 16);
     particle.setAnim(1, true, 0, 6);
-    particle.setHEXColor(RAGE_PARTICLE_COLOURS[getRandomInt(0, RAGE_PARTICLE_COLOURS.length)], 5242624, 0, 1);
+    particle.setHEXColor(rageParticleColours[getRandom(0, rageParticleColours.length, true)], 5242624, 0, 1);
     // Give particle a slow rise
     particle.setMotion(0, 0.02, 0, 0);
 
     // Spawn particle at a random position around npc
-    particle.setPosition(npc.x + getRandDec(-0.8, 0.8), npc.y + getRandDec(-0.2, 2.4), npc.z + getRandDec(-0.8, 0.8));
+    particle.setPosition(npc.x + getRandom(-rageParticleRadius, rageParticleRadius, false), npc.y + getRandom(-0.2, 2.4, false), npc.z + getRandom(-rageParticleRadius, rageParticleRadius, false));
     particle.spawn(npc.world);
 }
 
 /** Shoots a projectile "Ki" attack in a random direction
  * @param {ICustomNpc} npc - Npc shooting the attack
+ * @param {IEntity} target - Target to shoot at
  */
-function shootKi(npc)
+function shootKi(npc, target)
 {
     // Shoots the item and finds it with an entity scan
-    npc.shootItem(npc, RAGE_BLAST_ITEM, 100);
+    if(!target) return;
+    npc.shootItem(target, rageBlastItem, 100);
     var projectileScan = npc.getSurroundingEntities(1);
     var ki = null;
     for(var i = 0; i < projectileScan.length; i++) {
@@ -251,7 +285,7 @@ function shootKi(npc)
     // Shoots the projectile in a direction calculated from random pos - MATH CREDIT TO IKES OLD HOMING KI SCRIPT
     var length = Math.sqrt(Math.pow(randomPos.x, 2) + Math.pow(randomPos.y, 2) + Math.pow(randomPos.z, 2)) //we calculate the length of the direction
     var direction = [(randomPos.x / length), (randomPos.y / length), (randomPos.z / length)] //and then we normalize it and store it in the direction variable
-    ki.setPosition(npc.x, npc.y, npc.z);
+    ki.setPosition(npc.x, npc.y + 1, npc.z);
     ki.setMotion(direction[0], direction[1], direction[2]);
 }
 
@@ -272,8 +306,8 @@ function getRandom(min, max, getInt)
 function startTimers(timers)
 {
     if(timers.has(RAGE_PASSIVE)) return;
-    timers.forceStart(RAGE_PASSIVE, RAGE_TICK_SPEED, true);
-    timers.forceStart(KI_BLAST, REG_KI_BLAST_CD, true);
+    timers.forceStart(RAGE_PASSIVE, rageTickSpeed, true);
+    timers.forceStart(KI_BLAST_TELEGRAPH, regKiBlastCd, true);
 }
 
 /** progressBar constructor
@@ -347,5 +381,5 @@ progressBar.prototype.displayBar = function(player)
  */
 progressBar.prototype.removeBar = function(player)
 {
-    if(player) player.closeOverlay(this.OVERLAY_ID); 
+    if(player && player.getType() == 1) player.closeOverlay(this.OVERLAY_ID); 
 }
