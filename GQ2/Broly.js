@@ -3,13 +3,15 @@
 
 // CONFIG
 var rageStatMultiplier = 2; // Multiplier to stats during rage mode
-var passiveRageGeneration = 0.05; // Percent of rage bar to generate per rage tick
-var rageTickSpeed = 10; // Number of game ticks between each rage tick
-var rageModeDrainMultiplier = 5; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
+var passiveRageGeneration = 0.03; // Percent of rage bar to generate per rage tick
+var rageTickSpeed = 20; // Number of game ticks between each rage tick
+var rageModeDrainMultiplier = 4; // Multiplier to all negative rage generation while in rage mode e.g. punch that would generate 10% rage now drains 40%
 var rageToHealth = 0.25; // Percent of health to fill a rage bar - e.g. it would take doing 25% of bosses hp to fill rage purely from damage
 
-var rageParticle = "plug:textures/items/artifacts/infinity_catalyst.png"; // Item texture to use for rage particles
+var auraStartPercent = 0.5; // Percent rage to switch on small aura
+var smallAuraId = 5; // Set to appropriate ID for dbc aura
 var rageAuraId = 4; // Set to appropriate ID for dbc aura
+var rageParticle = "plug:textures/items/artifacts/infinity_catalyst.png"; // Item texture to use for rage particles
 var rageParticleColours = [35328, 51712, 60416, 65280]; // Randomised colours to use for rage particle
 var rageParticleRadius = 0.8; // Radius to spawn rage particles around npc
 var rageParticleAge = 10; // Rage particle age in ticks
@@ -17,13 +19,14 @@ var rageParticleFrequency = 0; // How often rage particles are spawned
 var rageParticleScale = { minX: 8, minY: 8, maxX: 12, maxY: 12 }; //    
 
 var rageBlastItem = API.createItem("plug:energyBlock", 4, 1); // Item to use for rage ki blast - Item ID, Type, Count(ignore)
-var rageKiBlastCd = 1; // CD of rage ki attack in ticks
+var rageKiBlastCd = 2; // CD of rage ki attack in ticks
 
 var weakenedDuration = 100; // Duration of weakened state in ticks
 var weakenedDamagedAmp = 0.2; // Percent damage increase while broly is weakened
 
+var smallAuraVoiceline = "&4Time to die, Worm!";
 var rageStartVoiceline = "&4&lRAAARGH!";
-var rageEndVoiceline = "&2Impossible!";
+var rageEndVoiceline = "&8Impossible!";
 var highRageVoiceline = "&aMy power is rising... It's overflowing!";
 
 var regularKiBlast = DBCAPI.createKiAttack(
@@ -32,7 +35,9 @@ var regularKiBlast = DBCAPI.createKiAttack(
     1, // Damage
     false, 6, 0, true, 100 // Effect, colour, density, sound, charge
 );
-var regKiBlastCd = 100; // CD of regular ki blast in ticks
+var regKiBlastCd = 140; // CD of regular ki blast in ticks
+var kiBlastTelegraph = "&a&lWeakling!"; // Voiceline on telegraphing ki blast
+var kiBlastDelay = 20; // Telegraph duration
 
 // EDIT WITH NPC BASE STATS
 function setDefaultStats(npc, multi) {
@@ -78,13 +83,14 @@ var WEAKENED = 50;
 var KI_BLAST = 1;
 var RAGE_KI = 2;
 var RAGE_PARTICLES = 3;
-var KI_BLAST_TELEGRAPH;
+var KI_BLAST_TELEGRAPH = 4;
 
 // DO NOT EDIT
 var rageMode = false;
 var rage;
 var target = null;
 var voiceFlag = true;
+var auraFlag = true;
 var previousHp;
 
 function init(event)
@@ -111,6 +117,7 @@ function reset(npc)
     npc.timers.clear();
     setDefaultStats(npc, 1);
     voiceFlag = true;
+    auraFlag = true;
     rageMode = false;
     rage.setBar(0);
 }
@@ -127,13 +134,14 @@ function timer(event)
 
         case(KI_BLAST_TELEGRAPH):
             // Telegraphs ki blast before shooting
+            if(rageMode || timers.has(WEAKENED)) return;
             npc.say(kiBlastTelegraph);
             npc.timers.forceStart(KI_BLAST, kiBlastDelay, false);
             break;
 
         case(KI_BLAST):
             // Shoot a ki blast if not in rage mode or 
-            if(rageMode || timers.has(WEAKENED)) return;
+            
             DBCAPI.fireKiAttack(npc, regularKiBlast);
             break;
 
@@ -196,6 +204,7 @@ function meleeSwing(event)
 function updateRage(npc, value)
 {
     var timers = npc.timers;
+    var dbcDisplay = DBCAPI.getDBCDisplay(npc);
     // Don't change rage if in weakened state
     if(timers.has(WEAKENED)) return;
 
@@ -209,16 +218,22 @@ function updateRage(npc, value)
         timers.forceStart(WEAKENED, weakenedDuration, false);
         setDefaultStats(npc, 1)
         npc.say(rageEndVoiceline);
+        
+        // Toggle off aura
+        dbcDisplay.toggleAura(false);
+        npc.updateClient();
+
         rageMode = false;
+        auraFlag = true;
         voiceFlag = true;
     } 
     // Enter rage mode upon reaching max rage
     else if(!rageMode && rage.progress >= rage.maxValue) {
         rageMode = true;
         // Set up aura
-        var dbcDisplay = DBCAPI.getDBCDisplay(npc);
         dbcDisplay.setAura(rageAuraId);
         dbcDisplay.toggleAura(true);
+        npc.updateClient();
 
         // Start timers and set stats
         npc.say(rageStartVoiceline);
@@ -228,6 +243,12 @@ function updateRage(npc, value)
     } else if(rage.progress >= rage.maxValue * 0.8 && voiceFlag) {
         npc.say(highRageVoiceline);
         voiceFlag = false;
+    } else if(rage.progress >= rage.maxValue * auraStartPercent && auraFlag) {
+        dbcDisplay.setAura(smallAuraId);
+        dbcDisplay.toggleAura(true);
+        npc.updateClient();
+        npc.say(smallAuraVoiceline);
+        auraFlag = false;
     }
 
 }
