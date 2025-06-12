@@ -25,17 +25,20 @@ function sendDebugMessage(playerName, text) {
  */
 function animationHandler(entity)
 {
+    if(!entity || (entity.getType() != 1 && entity.getType() != 2)) return;
     this.entity = entity;
     this.entityAnimData = entity.getAnimationData();
 }
 
 /** Set entity animation
- * @param {String} animationName - Animation name as appears in game
+ * @param {IAnimation / String} animation - IAnimation object or String name of animation
  */
 animationHandler.prototype.setAnimation = function(animationName) 
 {
+    if(!animationName) return;
+    if(typeof animation == "string") animation = API.getAnimations().get(animation);
     this.entityAnimData.setEnabled(true);
-    this.entityAnimData.setAnimation(API.getAnimations().get(animationName));
+    this.entityAnimData.setAnimation(animation);
     this.entityAnimData.updateClient();
 }
 
@@ -47,5 +50,64 @@ animationHandler.prototype.removeAnimation = function()
     this.entityAnimData.setAnimation(null);
     this.entityAnimData.updateClient();
 }
+
+animationHandler.prototype.getAnimData = function() { return this.entityAnimData; }
+
+// ---------------------------------------------------------------------------
+
+// Npc form handler class --------------------------------------------------------------------------
+
+function dbcDisplayHandler(npc, enabled)
+{
+    if(!npc) return;
+    this.transformConfig();
+    this.npc = npc;
+    this.npcDisplay = DBCAPI.getDBCDisplay(npc);
+    this.npcDisplay.setEnabled(enabled);
+    this.npc.updateClient();
+}
+
+dbcDisplayHandler.prototype.transformConfig = function()
+{
+    this.updateFormDelay = 10; // Number of ticks from starting aura to updating form
+    this.disableAuraDelay = 20; // Number of ticks from starting aura to disabling aura (generally around 10 after updating form looks good)
+    this.ascendSound = "npcdbc:transformationSounds.GodAscend";
+} 
+
+dbcDisplayHandler.prototype.slowTransform = function(form)
+{
+    if(!form) return;
+    this.npcDisplay.setEnabled(true);
+    this.npcDisplay.transform(form);
+    this.npc.updateClient();
+}
+
+dbcDisplayHandler.prototype.quickTransform = function(form)
+{
+    
+}
+
+dbcDisplayHandler.prototype.setForm = function(form)
+{
+    if(!form) return;
+    this.npcDisplay.setForm(form);
+    this.npc.updateClient();
+}
+
+dbcDisplayHandler.prototype.setAura = function(aura, active)
+{
+    if(!aura) return;
+    this.npcDisplay.setAura(aura);
+    this.npcDisplay.toggleAura(active);
+    this.npc.updateClient();
+}
+
+dbcDisplayHandler.prototype.disable = function()
+{
+    this.npcDisplay.setEnabled(false);
+    this.npc.updateClient();
+}
+
+dbcDisplayHandler.prototype.getNpcDisplay = function() { return this.npcDisplay; }
 
 // ---------------------------------------------------------------------------
