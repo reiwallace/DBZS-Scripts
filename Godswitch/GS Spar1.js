@@ -13,9 +13,13 @@ var FLAG_SWITCH_DELAY = 82; // Delay after transforming to switch transform flag
 var FAIL_VOICELINE = "You can't harm me in this form!";
 var SPAM_DELAY = 40; // Number of ticks between telling the player to switch form
 
+var kaiokenVoiceline1 = "&c&lUsing kakarots scummy power up to &c&ltry and get an edge?";
+var kaiokenVoiceline2 = "&c&lGet out of my sight, you worthless &c&llow-class scum!";
+
 // TIMERS
 var SWITCH_FORM = 1;
 var FLAG_SWITCH = 2;
+var KAIOKEN_MOCK = 3;
 var SPAM_PREVENTION = 50;
 
 // DON'T EDIT
@@ -52,6 +56,11 @@ function timer(event)
         case(FLAG_SWITCH):
             isSSG = !isSSG;
             break;
+
+        case(KAIOKEN_MOCK):
+            npc.say(kaiokenVoiceline2);
+            break;
+
     }
 }
 
@@ -63,6 +72,17 @@ function damaged(event)
     // Return if not a player or player is null
     if(!(player && player.getType() == 1)) {
         event.setCanceled(true);
+        return;
+    }
+
+    // Kaioken detection
+    if(player.getDBCPlayer().isKaioken()) {
+        event.setCanceled(true);
+        npc.timers.forceStart(KAIOKEN_MOCK, 30, false);
+        npc.executeCommand("jrmcse set KO 0.2 " + player.getName())
+        if(npc.getTimers().has(SPAM_PREVENTION)) return;
+        npc.say(kaiokenVoiceline1);
+        npc.timers.forceStart(SPAM_PREVENTION, 40, false);
         return;
     }
     
