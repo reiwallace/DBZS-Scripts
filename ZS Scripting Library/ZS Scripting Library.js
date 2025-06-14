@@ -7,6 +7,7 @@
 var libraryObject = {
     debugMessage: sendDebugMessage,
     startGlobalTimer: startGlobalTimer,
+    checkReset: checkReset,
     animationHandler: animationHandler,
     dbcDisplayHandler: dbcDisplayHandler
 }
@@ -88,6 +89,17 @@ function startGlobalTimer(className, timerId, duration, timerRepeats, object)
 
 function sendDebugMessage(playerName, text) {
     API.getPlayer(playerName).sendMessage(text);
+}
+
+function checkReset(npc)
+{
+    var temptarget = npc.getTempData("npctarget");
+    var target = npc.getAttackTarget();
+    if (temptarget != null && target == null && temptarget.getHealth() == 0 && npc.world.getClosestVulnerablePlayer(npc.getPosition(), 50.0) == null) {
+        npc.getTimers().clear()
+        npc.reset()
+    }
+    npc.setTempData("npctarget", npc.getAttackTarget());
 }
 
 
@@ -220,7 +232,7 @@ dbcDisplayHandler.prototype.setAura = function(aura, active)
  */
 dbcDisplayHandler.prototype.toggleAura = function(enabled)
 {
-    this.npcDisplay.toggleAura(active);
+    this.npcDisplay.toggleAura(enabled);
     this.npc.updateClient();
 }
 
