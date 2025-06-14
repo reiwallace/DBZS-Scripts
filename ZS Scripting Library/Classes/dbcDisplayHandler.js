@@ -88,7 +88,7 @@ dbcDisplayHandler.prototype.setAura = function(aura, active)
  */
 dbcDisplayHandler.prototype.toggleAura = function(enabled)
 {
-    this.npcDisplay.toggleAura(active);
+    this.npcDisplay.toggleAura(enabled);
     this.npc.updateClient();
 }
 
