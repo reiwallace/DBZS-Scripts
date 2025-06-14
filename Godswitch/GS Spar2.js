@@ -44,6 +44,12 @@ function timer(event)
             else displayHandler.slowTransform(npcSSGForm); // Switch to SSG
             break;
 
+        case(KI_BLAST):
+            // 
+            var npcForm = displayHandler.getNpcDisplay().getCurrentForm().getName();
+            if(npcForm && npcForm == npcSSGForm)
+            break;
+
         case(KAIOKEN_MOCK):
             npc.say(kaiokenVoiceline2);
             break;
