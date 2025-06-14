@@ -24,6 +24,15 @@ var rageKiBlastCd = 2; // CD of rage ki attack in ticks
 var weakenedDuration = 100; // Duration of weakened state in ticks
 var weakenedDamagedAmp = 0.2; // Percent damage increase while broly is weakened
 
+// MODELS & SKINS
+var noRageModel = "JinRyuu.DragonBC.common.Npcs.dbsbroly.EntityDBSBroly4";
+var noRageSkin = "jinryuudragonbc:npcs/dbsbroly4.png";
+var midRageModel = "JinRyuu.DragonBC.common.Npcs.dbsbroly.EntityDBSBrolyBuff";
+var midRageSkin = "jinryuudragonbc:npcs/dbsbrolybuff.png";
+var fullRageModel = "JinRyuu.DragonBC.common.Npcs.dbsbroly.EntityDBSBrolyBuffSSJ";
+var fullRageSkin = "jinryuudragonbc:npcs/dbsbrolybuffssj.png";
+
+// VOICELINES
 var smallAuraVoiceline = "&4Time to die, Worm!";
 var rageStartVoiceline = "&4&lRAAARGH!";
 var rageEndVoiceline = "&8Impossible!";
@@ -115,6 +124,7 @@ function reset(npc)
     }
     if(target) rage.removeBar(target);
     npc.timers.clear();
+    setModel(npc, noRageModel, noRageSkin);
     setDefaultStats(npc, 1);
     voiceFlag = true;
     auraFlag = true;
@@ -220,6 +230,7 @@ function updateRage(npc, value)
         npc.say(rageEndVoiceline);
         
         // Toggle off aura
+        setModel(npc, noRageModel, noRageSkin);
         dbcDisplay.toggleAura(false);
         npc.updateClient();
 
@@ -230,7 +241,8 @@ function updateRage(npc, value)
     // Enter rage mode upon reaching max rage
     else if(!rageMode && rage.progress >= rage.maxValue) {
         rageMode = true;
-        // Set up aura
+        // Set up aura and change model
+        setModel(npc, fullRageModel, fullRageSkin);
         dbcDisplay.setAura(rageAuraId);
         dbcDisplay.toggleAura(true);
         npc.updateClient();
@@ -240,12 +252,17 @@ function updateRage(npc, value)
         timers.forceStart(RAGE_KI, rageKiBlastCd, true);
         timers.forceStart(RAGE_PARTICLES, rageParticleFrequency, true);
         setDefaultStats(npc, rageStatMultiplier);
-    } else if(rage.progress >= rage.maxValue * 0.8 && voiceFlag) {
+    } 
+    // Says something at 80% rage
+    else if(rage.progress >= rage.maxValue * 0.8 && voiceFlag) {
         npc.say(highRageVoiceline);
         voiceFlag = false;
-    } else if(rage.progress >= rage.maxValue * auraStartPercent && auraFlag) {
+    } 
+    // Starts a small aura and changes to a buff model at set percent
+    else if(rage.progress >= rage.maxValue * auraStartPercent && auraFlag) {
         dbcDisplay.setAura(smallAuraId);
         dbcDisplay.toggleAura(true);
+        setModel(npc, midRageModel, midRageSkin);
         npc.updateClient();
         npc.say(smallAuraVoiceline);
         auraFlag = false;
@@ -329,6 +346,18 @@ function startTimers(timers)
     if(timers.has(RAGE_PASSIVE)) return;
     timers.forceStart(RAGE_PASSIVE, rageTickSpeed, true);
     timers.forceStart(KI_BLAST_TELEGRAPH, regKiBlastCd, true);
+}
+
+/** Sets the model of an npc
+ * @param {ICustomNpc} npc 
+ * @param {String} model 
+ * @param {String} skin 
+ */
+function setModel(npc, model, skin)
+{
+    npc.getModelData().setEntity(model);
+    npc.setTexture(skin);
+    npc.updateClient();
 }
 
 /** progressBar constructor
