@@ -1,5 +1,6 @@
 // GS Spar1.js
 // AUTHOR: Trent
+var lib = API.getIWorld(0).getTempData("library");
 
 // CONFIG
 var npcSSBForm = "[NPC] SSB"; // Name of npc's SSB form
@@ -15,13 +16,18 @@ var spamDelay = 40; // Number of ticks between telling the player to switch form
 var kaiokenVoiceline1 = "&c&lUsing kakarots scummy power up to &c&ltry and get an edge?";
 var kaiokenVoiceline2 = "&c&lGet out of my sight, you worthless &c&llow-class scum!";
 
+// TRANSFORM CONFIG
+lib.dbcDisplayHandler.prototype.config = function() {
+    this.updateFormDelay = 20; // Number of ticks from starting aura to updating form
+    this.disableAuraDelay = 30; // Number of ticks from starting aura to disabling aura (generally around 10 after updating form looks good)
+}
+
 // TIMERS
 var SWITCH_FORM = 1;
 var KAIOKEN_MOCK = 3;
 var SPAM_PREVENTION = 50;
 
 // DON'T EDIT
-var lib = API.getIWorld(0).getTempData("library");
 var displayHandler;
 
 function init(event)
@@ -41,7 +47,10 @@ function timer(event)
         case(SWITCH_FORM):
             // Change form based on state
             var npcForm = displayHandler.getNpcDisplay().getCurrentForm().getName();
-            if(npcForm == npcSSGForm) displayHandler.quickTransform(DBCAPI.getForm(npcSSBForm)) // Switch to SSB
+            if(npcForm == npcSSGForm) {
+                displayHandler.quickTransform(DBCAPI.getForm(npcSSBForm)) // Switch to SSB
+                npc.timers.forceStart();
+            }
             else displayHandler.quickTransform(DBCAPI.getForm(npcSSGForm)); // Switch to SSG
             break;
 
