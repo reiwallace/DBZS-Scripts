@@ -40,14 +40,9 @@ function timer(event)
     switch(event.id) {
         case(SWITCH_FORM):
             // Change form based on state
-            if(isSSG) displayHandler.slowTransform(npcSSBForm) // Switch to SSB
-            else displayHandler.slowTransform(npcSSGForm); // Switch to SSG
-            break;
-
-        case(KI_BLAST):
-            // 
             var npcForm = displayHandler.getNpcDisplay().getCurrentForm().getName();
-            if(npcForm && npcForm == npcSSGForm)
+            if(npcForm == npcSSGForm) displayHandler.quickTransform(DBCAPI.getForm(npcSSBForm)) // Switch to SSB
+            else displayHandler.quickTransform(DBCAPI.getForm(npcSSGForm)); // Switch to SSG
             break;
 
         case(KAIOKEN_MOCK):
@@ -88,7 +83,7 @@ function damaged(event)
         ((npcForm == npcSSGForm && playerForm == playerSSGId) ||
         (npcForm == npcSSBForm && playerForm == playerSSBId))
     );
-    if(!formCheck) return;
+    if(formCheck) return;
 
     // Prevent damage if the player’s form does not match the NPC’s form
     event.setCanceled(true);
@@ -99,7 +94,7 @@ function damaged(event)
 
 function killed(event)
 {
-    reset(event);
+    reset(event.npc);
 }
 
 // Reset detection
@@ -114,10 +109,10 @@ function tick(event)
 function reset(npc)
 {
     // Reset health and timers
-    npc.setHealth(npc.getMaxHealth());
+    if(npc.getHealth() != 0) npc.setHealth(npc.getMaxHealth());
     npc.timers.clear();
 
     // Change form to god
-    displayHandler.setForm(npcSSBForm);
+    displayHandler.setForm(npcSSGForm);
     displayHandler.toggleAura(false);
 }
