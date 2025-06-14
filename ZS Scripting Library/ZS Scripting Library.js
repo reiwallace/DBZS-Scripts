@@ -56,7 +56,7 @@ function handleTimers(className, classType, timerId) {
                 break;
 
             case(dbcDisplayHandler_DISABLE_AURA):
-                objectArray[i].qtDisableAura();
+                objectArray[i].toggleAura(false);
                 break;
         }
     }
@@ -193,14 +193,6 @@ dbcDisplayHandler.prototype.qtUpdateForm = function()
     this.npc.playSound(this.ascendSound, 0.3, 1);
 }
 
-/** Timer function for quickTransform to disable aura after transformation
- */
-dbcDisplayHandler.prototype.qtDisableAura = function()
-{
-    this.npcDisplay.toggleAura(false);
-    this.npc.updateClient();
-}
-
 /**
  * @param {IForm} form - IForm to set npc to
  */
@@ -219,6 +211,15 @@ dbcDisplayHandler.prototype.setAura = function(aura, active)
 {
     if(!aura) return;
     this.npcDisplay.setAura(aura);
+    this.npcDisplay.toggleAura(active);
+    this.npc.updateClient();
+}
+
+/** Changes visibility of aura
+ * @param {Boolean} enabled - Aura visibility
+ */
+dbcDisplayHandler.prototype.toggleAura = function(enabled)
+{
     this.npcDisplay.toggleAura(active);
     this.npc.updateClient();
 }
