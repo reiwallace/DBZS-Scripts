@@ -1,5 +1,5 @@
 // GS Spar1.js
-// AUTHOR: Trent
+// AUTHOR: Trent/Noxie
 
 // CONFIG
 var npcSSBForm = "[NPC] SSB"; // Name of npc's SSB form
