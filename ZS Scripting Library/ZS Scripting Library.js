@@ -49,6 +49,9 @@ function timer(event) {
     world.removeTempData("" + id + API.getServerTime());
 }
 
+
+// GLOBAL FUNCTIONS --------------------------------------------------------------------------------------------------
+
 /** Starts a timer on the global script npc
  * @param {int} timerId - Id of the timer to start
  * @param {int} duration - Duration of the timer in ticks 
@@ -93,6 +96,7 @@ function checkReset(npc)
 }
 
 
+// GLOBAL CLASSES ------------------------------------------------------------------------------------------------
 
 // Animation Handler class --------------------------------------------------------------------------
 
