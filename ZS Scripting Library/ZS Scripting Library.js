@@ -17,8 +17,9 @@ var dbcDisplayHandler_UPDATE_FORM = 301;
 var dbcDisplayHandler_DISABLE_AURA = 302;
 
 //gets the world with id 0, sagaworld
+API.addGlobalObject("lib", libraryObject);
+
 var world = API.getIWorld(0);
-world.setTempData("library", libraryObject);
 
 // Save timers to temp data
 function init(event) { world.setTempData("libTimers", event.npc.timers); }
@@ -27,26 +28,24 @@ function init(event) { world.setTempData("libTimers", event.npc.timers); }
 function timer(event) {
     var id = event.id;
     // Get object array for specific timer and cycle through array
-    var objectArray = world.getTempData("" + id + API.getServerTime());
-    for(var i in objectArray) {
-        var object = objectArray[i];
+    var object = world.getTempData(id);
+    var timerId = parseInt((id + "").substring(0, 3));
+    // ADD TIMER FUNCTIONALITY
+    if(!object) return;
+    switch(timerId) {
+        case(dbcDisplayHandler_UPDATE_FORM):
+            // Handle updating quick transform
+            if(!object instanceof dbcDisplayHandler) return;
+            object.qtUpdateForm();
+            break;
 
-        // ADD TIMER FUNCTIONALITY
-        switch(event.id) {
-            case(dbcDisplayHandler_UPDATE_FORM):
-                // Handle updating quick transform
-                if(!object instanceof dbcDisplayHandler) continue;
-                object.qtUpdateForm();
-                break;
-
-            case(dbcDisplayHandler_DISABLE_AURA):
-                // Handle ending quick transform
-                if(!object instanceof dbcDisplayHandler) continue;
-                objectArray[i].toggleAura(false);
-                break;
-        }
+        case(dbcDisplayHandler_DISABLE_AURA):
+            // Handle ending quick transform
+            if(!object instanceof dbcDisplayHandler) return;
+            object.toggleAura(false);
+            break;
     }
-    world.removeTempData("" + id + API.getServerTime());
+    world.removeTempData(id);
 }
 
 
@@ -58,19 +57,15 @@ function timer(event) {
  * @param {Boolean} timerRepeats - If timer repeats
  * @param {Object} object - Class object required by timer
  */
-function startGlobalTimer(timerId, duration, timerRepeats, object)
+function startGlobalTimer(timerId, duration, timerRepeats, entityId, object)
 {
     var world = API.getIWorld(0);
     var timers = world.getTempData("libTimers");
 
-    // Calculates end time of timer
-    var dataId =  timerId + "" + (API.getServerTime() + duration + 1);
-
-    // If this timer is already being used push the new object into the same array
-    if(world.hasTempData(dataId)) world.setTempData(dataId, world.getTempData(dataId).push(object));
-    // If the timer doesn't exist create a new array containing only the one object
-    else world.setTempData(dataId, new Array(object));
-    timers.forceStart(timerId, duration, timerRepeats);
+    // Starts timer with correct ID
+    var dataId =  timerId + "" + entityId;
+    world.setTempData(dataId, object);
+    timers.forceStart(dataId, duration, timerRepeats);
 }
 
 /** Sends a message to a player
@@ -237,9 +232,8 @@ dbcDisplayHandler.prototype.quickTransform = function(form, disableAura)
     this.tempForm = form;
     
     // Start timers
-    var lib = API.getIWorld(0).getTempData("library");
-    lib.startGlobalTimer(301, this.updateFormDelay, false, this);
-    if(disableAura) lib.startGlobalTimer(302, this.disableAuraDelay, false, this);
+    lib.startGlobalTimer(301, this.updateFormDelay, false, this.npc.getEntityId(), this);
+    if(disableAura) lib.startGlobalTimer(302, this.disableAuraDelay, false, this.npc.getEntityId(), this);
 }
 
 /** Timer function for quickTransform to update npc's form
