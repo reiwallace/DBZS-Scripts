@@ -48,9 +48,8 @@ dbcDisplayHandler.prototype.quickTransform = function(form, disableAura)
     this.tempForm = form;
     
     // Start timers
-    var lib = API.getIWorld(0).getTempData("library");
-    lib.startGlobalTimer("dbcDisplayHandler", 301, this.updateFormDelay, false, this);
-    if(disableAura) lib.startGlobalTimer("dbcDisplayHandler", 302, this.disableAuraDelay, false, this);
+    lib.startGlobalTimer(301, this.updateFormDelay, false, this.npc.getEntityId(), this);
+    if(disableAura) lib.startGlobalTimer(302, this.disableAuraDelay, false, this.npc.getEntityId(), this);
 }
 
 /** Timer function for quickTransform to update npc's form
@@ -67,6 +66,7 @@ dbcDisplayHandler.prototype.qtUpdateForm = function()
 dbcDisplayHandler.prototype.setForm = function(form)
 {
     if(!form) return;
+    if(typeof form == "string") form = DBCAPI.getForm(form);
     this.npcDisplay.setForm(form);
     this.npc.updateClient();
 }

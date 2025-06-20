@@ -8,6 +8,9 @@ var libraryObject = {
     debugMessage: sendDebugMessage,
     startGlobalTimer: startGlobalTimer,
     checkReset: checkReset,
+    checkResetParty: checkResetParty,
+    isPlayer: isPlayer,
+    isValidPlayer: isValidPlayer,
     animationHandler: animationHandler,
     dbcDisplayHandler: dbcDisplayHandler
 }
@@ -250,6 +253,7 @@ dbcDisplayHandler.prototype.qtUpdateForm = function()
 dbcDisplayHandler.prototype.setForm = function(form)
 {
     if(!form) return;
+    if(typeof form == "string") form = DBCAPI.getForm(form);
     this.npcDisplay.setForm(form);
     this.npc.updateClient();
 }
