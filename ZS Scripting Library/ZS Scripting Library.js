@@ -163,7 +163,7 @@ function isValidPlayer(player) {
  * @param {number} size - The font size of the text.
  * @param {Int} xOffset - Horizontal offset from centre of screen
  * @param {Int} yOffset - Vertical offset from centre of screen
- * @param {Int} timeout - 
+ * @param {Int} timeout - Time to leave overlay on the player's screen in ticks (set to 0 to never time out)
  * @param {string} speakID - The ID of the text overlay.
  */
 function speak(player, text, color, size, xOffset, yOffset, timeout, speakID) 
