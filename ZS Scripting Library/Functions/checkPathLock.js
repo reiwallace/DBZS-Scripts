@@ -4,29 +4,42 @@ var paths = {
     path3: [],
 };
 
+/** Checks if player is able to access provided path
+ * @param {IPlayer} player 
+ * @param {String} pathName 
+ * @returns {Boolean}
+ */
 function isPathLocked(player, pathName)
 {
-    if(!player) return;
+    if(!lib.isPlayer(player)) return;
     var playerForms = player.getDBCPlayer().getCustomForms();
     // Check each player form for path compatability
     for(var i in playerForms) {
         if(!playerForms[i]) continue;
         var form = playerForms[i].getName();
+        // Player locked if trying to access SSJ1 path with FPSSJ+ unlocked
         if(pathName == "SSJ1PATH" && paths.SSJFORMS.indexOf(form) < 0) {
-            displayFormWarning(player, form);
+            displayFormWarning(player, form, pathName);
             return true;
         }
         for(var p in paths) {
+            // If form exists on another path lock player
             if(p == pathName || p == "SSJFORMS") continue;
             if(paths[p].indexOf(form) >= 0) {
-                displayFormWarning(player, form);
+                displayFormWarning(player, form, pathName);
                 return true;
             }
         }
     }
+    // Return false if player is not locked
     return false;
 }
 
+/** Displays an error message to the player saying why they are path locked
+ * @param {IPlayer} player 
+ * @param {String} form 
+ * @param {String} path 
+ */
 function displayFormWarning(player, form, path) 
 {
     var GUI = API.createCustomGui(134, 255, 200, false);
@@ -41,6 +54,8 @@ function displayFormWarning(player, form, path)
     player.showCustomGui(GUI);
 }
 
-function customGuiButton(event) {
+// Global Script to close popup
+function customGuiButton(event)
+{
     if(event.getGui().getID() == 134) event.player.closeGui();
 }
