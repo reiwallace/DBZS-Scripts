@@ -87,6 +87,7 @@ function timer(event)
             break;
 
         case(BEGIN_ASSIST):
+            target = npc.getAttackTarget();
             if(arenaCenter[1] == 0) {
                 npc.say("Cannot use Assist Attack - Please change arena center")
             } else if(caulifla == null || caulifla.getHealth() < 1 || !target) return;
@@ -137,6 +138,7 @@ function timer(event)
         case(STOP_HOLD):
             npc.timers.stop(HOLD_PLAYER);
             caulifla.setRotationType(0); // Let caulifla go back to hitting her player
+            target = null;
             npc.setTempData("Attacking", false); // Let bosses go back to attacking
             caulifla.setTempData("Attacking", false);
             break;
@@ -156,7 +158,6 @@ function killed(event)
 function target(event)
 { // Set target and begin reset timer on swing
     var npc = event.npc;
-    target = event.getTarget();
     if(!npc.timers.has(KI_BLAST_TELEGRAPH)) { // Start timers if not active
         npc.timers.forceStart(KI_BLAST_TELEGRAPH, kiBlastCooldown, true); // Start ability timer
         npc.timers.forceStart(BEGIN_ASSIST, assistAbilityCooldown, true);
