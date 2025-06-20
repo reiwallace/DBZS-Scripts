@@ -9,6 +9,10 @@ var libraryObject = {
     startGlobalTimer: startGlobalTimer,
     checkReset: checkReset,
     checkResetParty: checkResetParty,
+    speak: speak,
+    cancelSpeak: cancelSpeak,
+    getAngleToEntity: getAngleToEntity,
+    get3dDirection: get3dDirection,
     isPlayer: isPlayer,
     isValidPlayer: isValidPlayer,
     animationHandler: animationHandler,
@@ -18,6 +22,7 @@ var libraryObject = {
 // TIMERS
 var dbcDisplayHandler_UPDATE_FORM = 301;
 var dbcDisplayHandler_DISABLE_AURA = 302;
+var speak_OVERLAY_TIMEOUT = 303;
 
 //gets the world with id 0, sagaworld
 API.addGlobalObject("lib", libraryObject);
@@ -46,6 +51,10 @@ function timer(event) {
             // Handle ending quick transform
             if(!object instanceof dbcDisplayHandler) return;
             object.toggleAura(false);
+            break;
+
+        case(speak_OVERLAY_TIMEOUT):
+            if(object && object.player) object.player.closeOverlay(object.id);
             break;
     }
     world.removeTempData(id);
@@ -143,6 +152,72 @@ function isPlayer(entity) {
  */
 function isValidPlayer(player) {
     return (player && player.getType() == 1 && player.getDBCPlayer() && player.getMode() == 0 && !player.getDBCPlayer().isDBCFusionSpectator());
+}
+
+/**
+ * Places a speech overlay on the player's screen.
+ *
+ * @param {IPlayer} player - The player object on whose screen the overlay will be displayed.
+ * @param {string} text - The text to display on the player's screen.
+ * @param {string} color - The color of the text in hexadecimal format.
+ * @param {number} size - The font size of the text.
+ * @param {Int} xOffset - Horizontal offset from centre of screen
+ * @param {Int} yOffset - Vertical offset from centre of screen
+ * @param {Int} timeout - 
+ * @param {string} speakID - The ID of the text overlay.
+ */
+function speak(player, text, color, size, xOffset, yOffset, timeout, speakID) 
+{ 
+    if(!lib.isPlayer(player)) return;
+    var speechOverlay = API.createCustomOverlay(speakID); // Create overlay with id
+    var x = 480 + xOffset - Math.floor((text.length) * 2.5) * size; // Calculate centre position
+    var y = 246 + yOffset - Math.floor(size * 6.5);
+    speechOverlay.addLabel(1, text, x, y, 0, 0, color); // Add label in the middle of the screen with the given color
+    speechOverlay.getComponent(1).setScale(size); // Resize the label
+    player.showCustomOverlay(speechOverlay); // Place the overlay on the player's screen
+    speechOverlay.update(player); // Update the label to be visible
+    var speakObject = {
+        player: player,
+        id: speakID
+    };
+    if(timeout != 0) startGlobalTimer(303, timeout, false, player.getEntityId(), speakObject);
+}
+
+function cancelSpeak(player, speakID)
+{ // Remove text from player screen
+    player.closeOverlay(speakID); 
+}
+
+/** Gets the angle from one entity to another
+ * @param {IEntity} entity1 - Initial entity to get angle from 
+ * @param {IEntity} entity2 - Second entity to get angle to
+ */
+function getAngleToEntity(entity1, entity2) 
+{
+    if(!entity1 || !entity2) return;
+    var dx = entity1.getX() - entity2.getX();
+    var dz = entity1.getZ() - entity2.getZ();
+    var theta = Math.atan2(dx, -dz);
+    theta *= 180 / Math.PI
+    if (theta < 0) theta += 360;
+    return theta;
+}
+
+/** Returns direction from 1 position to a second in 3d space
+ * @param {Double[]} pos1 - Initial position
+ * @param {Double[]} pos2 - Target Position
+ * @returns {Double[]} - Direction contained in an array
+ */
+function get3dDirection(pos1, pos2)
+{
+        var direction = { 
+            x: pos2[0] - pos1[0],
+            y: pos2[1] - pos1[1],
+            z: pos2[2] - pos1[2]
+        }
+        var length = Math.sqrt(Math.pow(direction.x, 2) + Math.pow(direction.y, 2) + Math.pow(direction.z, 2)) //we calculate the length of the direction
+        var direction = [(direction.x / length), (direction.y / length), (direction.z / length)] //and then we normalize it and store it in the direction variable
+        return direction;
 }
 
 // GLOBAL CLASSES ------------------------------------------------------------------------------------------------
