@@ -2,7 +2,7 @@
 // AUTHOR: Noxie
 
 // CHANGE THESE
-var cauliflaName = "Caulifla"; // Name of accompanying caulifla npc
+var cauliflaNpcName = "Caulifla"; // Name of accompanying caulifla npc
 var arenaCenter = [0, 0, 0]; // Centre of arena to knock player towards
 
 // CONFIG
@@ -11,7 +11,7 @@ var maxDistanceFromCenter = 10; // Tp player to center if they are too far away
 
 // KI BLAST CONFIG
 var kiBlastVoiceline = "&2&lI got this!"; // Line said by kale before shooting her ki blast
-var kiBlastCooldown = 200; // Cooldown of ki blast ability
+var kiBlastCooldown = 230; // Cooldown of ki blast ability
 var kiBlast = DBCAPI.createKiAttack(
     1, // Type
     2, // Speed
@@ -89,7 +89,8 @@ function timer(event)
         case(BEGIN_ASSIST):
             target = npc.getAttackTarget();
             if(arenaCenter[1] == 0) {
-                npc.say("Cannot use Assist Attack - Please change arena center")
+                npc.say("Cannot use Assist Attack - Please change arena center");
+                return;
             } else if(caulifla == null || caulifla.getHealth() < 1 || !target) return;
 
             // Set attacking temp data and position entities
@@ -147,13 +148,18 @@ function timer(event)
 
 function tick(event)
 {    
-    lib.checkReset(event.npc);
+    if(lib.checkReset(event.npc)) reset(npc);
 }
 
 function killed(event)
 { // Reset if killed
     reset(event.npc);
 }
+
+function meleeAttack(event)
+{
+    if(event.npc.getTempData("Attacking")) event.setCancelled(true);
+} 
 
 function target(event)
 { // Set target and begin reset timer on swing
