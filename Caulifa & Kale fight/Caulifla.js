@@ -163,7 +163,7 @@ function reset(npc)
 function chooseAbility(npc)
 {
     scanPlayers(npc);
-    if(npc.getTempData("Attacking")) return; // Don't perform an attack if doing assist ability
+    if(npc.getTempData("Attacking") || !lib.isPlayer(npc.getAttackTarget())) return; // Don't perform an attack if doing assist ability
     switch(ability) {
         case(HOMING_KI): // Reset ki entities array 
             despawnEntities(homingKiEntities);

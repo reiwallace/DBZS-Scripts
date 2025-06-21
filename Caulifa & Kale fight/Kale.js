@@ -63,7 +63,7 @@ function init(event)
     var npc = event.npc;
     var search = npc.getSurroundingEntities(40,2); // Search for caulifla
     for(i = 0; i < search.length; i++) {
-        if(search[i].getName() == cauliflaName) {
+        if(search[i].getName() == cauliflaNpcName) {
             caulifla = search[i];
             break;
         }
@@ -77,7 +77,7 @@ function timer(event)
     switch(event.id) {
         case(KI_BLAST_TELEGRAPH):
             // Don't fire ki blast if performing another attack
-            if(npc.getTempData("Attacking")) return;
+            if(npc.getTempData("Attacking") || !lib.isPlayer(npc.getAttackTarget())) return;
             npc.say(kiBlastVoiceline);
             npc.timers.forceStart(KI_BLAST, telegraphTimer, false);
             break;
