@@ -1,6 +1,5 @@
 // GS Spar2.js
 // AUTHOR: Trent/Noxie
-var lib = API.getIWorld(0).getTempData("library");
 
 // CONFIG
 var npcSSBForm = "[NPC] SSB"; // Name of npc's SSB form
@@ -11,7 +10,6 @@ var playerSSGId = 9; // ID of player SSG form
 var switchFormDelay = 200; // Cooldown to switching forms
 var ssbCycleLine = "&bKeep up with this!";
 
-var failVoiceline = "You can't harm me in this form!";
 var spamDelay = 40; // Number of ticks between telling the player to switch form
 
 var kaiokenVoiceline1 = "&c&lUsing kakarots scummy power up to &c&ltry and get an edge?";
@@ -155,9 +153,6 @@ function damaged(event)
 
     // Prevent damage if the player’s form does not match the NPC’s form
     event.setCanceled(true);
-    if(timers.has(SPAM_PREVENTION)) return;
-    npc.say(failVoiceline);
-    timers.forceStart(SPAM_PREVENTION, spamDelay, false);
 }
 
 function killed(event)
