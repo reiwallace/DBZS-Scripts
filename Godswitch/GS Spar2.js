@@ -10,6 +10,7 @@ var playerSSGId = 9; // ID of player SSG form
 var switchFormDelay = 200; // Cooldown to switching forms
 var ssbCycleLine = "&bKeep up with this!";
 
+var failSound = ["jinryuudragonbc:DBC4.dodge1", "jinryuudragonbc:DBC4.dodge2", "jinryuudragonbc:DBC4.dodge3"];
 var spamDelay = 40; // Number of ticks between telling the player to switch form
 
 var kaiokenVoiceline1 = "&c&lUsing kakarots scummy power up to &c&ltry and get an edge?";
@@ -137,7 +138,7 @@ function damaged(event)
         // Return if player has seen message already
         if(timers.has(SPAM_PREVENTION)) return;
         npc.say(kaiokenVoiceline1);
-        npc.timers.forceStart(SPAM_PREVENTION, 40, false);
+        npc.timers.forceStart(SPAM_PREVENTION, spamDelay, false);
         return;
     }
     
@@ -153,6 +154,9 @@ function damaged(event)
 
     // Prevent damage if the player’s form does not match the NPC’s form
     event.setCanceled(true);
+    if(timers.has(SPAM_PREVENTION)) return;
+    npc.playSound(failSound[lib.getRandom()], 0.3, 1);
+    timers.forceStart(SPAM_PREVENTION, spamDelay, false);
 }
 
 function killed(event)
