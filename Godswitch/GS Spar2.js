@@ -154,9 +154,7 @@ function damaged(event)
 
     // Prevent damage if the player’s form does not match the NPC’s form
     event.setCanceled(true);
-    if(timers.has(SPAM_PREVENTION)) return;
-    npc.playSound(failSound[lib.getRandom()], 0.3, 1);
-    timers.forceStart(SPAM_PREVENTION, spamDelay, false);
+    npc.playSound(failSound[lib.getRandom(0, failSound.length, true)], 0.5, 1);
 }
 
 function killed(event)
