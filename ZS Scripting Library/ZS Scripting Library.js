@@ -11,6 +11,7 @@ var libraryObject = {
     checkResetParty: checkResetParty,
     speak: speak,
     cancelSpeak: cancelSpeak,
+    getRandom: getRandom,
     getAngleToEntity: getAngleToEntity,
     get3dDirection: get3dDirection,
     isPlayer: isPlayer,
