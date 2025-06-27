@@ -91,7 +91,7 @@ function sendDebugMessage(playerName, text) {
 
 /** Checks if npc target is dead
  * @param {ICustomNpc} npc 
- * @returns {Boolean} If npc is reset
+ * @returns {Boolean}
  */
 function checkReset(npc){
     var temptarget = npc.getTempData("npctarget");
@@ -111,7 +111,7 @@ function checkReset(npc){
 
 /** Checks if npc target and no other players nearby are alive
  * @param {ICustomNpc} npc 
- * @returns {Boolean} If npc is reset
+ * @returns {Boolean}
  */
 function checkResetParty(npc)
 {
