@@ -24,14 +24,16 @@ var finalFlashFire = "&e&lFinal Flash!";
 var finalFlashChargeSound = "jinryuudragonbc:DBC4.cbeam5s";
 var finalFlashFireSound = "jinryuudragonbc:DBC3.ffinalflash";
 
-
+var rushInitial = "";
+var rushFire = "";
+var rushHitSound = "jinryuudragonbc:DBC2.strongpunch";
 
 var abilityCooldown = 150;
 
 // KI ATTACK CONFIG
 var kiBlast = DBCAPI.createKiAttack(
-    1, // Type
-    0, // Speed
+    5, // Type
+    4, // Speed
     1, // Damage
     false, 18, 0, true, 100 // Effect, colour, density, sound, charge
 );
@@ -41,6 +43,10 @@ var finalFlashGun = DBCAPI.createKiAttack(
     1, // Speed
     1, // Damage
     false, 27, 0, true, 100 // Effect, colour, density, sound, charge
+);
+
+var rushBlast = DBCAPI.createKiAttack(
+    0,
 );
 
 // TIMERS
@@ -140,7 +146,7 @@ function timer(event)
 
         case(RUSH_END):
             
-            DBCAPI.fireKiAttack(npc, kiBlast);
+            DBCAPI.fireKiAttack(npc, rushBlast);
             break;
 
         case(RUSH_MOTION):
@@ -223,16 +229,26 @@ function collide(event)
     if(!npcInMotion) return;
     npc.setMotion(0, 0, 0);
     npc.timers.stop(RUSH_MOTION);
-    npc.timers.forceStart(nextRush);
+    npc.timers.forceStart(nextRush, 0, false);
+    npcInMotion = false;
 }
 
-function performRush(nextPos, nextTimer, speedx, speedy, speedz) 
+function performRush(npc, nextPos, nextTimer, speedx, speedy, speedz) 
 {
     if(!lib.isPlayer(target)) return;
+    target.getDBCPlayer().setTurboState(false);
+    target.getDBCPlayer().setFlight(false);
     // Launch player into the ground
     var playerMotion = lib.get3dDirection([target.x, target.y, target.z], [nextPos[0], nextPos[1], nextPos[2]]);
     target.setMotion(playerMotion[0] * speedx, playerMotion[1] * speedy , playerMotion[2] * speedz);
 
+
     nextRush = nextTimer;
-    timers.forceStart(RUSH_MOTION, 10, true);
+    npc.playSound(rushHitSound, 1, 1);
+    if(nextTimer == RUSH_END) {
+        npc.setMotion(0, 1, 0);
+        npc.timers.forceStart(RUSH_END, 20, false);
+        return;
+    }
+    npc.timers.forceStart(RUSH_MOTION, 5, true);
 }
