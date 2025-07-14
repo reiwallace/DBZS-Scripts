@@ -1,37 +1,31 @@
-var GUARD_SIZE = 10; // Size of guard
-var GUARD_IFRAMES = 10; // Ticks between guard hits
-var GUARD_DAMAGE = 1; // Damage done to guard per hit
-var npcGuard;
-
-function init(event)
-{ // Initialise guard object
-    var npc = event.npc;
-    npcGuard = new guard(npc, GUARD_SIZE, npc.getAggroRange(), GUARD_IFRAMES);
-}
-
-function damaged(event)
-{ // Damage guard if not empty
-    if(npcGuard.isGuardBarEmpty()) return;
-    event.setDamage(0);
-    npcGuard.damageGuard(GUARD_DAMAGE);
-}
-
 // Guard Class ---------------------------------------------------------
+
+guard.prototype.guardConfig = function()
+{
+    // GUARD CONFIG
+    this.GUARD_SIZE = 25; // Size of guard
+    this.GUARD_IFRAMES = 10; // Min ticks between guard hits
+
+    this.GUARD_BREAK_MESSAGE = "&lGuard Broken!";
+}
 
 /** A guard bar that takes damage and performs a block animation
  * @constructor
  * @param {ICustomNpc} npc - Npc assigning guard to
- * @param {int} initialGuardSize - Initial health of the guard
- * @param {int} scanRange - Range to scan players to message
+ * @param {animationHandler} npcAnimationHandler - Animation handler for guard npc
+ * @param {int} scanRange - Range to scan for players 
+ * @param {qteHandler} qte - Quick time event to perform on guard break  
  */
-function guard(npc, initialGuardSize, scanRange, iFrames)
+function guard(npc, npcAnimationHandler, scanRange, qte, guardBreakPoints)
 {
+    this.guardConfig();
     this.npc = npc;
+    this.npcAnimationHandler = npcAnimationHandler;
     this.time = this.npc.world.getTime();
-    this.iFrames = iFrames;
     this.scanRange = scanRange;
-    this.npcAnimData = npc.getAnimationData(); 
-    this.guard_level = initialGuardSize;
+    this.guardLevel = this.GUARD_SIZE;
+    this.qte = qte;
+    this.guardDisplay = new progressBar(this.GUARD_SIZE, this.GUARD_SIZE, guardBreakPoints);
 }
 
 /** Set guard bar level
@@ -39,15 +33,16 @@ function guard(npc, initialGuardSize, scanRange, iFrames)
  */
 guard.prototype.setGuardBar = function(value)
 {
-    this.guard_level = value;
+    this.guardLevel = value;
+    this.guardDisplay.setBar(value);
     
     // Update player on guard status
-    var message = "";
-    if (this.guard_level > 0) message = "GUARD LEVEL: " + this.guard_level;
-    else message = "GUARD BROKEN";
+    if (this.guardLevel > 0) return;
+    this.qte.newQTE(target, new animationHandler(target));
+
     var entities = this.npc.getSurroundingEntities(this.scanRange, 1);
     for (var i in entities) {
-        entities[i].sendMessage(message);
+        entities[i].sendMessage(this.GUARD_BREAK_MESSAGE);
     }
 }
 
@@ -58,12 +53,10 @@ guard.prototype.damageGuard = function(value)
 {
     // Perform blocking animation
     var newTime = this.npc.world.getTime();
-    if(newTime - this.time < this.iFrames) return;
-    this.npcAnimData.setAnimation(API.getAnimations().get("DBCBlock"));
-    this.npcAnimData.setEnabled(true);
-    this.npcAnimData.updateClient();
+    if(newTime - this.time < this.GUARD_IFRAMES) return;
+    this.npcAnimationHandler.setAnimation("DBCBlock");
     this.time = this.npc.world.getTime();
-    this.setGuardBar(this.guard_level - value);
+    this.setGuardBar(this.guardLevel - value);
 }
 
 /** Checks if guard level is less than or equal to 0
@@ -71,7 +64,11 @@ guard.prototype.damageGuard = function(value)
  */
 guard.prototype.isGuardBarEmpty = function()
 {
-    return this.guard_level <= 0;
+    return this.guardLevel <= 0;
 }
+
+guard.prototype.getInitialGuard = function() { return this.GUARD_SIZE; }
+guard.prototype.getGuardLevel = function() { return this.guardLevel; }
+guard.prototype.getGuardDisplay = function() { return this.guardDisplay; }
 
 // ---------------------------------------------------------
