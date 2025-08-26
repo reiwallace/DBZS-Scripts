@@ -79,6 +79,13 @@ var appearanceLevel = [
     }
 ];
 
+var slashParticle = API.createParticle("https://i.imgur.com/tytvfBH.png");
+slashParticle.setSize(964, 575);
+slashParticle.setMaxAge(60);
+slashParticle.setAlpha(1, 0, 0.5, 6);
+slashParticle.setRotationY(90, 90, 1, 90);
+
+
 
 function buildingItem(event)
 {
@@ -98,13 +105,29 @@ function versionChanged(event)
     sheatheWeapon(item);
 }
 
+function pickedUp(event) {
+    var item = event.item;
+    sheatheWeapon(item);
+}
+
+function tossed(event) {
+    var item = event.item;
+    sheatheWeapon(item);
+}
+
 function rightClick(event)
 {
     var item = event.item;
+    var player = event.player;
     if(item.getTag("sheathed") == "true") {
         removeSheathe(item, event.player);
+        return;
     }
-}
+
+    if(item.getTag("sheathed") == "false") {
+        doHeavyAttack();
+    }
+}   
 
 /** Sets item to sheathed state
  * @param {IItemLinked} item 
@@ -122,15 +145,20 @@ function sheatheWeapon(item)
  */
 function clearStats(item)
 {
-/*     var attrributeKeys = item.getCustomAttributeKeys();
-    for(var attribute in attrributeKeys) {
-        item.removeCustomAttribute(attrributeKeys[attribute]);
+    // Removes every attribute listed in the quest list
+    for(var quest in quests) {
+        for(var attribute in quest) {
+            if(attribute.startsWith("attribute")) {
+                // Trim off attribute tag
+                var trimmedAttribute = attribute.substring(10);
+                item.removeCustomAttribute(trimmedAttribute);
+            } else if(attribute.startsWith("magic_attribute")) {
+                // Trim off magic attribute tag
+                var trimmedAttribute = attribute.substring(16);
+                item.removeMagicAttribute(trimmedAttribute);
+            }
+        }
     }
-
-    var magicAttrributeKeys = item.getMagicAttributeKeys();
-    for(var attribute in magicAttrributeKeys) {
-        item.removeMagicAttribute(magicAttrributeKeys[attribute]);
-    } */
 }
 
 /** Swaps item to a functional state based on player data
@@ -153,7 +181,8 @@ function removeSheathe(item, player)
     var activeAppearance = appearanceLevel[appearance];
     setAppearance(item, activeAppearance);
 
-    item.setTag("sheathed", "flase");
+    item.setTag("sheathed", "false");
+    item.setTag("playerId", player.getEntityId())
 }
 
 /** Sets appearence of item from appearance object
@@ -196,9 +225,11 @@ function applyAttributes(item, attributes)
 {
     for(var attribute in attributes) {
         if(attribute.startsWith("attribute")) {
+            // Trim off attribute tag
             var trimmedAttribute = attribute.substring(10);
             item.setCustomAttribute(trimmedAttribute, attributes[attribute] + item.getCustomAttribute(trimmedAttribute));
         } else if(attribute.startsWith("magic_attribute")) {
+            // Trim off magic attribute tag
             var trimmedAttribute = attribute.substring(16);
             item.setMagicAttribute(trimmedAttribute, attributes[attribute] + item.getMagicAttribute(trimmedAttribute));
         }
@@ -219,6 +250,7 @@ function getSkills(player)
         for(var attribute in quests[quest]) {
             if(!attribute.startsWith("skill")) continue;
 
+            // Add level to skill if skill already attributed else add skill at base level
             if(availableSkills[attribute]) availableSkills[attribute] += quests[quest][attribute];
             else availableSkills[attribute] = quests[quest][attribute];
         }
@@ -230,6 +262,14 @@ function getSkills(player)
  * @param {*} player 
  */
 function displaySkillMenu(player)
+{
+    // NYI
+}
+
+/**
+ * 
+ */
+function doHeavyAttack()
 {
     // NYI
 }
