@@ -80,33 +80,51 @@ var appearanceLevel = [
 ];
 
 var skills = [
+    blankSkill = {
+        skillId : 1,
+        icon : "https://i.imgur.com/PwfyR0q.png"
+    },
+
+    lockedSkill = {
+        skillId : 2,
+        icon : "https://i.imgur.com/PwfyR0q.png"
+    },
+
     senzuEat = {
-        "Icon" : "https://i.imgur.com/tytvfBH.png"
+        skillId : 3,
+        icon : "https://i.imgur.com/PwfyR0q.png",
+        hoverText : "Eat a senzu!"
     },
 
     skill2 = {
-        "Icon" : "https://i.imgur.com/tytvfBH.png"
+        skillId : 4,
+        icon : "https://i.imgur.com/PwfyR0q.png",
+        hoverText : "TEST"
     }
 ]
 
-// CONFIG
 
+
+// CONFIG
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
-var skillWindowHeight = 1;
-var skillWindowWidth = 1;
-var skillIconWidth = 1;
-var skillIconHeight = 1;
-var skillPosInitialX = 1;
-var skillPosInitialY = 1;
-var skillIconSpacingX = 1;
-var skillIconSpacingY = 1;
-var activeLabelPosX = 1;
-var activeLabelPosY = 1;
+var skillWindowBgTexture = "https://i.imgur.com/cMYMjV6.png";
+var skillWindowHeight = 176;
+var skillWindowWidth = 256;
+var skillIconWidth = 16;
+var skillIconHeight = 16;
+var skillPosInitialX = 19;
+var skillPosInitialY = 12.6;
+var skillIconSpacingX = 30.4;
+var skillIconSpacingY = 30.4;
+var activeLabelPosX = 182;
+var activeLabelPosY = 5;
 var activeLabelColour = 1111111;
-var passiveLabelPosX = 1;
-var passiveLabelPosY = 1;
+var passiveLabelPosX = 177;
+var passiveLabelPosY = 96.8;
 var passiveLabelColour = 11111111;
+var selectedPosX = [163.2, 213.3, 163.2, 213.3];
+var selectedPosY = [26.3, 26.3, 118, 118]
 
 var slashParticle = API.createParticle("https://i.imgur.com/tytvfBH.png");
 slashParticle.setSize(964, 575);
@@ -114,39 +132,39 @@ slashParticle.setMaxAge(60);
 slashParticle.setAlpha(1, 0, 0.5, 6);
 slashParticle.setRotationY(90, 90, 1, 90);
 
-
+var item;
 
 function buildingItem(event)
 {
-    var item = event.item;
+    item = event.item;
     sheatheWeapon(item);
 }
 
 function init(event)
 {
-    var item = event.item;
+    item = event.item;
     sheatheWeapon(item);
 }
 
 function versionChanged(event)
 {
-    var item = event.item;
+    item = event.item;
     sheatheWeapon(item);
 }
 
 function pickedUp(event) {
-    var item = event.item;
+    item = event.item;
     sheatheWeapon(item);
 }
 
 function tossed(event) {
-    var item = event.item;
+    item = event.item;
     sheatheWeapon(item);
 }
 
 function rightClick(event)
 {
-    var item = event.item;
+    item = event.item;
     var player = event.player;
     if(item.getTag("sheathed") == "true") {
         removeSheathe(item, event.player);
@@ -154,7 +172,9 @@ function rightClick(event)
     }
 
     if(item.getTag("sheathed") == "false") {
-        doHeavyAttack();
+        lib.debugMessage("Noxiiie", balls);
+        
+        //doHeavyAttack();
     }
 }   
 
@@ -212,6 +232,8 @@ function removeSheathe(item, player)
 
     item.setTag("sheathed", "false");
     item.setTag("playerId", player.getEntityId())
+
+    player.setTempData("select", {select : selectSkill});
 }
 
 /** Sets appearence of item from appearance object
@@ -265,7 +287,7 @@ function applyAttributes(item, attributes)
     }
 }
 
-/** Gets weapon skills from player data
+/** Gets available weapon skills from player data
  * @param {IPlayer} player 
  * @returns all available skills for player's current progression
  */
@@ -287,21 +309,35 @@ function getSkills(player)
     return availableSkills;
 }
 
+/** Gets weapon skills from player data
+ * @param {IPlayer} player 
+ * @returns all available skills for player's current progression
+ */
+function getSelectedSkills(player) 
+{
+    var selected = [];
+    selected.push(player.getStoredData("zSwordActive1"));
+    selected.push(player.getStoredData("zSwordActive2"));
+    selected.push(player.getStoredData("zSwordPassive1"));
+    selected.push(player.getStoredData("zSwordPassive2"));
+    return selected;
+}
+
 /** WIP
  * @param {IPlayer} player 
  */
 function displaySkillMenu(player)
 {
     var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth, skillWindowHeight, false);
-    var skillWindowBg = API.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowWidth);
+    var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
 
     var skillPosX = skillPosInitialX;
     var skillPosY = skillPosInitialY;
-    var idIndex = 1;
     var skillIcons = [];
+    // Button ids 1-skills_length
     for(var skill in skills) {
-        var button = skillWindow.addTexturedButton(idIndex, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skill.icon);
-        button.setHoverText(skill.hoverText);
+        var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
+        if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
         skillIcons.push(button);
         
         // Handle Icon spacing
@@ -310,13 +346,15 @@ function displaySkillMenu(player)
             skillPosX = skillPosInitialX;
             skillPosY += skillIconSpacingY;
         }
-        idIndex++;
     }
 
-    var selectedSkills = []; // NYI 
+    var idIndex = 50;
+    var selectedSkills = getSelectedSkills(player);
     var selectedIcons = [];
+    // Button ids 50-54
     for(var i = 0; i < 4; i++) {
-        var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]]);
+        if(!selectedSkills[i]) selectedSkills[i] = 0;
+        var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]].icon);
         selectedIcons.push(button);
         idIndex++;
     }
@@ -330,34 +368,40 @@ function displaySkillMenu(player)
     player.showCustomGui(skillWindow);
 }
 
-/**
+/** Finds skill name from id
+ * @param {Int} skillId 
+ */
+function findSkill(skillId)
+{
+    for(var skillIndex in skills) {
+        if(skills[skill].skillId == skillId) return skillIndex;
+    }
+}
+
+/** Sets a skill as selected
+ * @param {IPlayer} player 
+ * @param {Int} skillId 
+ * @param {Int} skillSlot 
+ */
+function selectSkill(player, skillId, skillSlot)
+{
+    var skillIndex = findSkill(skillId);
+    switch(skillSlot) {
+        case(0):
+            player.setStoredData("zSwordActive1", skillIndex);
+        case(1):
+            player.setStoredData("zSwordActive2", skillIndex);
+        case(2):
+            player.setStoredData("zSwordPassive1", skillIndex);
+        case(3):
+            player.setStoredData("zSwordPassive2", skillIndex);
+    }
+}
+
+/** 
  * 
  */
 function doHeavyAttack()
 {
     // NYI
-}
-
-var places = [200, 200, 280, 280, 360, 360];
-var places2 = [60, 230, 60, 230, 60, 230];
-
-function interact(event) {
-        var skillGui = API.createCustomGui(1, 400, 450, false);
-        var BG = skillGui.addTexturedRect(1, "https://i.imgur.com/9lgI5TR.png", 0, 0, 400, 450);
-    for(var i = 0; i < 6; i++) {
-        var button = skillGui.addTexturedButton(i+3, "", places2[i], places[i], 425, 188, "https://i.imgur.com/rVd1gbq.png");
-        button.setScale(0.3);
-        button.setHoverText(["Ability:", "Does infinite damage.", "Damage: Infinite", "Cooldown: 10 seconds"]);
-    }
-    var label = skillGui.addTexturedRect(10, "https://i.imgur.com/vKr1xli.png", 80, 40, 512, 200);
-
-    label.setScale(0.5);
-    
-    var button5 = skillGui.addTexturedButton(12, "", 108, 295, 512, 512, "https://i.imgur.com/W53CI9h.png");
-    button5.setScale(0.02);
-    skillGui.addScroll(11, 20, 300, 100, 40, ["Slot 1", "Slot 2", "Slot 3"]);
-    var slot = skillGui.addItemSlot(13, 20, 100, API.createItem("plug:energyBlock", 4, 1));
-    slot.setRotation(90);
-    
-    event.player.showCustomGui(skillGui);
 }
