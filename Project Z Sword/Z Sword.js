@@ -79,52 +79,62 @@ var appearanceLevel = [
     }
 ];
 
-var skills = [
-    blankSkill = {
+var skills = {
+    blankSkill : {
         skillId : 1,
-        icon : "https://i.imgur.com/PwfyR0q.png"
+        icon : "https://i.imgur.com/ZDZFUFN.png"
     },
 
-    lockedSkill = {
+    lockedSkill : {
         skillId : 2,
-        icon : "https://i.imgur.com/PwfyR0q.png"
+        icon : "https://i.imgur.com/ZDZFUFN.png"
     },
 
-    senzuEat = {
+    senzuEat : {
         skillId : 3,
-        icon : "https://i.imgur.com/PwfyR0q.png",
+        icon : "https://i.imgur.com/ZDZFUFN.png",
         hoverText : "Eat a senzu!"
     },
 
-    skill2 = {
+    skill2 : {
         skillId : 4,
-        icon : "https://i.imgur.com/PwfyR0q.png",
+        icon : "https://i.imgur.com/ZDZFUFN.png",
         hoverText : "TEST"
     }
-]
+};
 
+var heavyAttacks = {};
 
+var zSwordFunctions = {
+    select : selectSkill,
+    active1 : active1,
+    active2 : active2,
+    heavyAttack : doHeavyAttack
+};
 
 // CONFIG
 // GUI CONFIG
+// GUI CONFIG
 var SKILL_WINDOW_ID = 301
-var skillWindowBgTexture = "https://i.imgur.com/cMYMjV6.png";
-var skillWindowHeight = 176;
-var skillWindowWidth = 256;
-var skillIconWidth = 16;
-var skillIconHeight = 16;
-var skillPosInitialX = 19;
-var skillPosInitialY = 12.6;
+var skillWindowBgTexture = "https://i.imgur.com/QXDqrp1.png";
+var skillWindowHeight = 167;
+var skillWindowWidth = 240;
+
+var skillIconWidth = 24;
+var skillIconHeight = 24;
+var skillPosInitialX = 17;
+var skillPosInitialY = 18.6;
 var skillIconSpacingX = 30.4;
 var skillIconSpacingY = 30.4;
-var activeLabelPosX = 182;
-var activeLabelPosY = 5;
-var activeLabelColour = 1111111;
-var passiveLabelPosX = 177;
-var passiveLabelPosY = 96.8;
-var passiveLabelColour = 11111111;
-var selectedPosX = [163.2, 213.3, 163.2, 213.3];
-var selectedPosY = [26.3, 26.3, 118, 118]
+
+var selectedPosX = [153, 200, 153, 200];
+var selectedPosY = [33, 33, 112, 112];
+
+var tabWidth = 12;
+var tabHeight = 44;
+var tabPosY = 10;
+var tabSpacing = 7;
+var tabTexture = "https://i.imgur.com/nZC2LMY.png";
 
 var slashParticle = API.createParticle("https://i.imgur.com/tytvfBH.png");
 slashParticle.setSize(964, 575);
@@ -233,7 +243,7 @@ function removeSheathe(item, player)
     item.setTag("sheathed", "false");
     item.setTag("playerId", player.getEntityId())
 
-    player.setTempData("select", {select : selectSkill});
+    player.setTempData("zSwordFunctions", {select : selectSkill});
 }
 
 /** Sets appearence of item from appearance object
@@ -323,12 +333,12 @@ function getSelectedSkills(player)
     return selected;
 }
 
-/** WIP
+/** Displays a skill selection window to the player
  * @param {IPlayer} player 
  */
 function displaySkillMenu(player)
 {
-    var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth, skillWindowHeight, false);
+    var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth + tabWidth, skillWindowHeight, false);
     var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
 
     var skillPosX = skillPosInitialX;
@@ -353,28 +363,27 @@ function displaySkillMenu(player)
     var selectedIcons = [];
     // Button ids 50-54
     for(var i = 0; i < 4; i++) {
-        if(!selectedSkills[i]) selectedSkills[i] = 0;
+        if(!selectedSkills[i]) selectedSkills[i] = "blankSkill";
         var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]].icon);
         selectedIcons.push(button);
         idIndex++;
     }
 
-    // Add selection labels
-    var activeLabel = skillWindow.addLabel(idIndex, "Active", activeLabelPosX, activeLabelPosY, 0, 0, activeLabelColour);
-    idIndex++;
-    var passiveLabel = skillWindow.addLabel(idIndex, "Passive", passiveLabelPosX, passiveLabelPosY, 0, 0, passiveLabelColour);
-    idIndex++;
+    // Tabs
+    var heavyTab = skillWindow.addTexturedButton(56, "", skillWindowWidth, tabPosY, tabWidth, tabHeight, tabTexture);
+    var keybindTab = skillWindow.addTexturedButton(57, "", skillWindowWidth, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
 
     player.showCustomGui(skillWindow);
 }
 
 /** Finds skill name from id
  * @param {Int} skillId 
+ * @returns skill
  */
 function findSkill(skillId)
 {
-    for(var skillIndex in skills) {
-        if(skills[skill].skillId == skillId) return skillIndex;
+    for(var skill in skills) {
+        if(skills[skill].skillId == skillId) return skills[skill];
     }
 }
 
@@ -385,23 +394,61 @@ function findSkill(skillId)
  */
 function selectSkill(player, skillId, skillSlot)
 {
-    var skillIndex = findSkill(skillId);
     switch(skillSlot) {
         case(0):
-            player.setStoredData("zSwordActive1", skillIndex);
+            player.setStoredData("zSwordActive1", skillId);
         case(1):
-            player.setStoredData("zSwordActive2", skillIndex);
+            player.setStoredData("zSwordActive2", skillId);
         case(2):
-            player.setStoredData("zSwordPassive1", skillIndex);
+            player.setStoredData("zSwordPassive1", skillId);
         case(3):
-            player.setStoredData("zSwordPassive2", skillIndex);
+            player.setStoredData("zSwordPassive2", skillId);
     }
 }
 
-/** 
- * 
+/** Finds heavy attack from id
+ * @param {Int} heavyId 
+ * @returns heavyAttack
  */
-function doHeavyAttack()
+function findHeavyAttack(heavyId)
 {
-    // NYI
+    for(var heavy in heavyAttacks) {
+        if(heavyAttacks[heavy].heavyId == heavyId) return heavyAttacks[heavy];
+    }
+}
+
+/** Sets a heavy attack as selected
+ * @param {IPlayer} player 
+ * @param {Int} heavyId 
+ */
+function selectHeavyAttack(player, heavyId)
+{
+    player.setStoredData("zSwordHeavy", heavyId);
+}
+
+/** Executes a heavy attack from the player's selected heavy attack
+ * @param {IPlayer} player
+ */
+function doHeavyAttack(player)
+{
+    var attack = findHeavyAttack(player.getStoredData("zSwordHeavy"));
+    if(!attack in heavyAttacks) return;
+}
+
+/** Uses active ability in player's first slot
+ * @param {IPlayer} player
+ */
+function active1(player)
+{
+    var skill = findHeavyAttack(player.getStoredData("zSwordActive1"));
+    if(!skill in skills) return;
+}
+
+/** Uses active ability in player's second slot
+ * @param {IPlayer} player
+ */
+function active2(player)
+{
+    var skill = findHeavyAttack(player.getStoredData("zSwordActive2"));
+    if(!skill in skills) return;
 }
