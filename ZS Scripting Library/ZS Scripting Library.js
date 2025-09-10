@@ -21,6 +21,7 @@ var libraryObject = {
     hasZSword: hasZSword,
     findZSword: findZSword,
     getProfileData: getProfileData,
+    getActiveSlotId: getActiveSlotId,
     animationHandler: animationHandler,
     dbcDisplayHandler: dbcDisplayHandler,
     progressBar: progressBar
@@ -297,12 +298,21 @@ function findZSword(player)
 }
 
 /** Gets player profile containing slot data
- * @param {String} playerName
+ * @param {IPlayer} player
  * @returns IProfile
  */
 function getProfileData(player)
 {
-    return API.getProfileHandler().getProfile(API.getPlayer(playerName));
+    return API.getProfileHandler().getProfile(player);
+}
+
+/** Gets a player's current slot id
+ * @param {IPlayer} playerName
+ * @returns Int
+ */
+function getActiveSlotId(player)
+{
+    return API.getProfileHandler().getProfile(player).getCurrentSlotId();
 }
 
 // GLOBAL CLASSES ------------------------------------------------------------------------------------------------
