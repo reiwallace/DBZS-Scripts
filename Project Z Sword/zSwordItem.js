@@ -326,10 +326,11 @@ function getSkills(player)
 function getSelectedSkills(player) 
 {
     var selected = [];
-    selected.push(player.getStoredData("zSwordActive1"));
-    selected.push(player.getStoredData("zSwordActive2"));
-    selected.push(player.getStoredData("zSwordPassive1"));
-    selected.push(player.getStoredData("zSwordPassive2"));
+    var playerSlot = lib.getActiveSlotId(player);
+    selected.push(player.getStoredData(playerSlot + "zSwordActive1"));
+    selected.push(player.getStoredData(playerSlot + "zSwordActive2"));
+    selected.push(player.getStoredData(playerSlot + "zSwordPassive1"));
+    selected.push(player.getStoredData(playerSlot + "zSwordPassive2"));
     return selected;
 }
 
@@ -394,15 +395,16 @@ function findSkill(skillId)
  */
 function selectSkill(player, skillId, skillSlot)
 {
+    var playerSlot = lib.getActiveSlotId(player);
     switch(skillSlot) {
         case(0):
-            player.setStoredData("zSwordActive1", skillId);
+            player.setStoredData(playerSlot + "zSwordActive1", skillId);
         case(1):
-            player.setStoredData("zSwordActive2", skillId);
+            player.setStoredData(playerSlot + "zSwordActive2", skillId);
         case(2):
-            player.setStoredData("zSwordPassive1", skillId);
+            player.setStoredData(playerSlot + "zSwordPassive1", skillId);
         case(3):
-            player.setStoredData("zSwordPassive2", skillId);
+            player.setStoredData(playerSlot + "zSwordPassive2", skillId);
     }
 }
 
@@ -423,7 +425,8 @@ function findHeavyAttack(heavyId)
  */
 function selectHeavyAttack(player, heavyId)
 {
-    player.setStoredData("zSwordHeavy", heavyId);
+    var playerSlot = lib.getActiveSlotId(player);
+    player.setStoredData(playerSlot + "zSwordHeavy", heavyId);
 }
 
 /** Executes a heavy attack from the player's selected heavy attack
@@ -431,24 +434,17 @@ function selectHeavyAttack(player, heavyId)
  */
 function doHeavyAttack(player)
 {
-    var attack = findHeavyAttack(player.getStoredData("zSwordHeavy"));
+    var playerSlot = lib.getActiveSlotId(player);
+    var attack = findHeavyAttack(player.getStoredData(playerSlot + "zSwordHeavy"));
     if(!attack in heavyAttacks) return;
 }
 
 /** Uses active ability in player's first slot
  * @param {IPlayer} player
  */
-function active1(player)
+function active(player, activeSlot)
 {
-    var skill = findHeavyAttack(player.getStoredData("zSwordActive1"));
-    if(!skill in skills) return;
-}
-
-/** Uses active ability in player's second slot
- * @param {IPlayer} player
- */
-function active2(player)
-{
-    var skill = findHeavyAttack(player.getStoredData("zSwordActive2"));
+    var playerSlot = lib.getActiveSlotId(player);
+    var skill = findHeavyAttack(player.getStoredData(playerSlot + "zSwordActive" + activeSlot));
     if(!skill in skills) return;
 }
