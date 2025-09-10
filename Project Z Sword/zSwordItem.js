@@ -135,6 +135,8 @@ var tabPosY = 10;
 var tabSpacing = 7;
 var tabTexture = "https://i.imgur.com/nZC2LMY.png";
 
+var tossMessage = "The Z Sword fades away as it leaves your hands.";
+
 var slashParticle = API.createParticle("https://i.imgur.com/tytvfBH.png");
 slashParticle.setSize(964, 575);
 slashParticle.setMaxAge(60);
@@ -167,6 +169,8 @@ function pickedUp(event) {
 }
 
 function tossed(event) {
+    event.setCancelled(true);
+    lib.debugMessage(event.player.getName(), tossMessage);
     item = event.item;
     sheatheWeapon(item);
 }
