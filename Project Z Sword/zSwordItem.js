@@ -107,8 +107,7 @@ var heavyAttacks = {};
 
 var zSwordFunctions = {
     select : selectSkill,
-    active1 : active1,
-    active2 : active2,
+    active : active,
     heavyAttack : doHeavyAttack
 };
 
@@ -182,7 +181,6 @@ function rightClick(event)
     }
 
     if(item.getTag("sheathed") == "false") {
-        lib.debugMessage("Noxiiie", balls);
         
         //doHeavyAttack();
     }
