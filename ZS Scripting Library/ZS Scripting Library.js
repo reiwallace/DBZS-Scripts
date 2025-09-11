@@ -20,12 +20,18 @@ var libraryObject = {
     removeZSword: removeZSword,
     hasZSword: hasZSword,
     findZSword: findZSword,
+    holdingZSword: holdingZSword,
     getProfileData: getProfileData,
     getActiveSlotId: getActiveSlotId,
     animationHandler: animationHandler,
     dbcDisplayHandler: dbcDisplayHandler,
     progressBar: progressBar
 }
+
+// Z Sword config
+var zSwordLinkedId = 1;
+var zSwordRewardSlot = 0;
+var zSwordQuestId = 12;
 
 // TIMERS
 var dbcDisplayHandler_UPDATE_FORM = 301;
@@ -251,9 +257,6 @@ function getRandom(min, max, getInt)
 function giveZSword(player) 
 {
     if(hasZSword(player)) return;
-
-    var zSwordRewardSlot = 0;
-    var zSwordQuestId = 12;
     player.giveItem(API.getQuests().get(zSwordQuestId).getRewards().getSlot(zSwordRewardSlot), 1);
 }
 
@@ -286,7 +289,6 @@ function hasZSword(player)
  */
 function findZSword(player)
 {
-    var zSwordLinkedId = 1;
     var inv = player.getInventory();
     for (var item in inv) {
         item = inv[item]
@@ -295,6 +297,20 @@ function findZSword(player)
             return item;
         }
     }
+}
+
+/** Returns if player is holding a Z Sword
+ * @param {IPlayer} player 
+ * @returns Boolean
+ */
+function holdingZSword(player)
+{
+    var heldItem = player.getHeldItem();
+    if(heldItem && heldItem.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
+        if(heldItem.getLinkedItem().getId() != zSwordLinkedId) return false;
+        return true;
+    }
+    return false;
 }
 
 /** Gets player profile containing slot data

@@ -49,3 +49,17 @@ function findZSword(player)
         }
     }
 }
+
+/** Returns if player is holding a Z Sword
+ * @param {IPlayer} player 
+ * @returns Boolean
+ */
+function holdingZSword(player)
+{
+    var heldItem = player.getHeldItem();
+    if(heldItem && heldItem.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
+        if(heldItem.getLinkedItem().getId() != zSwordLinkedId) return false;
+        return true;
+    }
+    return false;
+}
