@@ -30,7 +30,9 @@ var quests = {
     quest1 : quest1 = {
         "quest_id" : 11,
         "attribute.main_attack" : 100,
-        "attribute.dbc.Constitution.Multi" : 200
+        "attribute.dbc.Constitution.Multi" : 200,
+        "slot.active" : 1,
+        "slot.passive" : 1
     },
 
     quest2 : quest2 = {
@@ -39,7 +41,8 @@ var quests = {
         "attribute.critical_chance" : 100,
         "attribute.dbc.Strength" : 2000,
         "skill.senzu_eat" : 1,
-        "ability_slots" : 1
+        "slot.active" : 1,
+        "slot.passive" : 1
     }
 };
 
@@ -79,6 +82,7 @@ var appearanceLevel = [
     }
 ];
 
+var firstSkillId = 3; 
 var skills = {
     blankSkill : {
         skillId : 1,
@@ -92,14 +96,30 @@ var skills = {
 
     senzuEat : {
         skillId : 3,
-        icon : "https://i.imgur.com/ZDZFUFN.png",
+        skillName : "Senzu Eat",
+        icon : "https://i.imgur.com/JapNYVe.png",
         hoverText : "Eat a senzu!"
     },
 
-    skill2 : {
+    greenSkill : {
         skillId : 4,
-        icon : "https://i.imgur.com/ZDZFUFN.png",
-        hoverText : "TEST"
+        skillName : "Green Skill",
+        icon : "https://i.imgur.com/s4mm2hB.png",
+        hoverText : "I'm green"
+    },
+
+    pinkSkill : {
+        skillId : 5,
+        skillName : "Pink Skill",
+        icon : "https://i.imgur.com/M85psrZ.png",
+        hoverText : "I'm pink"
+    },
+
+    redSkill : {
+        skillId : 6,
+        skillName : "Red Skill",
+        icon : "https://i.imgur.com/RtJFgtI.png",
+        hoverText : "I'm red"
     }
 };
 
@@ -107,12 +127,12 @@ var heavyAttacks = {};
 
 var zSwordFunctions = {
     select : selectSkill,
+    displaySkillMenu: displaySkillMenu,
     active : active,
     heavyAttack : doHeavyAttack
 };
 
 // CONFIG
-// GUI CONFIG
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
 var skillWindowBgTexture = "https://i.imgur.com/QXDqrp1.png";
@@ -134,6 +154,9 @@ var tabHeight = 44;
 var tabPosY = 10;
 var tabSpacing = 7;
 var tabTexture = "https://i.imgur.com/nZC2LMY.png";
+
+var activeLore = "Active Abilities: ";
+var passiveLore = "Passive Abilities: ";
 
 var tossMessage = "The Z Sword fades away as it leaves your hands.";
 
@@ -233,19 +256,34 @@ function removeSheathe(item, player)
         if(!player.hasFinishedQuest(quests[quest]["quest_id"])) continue;
         if(quests[quest]["appearance"]) appearance += quests[quest]["appearance"];
     }
+    item.setTag("appearance", appearance)
 
     var attributes = getAttributes(player);
     applyAttributes(item, attributes);
 
-    var skills = getSkills(player);
-
     var activeAppearance = appearanceLevel[appearance];
     setAppearance(item, activeAppearance);
+    item.setTag("appearance", appearanceLevel);
 
+    var selectedSkills = getSelectedSkills(player);
+    var lore = [];
+    var currentLore = item.getLore();
+    for(var string in currentLore) {
+        lore.push(currentLore[string]);
+    }
+    if((selectedSkills[0] && selectedSkills[0].skillId >= firstSkillId) || (selectedSkills[1] && selectedSkills[1].skillId >= firstSkillId)) {
+        lore.push(activeLore + (selectedSkills[0].skillName ? selectedSkills[0].skillName + ", " : "None, ") + (selectedSkills[1].skillName ? selectedSkills[1].skillName : "None"));
+    }
+    if((selectedSkills[2] && selectedSkills[2].skillId >= firstSkillId) || (selectedSkills[3] && selectedSkills[3].skillId >= firstSkillId)) { 
+        lore.push(passiveLore + (selectedSkills[2].skillName ? selectedSkills[2].skillName + ", " : "None, ") + (selectedSkills[3].skillName ? selectedSkills[3].skillName : "None"));
+    }
+    item.setLore(lore);
+
+    item.setRequirement("cnpc_soulbind", player.getUniqueID());
     item.setTag("sheathed", "false");
     item.setTag("playerId", player.getEntityId())
 
-    player.setTempData("zSwordFunctions", {select : selectSkill});
+    player.setTempData("zSwordFunctions", zSwordFunctions);
 }
 
 /** Sets appearence of item from appearance object
@@ -310,15 +348,30 @@ function getSkills(player)
         quest = quests[quest];
         if(!player.hasFinishedQuest(quest["quest_id"])) continue;
 
-        for(var attribute in quests[quest]) {
+        for(var attribute in quest) {
             if(!attribute.startsWith("skill")) continue;
 
             // Add level to skill if skill already attributed else add skill at base level
-            if(availableSkills[attribute]) availableSkills[attribute] += quests[quest][attribute];
-            else availableSkills[attribute] = quests[quest][attribute];
+            if(availableSkills[attribute]) availableSkills[attribute] += quest[attribute];
+            else availableSkills[attribute] = quest[attribute];
         }
     }
     return availableSkills;
+}
+
+function getSkillSlots(player)
+{
+    var availableSlots = [false, false, false, false];
+    for(var quest in quests) {
+        quest = quests[quest];
+        if(!player.hasFinishedQuest(quest["quest_id"])) continue;
+
+        for(var key in quest) {
+            if(key == "slot.active") availableSlots[availableSlots[0] ? 1 : 0] = true;
+            else if(key == "slot.passive") availableSlots[availableSlots[2] ? 3 : 2] = true
+        }
+    }
+    return availableSlots;
 }
 
 /** Gets weapon skills from player data
@@ -329,10 +382,10 @@ function getSelectedSkills(player)
 {
     var selected = [];
     var playerSlot = lib.getActiveSlotId(player);
-    selected.push(player.getStoredData(playerSlot + "zSwordActive1"));
-    selected.push(player.getStoredData(playerSlot + "zSwordActive2"));
-    selected.push(player.getStoredData(playerSlot + "zSwordPassive1"));
-    selected.push(player.getStoredData(playerSlot + "zSwordPassive2"));
+    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordActive1")));
+    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordActive2")));
+    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordPassive1")));
+    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordPassive2")));
     return selected;
 }
 
@@ -341,16 +394,24 @@ function getSelectedSkills(player)
  */
 function displaySkillMenu(player)
 {
+    if(item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
     var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth + tabWidth, skillWindowHeight, false);
     var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
 
     var skillPosX = skillPosInitialX;
     var skillPosY = skillPosInitialY;
+    var unlockedSkills = getSkills(player);
     var skillIcons = [];
     // Button ids 1-skills_length
     for(var skill in skills) {
-        var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
-        if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
+        if(skills[skill].skillId < firstSkillId) continue;
+        if(!skill in unlockedSkills) {
+            var button = skillWindow.addTexturedRect(skills.lockedSkill.skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
+        } else {
+            var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
+            if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
+        }
+
         skillIcons.push(button);
         
         // Handle Icon spacing
@@ -363,11 +424,13 @@ function displaySkillMenu(player)
 
     var idIndex = 50;
     var selectedSkills = getSelectedSkills(player);
+    var skillSlots = getSkillSlots(player);
     var selectedIcons = [];
     // Button ids 50-54
     for(var i = 0; i < 4; i++) {
-        if(!selectedSkills[i]) selectedSkills[i] = "blankSkill";
-        var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]].icon);
+        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = "blankSkill";
+        if(!skillSlots[i]) var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
+        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
         selectedIcons.push(button);
         idIndex++;
     }
@@ -395,19 +458,64 @@ function findSkill(skillId)
  * @param {Int} skillId 
  * @param {Int} skillSlot 
  */
-function selectSkill(player, skillId, skillSlot)
+function selectSkill(player, skillId, skillSlot, gui)
 {
     var playerSlot = lib.getActiveSlotId(player);
+    var zSword = lib.holdingZSword(player) ? player.getHeldItem() : item;
+    var selectedSkills = getSelectedSkills(player);
+    var skillIndex = selectedSkills.indexOf(findSkill(skillId));
+    if(skillIndex == skillSlot) return;
+    // Unselect skill if already selected
+    if(skillIndex > -1) {
+        switch(skillIndex) {
+            case(0):
+                player.setStoredData(playerSlot + "zSwordActive1", 1);
+                break;
+            case(1):
+                player.setStoredData(playerSlot + "zSwordActive2", 1);
+                break;
+            case(2):
+                player.setStoredData(playerSlot + "zSwordPassive1", 1);
+                break;
+            case(3):
+                player.setStoredData(playerSlot + "zSwordPassive2", 1);
+                break;
+        }
+        gui.getComponent(selectedSkills.indexOf(findSkill(skillId)) + 50).setTexture(skills.blankSkill.icon);
+        gui.update(player);
+    } 
+
     switch(skillSlot) {
         case(0):
             player.setStoredData(playerSlot + "zSwordActive1", skillId);
+            break;
         case(1):
             player.setStoredData(playerSlot + "zSwordActive2", skillId);
+            break;
         case(2):
             player.setStoredData(playerSlot + "zSwordPassive1", skillId);
+            break;
         case(3):
             player.setStoredData(playerSlot + "zSwordPassive2", skillId);
+            break;
     }
+
+    gui.getComponent(skillSlot + 50).setTexture(findSkill(skillId).icon);
+    gui.update(player);
+
+    var newSelected = getSelectedSkills(player);
+    var oldLore = appearanceLevel[zSword.getTag("appearance")].lore;
+    var lore = [];
+    for(var string in oldLore) {
+        lore.push(oldLore[string])
+    }
+    if((newSelected[0] && newSelected[0].skillId >= firstSkillId) || (newSelected[1] && newSelected[1].skillId >= firstSkillId)) {
+        lore.push(activeLore + (newSelected[0].skillName ? newSelected[0].skillName + ", " : "None, ") + (newSelected[1].skillName ? newSelected[1].skillName : "None"));
+    }
+    if((newSelected[2] && newSelected[2].skillId >= firstSkillId) || (newSelected[3] && newSelected[3].skillId >= firstSkillId)) { 
+        lore.push(passiveLore + (newSelected[2].skillName ? newSelected[2].skillName + ", " : "None, ") + (newSelected[3].skillName ? newSelected[3].skillName : "None"));
+    }
+    zSword.setLore(lore);
 }
 
 /** Finds heavy attack from id
@@ -438,7 +546,7 @@ function doHeavyAttack(player)
 {
     var playerSlot = lib.getActiveSlotId(player);
     var attack = findHeavyAttack(player.getStoredData(playerSlot + "zSwordHeavy"));
-    if(!attack in heavyAttacks) return;
+    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return;
 }
 
 /** Uses active ability in player's first slot
@@ -448,5 +556,5 @@ function active(player, activeSlot)
 {
     var playerSlot = lib.getActiveSlotId(player);
     var skill = findHeavyAttack(player.getStoredData(playerSlot + "zSwordActive" + activeSlot));
-    if(!skill in skills) return;
+    if(!skill in skills || item.getTag("sheathed") == "true") return;
 }
