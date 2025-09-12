@@ -120,6 +120,60 @@ var skills = {
         skillName : "Red Skill",
         icon : "https://i.imgur.com/RtJFgtI.png",
         hoverText : "I'm red"
+    },
+        senzuEat2 : {
+        skillId : 7,
+        skillName : "Senzu Eat",
+        icon : "https://i.imgur.com/JapNYVe.png",
+        hoverText : "Eat a senzu!"
+    },
+
+    greenSkill2 : {
+        skillId : 8,
+        skillName : "Green Skill",
+        icon : "https://i.imgur.com/s4mm2hB.png",
+        hoverText : "I'm green"
+    },
+
+    pinkSkill2 : {
+        skillId : 9,
+        skillName : "Pink Skill",
+        icon : "https://i.imgur.com/M85psrZ.png",
+        hoverText : "I'm pink"
+    },
+
+    redSkill2 : {
+        skillId : 10,
+        skillName : "Red Skill",
+        icon : "https://i.imgur.com/RtJFgtI.png",
+        hoverText : "I'm red"
+    },
+        senzuEat3 : {
+        skillId : 11,
+        skillName : "Senzu Eat",
+        icon : "https://i.imgur.com/JapNYVe.png",
+        hoverText : "Eat a senzu!"
+    },
+
+    greenSkill3 : {
+        skillId : 12,
+        skillName : "Green Skill",
+        icon : "https://i.imgur.com/s4mm2hB.png",
+        hoverText : "I'm green"
+    },
+
+    pinkSkill3 : {
+        skillId : 13,
+        skillName : "Pink Skill",
+        icon : "https://i.imgur.com/M85psrZ.png",
+        hoverText : "I'm pink"
+    },
+
+    redSkill3 : {
+        skillId : 14,
+        skillName : "Red Skill",
+        icon : "https://i.imgur.com/RtJFgtI.png",
+        hoverText : "I'm red"
     }
 };
 
@@ -406,7 +460,7 @@ function displaySkillMenu(player)
     for(var skill in skills) {
         if(skills[skill].skillId < firstSkillId) continue;
         if(!skill in unlockedSkills) {
-            var button = skillWindow.addTexturedRect(skills.lockedSkill.skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
+            var button = skillWindow.addTexturedRect(skills[skill].skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
         } else {
             var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
             if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
