@@ -66,6 +66,12 @@ function customGuiButton(event) {
     } catch(err) {}
 }
 
+// Remove selection when closing gui
+function customGuiClosed(event)
+{
+    event.player.removeTempData("selectedButton");
+}
+
 /** Builds a selection box out of Ilines
  * @param {ICustomGui} gui 
  * @param {IButton} button Button to use position of
