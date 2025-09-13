@@ -16,6 +16,7 @@ var libraryObject = {
     get3dDirection: get3dDirection,
     isPlayer: isPlayer,
     isValidPlayer: isValidPlayer,
+    checkBlocking: checkBlocking,
     animationHandler: animationHandler,
     dbcDisplayHandler: dbcDisplayHandler,
     progressBar: progressBar
@@ -237,6 +238,15 @@ function getRandom(min, max, getInt)
 {  
     if(getInt) return Math.floor(Math.random() * (max - min + 1)) + min;
     else return Math.random() * (max - min + 1) + min;
+}
+
+/** Returns if a player is either sword blocking or dbc blocking
+ * @param {IPlayer} player 
+ * @returns Boolean
+ */
+function checkBlocking(player)
+{
+    return player.blocking() || player.getDBCPlayer().isBlocking();
 }
 
 // GLOBAL CLASSES ------------------------------------------------------------------------------------------------
