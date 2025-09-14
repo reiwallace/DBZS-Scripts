@@ -246,6 +246,7 @@ function getRandom(min, max, getInt)
  */
 function checkBlocking(player)
 {
+    if(!lib.isPlayer(player)) return false;
     return player.blocking() || player.getDBCPlayer().isBlocking();
 }
 
