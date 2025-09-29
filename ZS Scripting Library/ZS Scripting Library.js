@@ -237,7 +237,7 @@ function get3dDirection(pos1, pos2)
 function getRandom(min, max, getInt)
 {  
     if(getInt) return Math.floor(Math.random() * (max - min + 1)) + min;
-    else return Math.random() * (max - min + 1) + min;
+    else return Math.random() * (max - min) + min;
 }
 
 /** Returns if a player is either sword blocking or dbc blocking
