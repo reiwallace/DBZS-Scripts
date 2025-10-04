@@ -35,7 +35,6 @@ var stunDuration = 80; // Duration of stun in ticks
 // Create particle
 var beamTelegraphParticle = API.createParticle("plug:textures/items/artifacts/dark_orb.png");
 beamTelegraphParticle.setSize(16, 16);
-beamTelegraphParticle.setMaxAge(particleFrequency + 2);
 beamTelegraphParticle.setHEXColor(16747008, 16761600, 0, 1);
 beamTelegraphParticle.setAnim(1, true, 0, 6);
 beamTelegraphParticle.setScale(13, 13, 0, 0);
@@ -233,8 +232,9 @@ function spawnParticle(npc)
     var angle = npc.getRotation();
     var dx = -Math.sin(angle*Math.PI/180) * 0.3;
     var dz = Math.cos(angle*Math.PI/180) * 0.3;
-    beamTelegraphParticle.setPosition(dx+npc.x, npc.y+1.8, dz+npc.z);
-
+    
     // Spawn particle
+    beamTelegraphParticle.setPosition(dx+npc.x, npc.y+1.8, dz+npc.z);
+    beamTelegraphParticle.setMaxAge(particleFrequency + 2);
     beamTelegraphParticle.spawn(npc.world);
 }
