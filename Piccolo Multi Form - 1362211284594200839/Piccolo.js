@@ -182,7 +182,7 @@ function multiFormAttack(npc, arenaCentre)
     
     // Teleport Piccolo to his position
     npc.setX(multiForm.positions[0][piccoloPos] + arenaCentre[0]); 
-    npc.setY(arenaCentre[1]);
+    npc.setY(arenaCentre[1] + 1);
     npc.setZ(multiForm.positions[1][piccoloPos] + arenaCentre[2]);
     
     // Start telegraph
