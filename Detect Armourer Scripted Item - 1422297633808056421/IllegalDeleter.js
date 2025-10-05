@@ -1,4 +1,4 @@
-// halloween_weapon__replacer.js - replaces strength-enabled halloween spirits
+// IllegalItemDeleter.js - Deletes illegal items
 // PLEASE UPDATE ALL SCRIPTS ON GITHUB IF YOU MAKE ANY CHANGES
 // IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
 // AUTHOR: Ranger, Mighty, Noxie
@@ -6,7 +6,7 @@
 // CONFIG
 var replacementsChest = API.getIWorld(0).getBlock(10269, 59, 3).getContainer();
 var checkBlacklist = ["Noxiiie"];
-var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington"];
+var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington", "AyoteTheGod", "Kam", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie"];
 var conditions = {
     damage: 3000000,
     itemNames: ["LR Token", "Legendary Tickets"]
