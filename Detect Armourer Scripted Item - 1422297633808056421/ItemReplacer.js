@@ -1,4 +1,4 @@
-// itemReplacer.js - Replaces deprecated items
+// ItemReplacer.js - Replaces deprecated items
 // PLEASE UPDATE ALL SCRIPTS ON GITHUB IF YOU MAKE ANY CHANGES
 // IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
 // AUTHOR: Ranger, Mighty, Noxie
