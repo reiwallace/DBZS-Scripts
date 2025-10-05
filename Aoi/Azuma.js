@@ -1,59 +1,52 @@
-var slashPart = API.createParticle("customnpcs:textures/items/npcWaterElement.png");
-slashPart.setSize(16, 96);
-slashPart.setMaxAge(40);
-//slashPart.setAnim(4, true, 0, 12);
-slashPart.setScale(3, 3, 0, 0);
-
-// function azuma(npc)
-// {
-//     var maxZ = 3.5;
-//     var npcX = npc.getX();
-//     var npcY = npc.getY();
-//     var npcZ = npc.getZ();
-//     for(var z = 0; z <= maxZ; z += 0.1) {
-//         var x = -(Math.pow((z - 1.5), 2)) / 3 + 2
-//         var fz = z/2-1.3
-//         var y = Math.pow(fz, 3) + Math.pow(fz, 2) + fz*1.8;
-//         var density = x;
-//         for(var i = 0; i < density; i++) {
-//             npc.world.spawnParticle("flame", npcX + x + i/10, npcY + y + 3, npcZ + (z/1.3 - maxZ/2.6), 0, 0, 0, 0, 1);
-//         }
-//     }
-// }
+var azuma = {
+    particle: API.createParticle("https://i.ibb.co/sJb5y22R/image.png"),
+    particleAge: 20,
+    MAX_Z: 3.5
+};
+azuma.particle.setSize(16, 16);
+azuma.particle.setAnim(2, true, 1, 200);
+azuma.particle.setScale(3, 3, 0, 0);
 
 var z;
-var maxZ = 3.5;
+var ticks;
 
 function interact(event) {
     var npc = event.npc;
     npc.timers.forceStart(0, 0, true);
     z = maxZ;
+    ticks = 0;
 }
 
 function timer(event) {
     var npc = event.npc;
-    for(var i = 0; i < 10; i++) {
-        z -= 0.1;
-        if(z < 0) {
-            npc.timers.clear();
-            return;
-        }
-        azuma(npc, z);
+    var timers = npc.timers;
+    switch(event.id) {
+        case AZUMA_SLASH:
+            for(var i = 0; i < 10; i++) {
+                z -= 0.1;
+                if(z < azuma.MAX_Z) {
+                    timers.stop(AZUMA_SLASH);
+                    return;
+                }
+                var 
+                azuma(npc, z);
+            }
+            ticks += 1;
+            break;
     }
 
 }
 
-function azuma(npc, z)
+function azuma(npc, z, doDamage, progressTicks)
 {
-    var npcX = npc.getX();
-    var npcY = npc.getY();
-    var npcZ = npc.getZ();
-    var x = -(Math.pow((z - 1.7), 2)) / 3 + 2
-    var fz = z/2-1.3
-    var y = Math.pow(fz, 3) + Math.pow(fz, 2) + fz*1.8;
-    var density = x*3;
-    for(var i = 0; i < density; i++) {
-        slashPart.setPosition(npcX + x + i/20, npcY + y + 2.5, npcZ + (z/1.3 - maxZ/2.6));
-        slashPart.spawn(npc.world);
-    }
+    var x = -(Math.pow((z - 1.7), 2)) / 3 + 1.5
+    var y = z - 0.5;
+    slashPart.setMaxAge(age + 10 - ticks);
+    slashPart.setAlpha(1, 0, 2, age - progressTicks);
+    slashPart.setPosition(npc.x + x, npc.y + y, npc.z + z - 2);
+    slashPart.spawn(npc.world);
+
+    if(!doDamage) return;
+    var toDamage = npc.world.getEntitiesNear()
+
 }
