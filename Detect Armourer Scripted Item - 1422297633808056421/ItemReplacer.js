@@ -5,53 +5,46 @@
 
 // CONFIG
 var replacementsChest = API.getIWorld(0).getBlock(10269, 59, 1).getContainer();
-var checkBlacklist = ["Noxiiie"];
-var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington"];
+var checkBlacklist = ["Ranger_Halt", "Mighty_S0715", "pockington", "Noxiiie"];
+var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington", "Noxiiie"];
 var checkItems = {
     halloweenSpirit: {
-        name: "&aHalloween Spirit [+500]",
+        name: API.getIWorld(0).getStoredData("halloweenSpirit"),
         itemName: "plug:artifacts",
         damage: 500,
         fixedTag: "fixedWeapon",
         replaceSlot: 3
     },
     angelStaff: {
-        name: "&0&0&0&0&0&2&1&c&7&l&f&lAngel Trainee Staff [+370,000]",
+        name: API.getIWorld(0).getStoredData("angelstaff"),
         itemName: "minecraft:diamond_sword",
         damage: 370000,
         fixedTag: "fixedWeapon",
         replaceSlot: 1
     },
     dragonGodMorningStar: {
-        name: "&7&lDragon God Morningstar [+250,666]",
+        name: API.getIWorld(0).getStoredData("DragonGodMorningstar"),
         itemName: "customnpcs:npcMithrilTrident",
         damage: 250666,
         fixedTag: "fixedWeapon",
         replaceSlot: 4
     },
     voidWalker: {
-        name: "&0&0&0&0&0&2&1&d&7&l&5&lVoidwalker [+390,000]",
+        name: API.getIWorld(0).getStoredData("voidwalker"),
         itemName: "customnpcs:npcDemonicStaff",
         damage: 390000,
         fixedTag: "fixedWeapon",
         replaceSlot: 0
-    }, 
-    lrToken: {
-        name: "LR Token",
-        itemName: "",
-        damage: "",
-        fixedTag: "",
-        reportError: 1
     }
 };
 
-var LOOP_BREAK_TIMER = 910;
+var LOOP_BREAK_TIMER = 911;
 
 /** Removes and replaces deprecated items in player inventory
  * @param {IPlayer} player 
  */
 function checkDeprecatedItems(player){
-    if(!lib.isPlayer(player) || !chest || checkBlacklist.indexOf(player.getDisplayName()) > -1) return;
+    if(!lib.isPlayer(player) || !replacementsChest || checkBlacklist.indexOf(player.getDisplayName()) > -1) return;
 
     var playerInv = player.getInventory();
     if(!playerInv) return;
@@ -60,11 +53,12 @@ function checkDeprecatedItems(player){
         // Compare inventory items to deprecated items
         for(var compItem in checkItems) {
             var compItem = checkItems[compItem]
-            if(!doReplace(item, compItem.name, compItem.itemName, compItem.damage, compItem.fixedTag)) return;
-
+            if(!doReplace(item, compItem.name, compItem.itemName, compItem.damage, compItem.fixedTag)) continue;
+            
             // Replace item if it matches a deprecated item.
-            player.removeItem(item, 1, false, false);
-            player.giveItem(chest.getSlot(compItem.replaceSlot), 1)
+            var itemStackSize = item.getStackSize();
+            player.removeItem(item, itemStackSize, false, false);
+            player.giveItem(replacementsChest.getSlot(compItem.replaceSlot), itemStackSize);
             sendMail(compItem, player.getDisplayName(), API.getIWorld(0));
         }
     }
