@@ -5,10 +5,9 @@
 
 // CONFIG
 var replacementsChest = API.getIWorld(0).getBlock(10269, 59, 3).getContainer();
-var checkBlacklist = ["Noxiiie"];
+var checkBlacklist = ["Ranger_Halt", "AyoteTheGod", "Kam", "Mighty_S0715", "pockington", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie"];
 var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington", "AyoteTheGod", "Kam", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie"];
 var conditions = {
-    damage: 3000000,
     itemNames: ["LR Token", "Legendary Tickets"]
 };
 
@@ -18,20 +17,18 @@ var LOOP_BREAK_TIMER = 910;
  * @param {IPlayer} player 
  */
 function checkIllegalItems(player, inventory){
-    if(!lib.isPlayer(player) || !chest || !inventory || checkBlacklist.indexOf(player.getDisplayName()) > -1) return;
+    if(!lib.isPlayer(player) || !replacementsChest || !inventory || checkBlacklist.indexOf(player.getDisplayName()) > -1) return;
 
     for(var item in inventory) {
         var item = inventory[item];
         // Compare inventory items to deprecated items
-        for(var compItem in checkItems) {
-            var compItem = checkItems[compItem]
-            if(!doDelete(item)) return;
+        if(!doDelete(item, conditions)) continue;
 
-            // Delete item if it matches an illegal item.
-            player.removeItem(item, 1, false, false);
-            player.giveItem(chest.getSlot(1), 1)
-            sendMail(player, API.getIWorld(0));
-        }
+        // Delete item if it matches an illegal item.
+        var itemStackSize = item.getStackSize();
+        player.removeItem(item, itemStackSize, false, false);
+        player.giveItem(replacementsChest.getSlot(1), itemStackSize)
+        sendMail(player, API.getIWorld(0), item);
     }
 }
 
@@ -40,24 +37,26 @@ function checkIllegalItems(player, inventory){
  * @param {Object} conditions 
  * @returns Boolean
  */
-function doReplace(item, conditions)
+function doDelete(item, conditions)
 {
     if(!item) return;
     for(var name in conditions.itemNames) {
         var name = conditions.itemNames[name];
         if(item.getDisplayName() == name) return true;
     }
-    return item.getAttribute("generic.attackDamage") >= 3000000;
+    return;
 }
 
 /** Sends mail to all players in mailList
  * @param {IPlayer} player
  * @param {IWorld} world 
  */
-function sendMail(player, world)
+function sendMail(player, world, item)
 {
     for(var admin in mailList) {
-        API.executeCommand(world, "mail send " + mailList[admin] + " " + player.getDisplayName() + " has an illegal weapon at " + player.x, player.y, player.z);
+        API.executeCommand(world, 
+            "mail send " + mailList[admin] + " " + player.getDisplayName() + " has an illegal item at " + Math.floor(player.x) + ", " + Math.floor(player.y) + ", " + Math.floor(player.z) + " with name " + item.getDisplayName() + " and damage " + item.getAttribute("generic.attackDamage") + "."
+        );
     }
 }
 
@@ -76,6 +75,6 @@ function containerOpen(event){
         return;
     }
     timers.forceStart(LOOP_BREAK_TIMER, 1, false);
-    checkDeprecatedItems(player, player.getInventory());
-    checkDeprecatedItems(player, containter.getItems());
+    checkIllegalItems(player, player.getInventory());
+    checkIllegalItems(player, containter.getItems());
 }
