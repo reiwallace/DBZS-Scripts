@@ -1,10 +1,10 @@
-// weapon_damage_cap.js - deletes weapons stronger than the strongest obtainable weapon to prevent exploits
+// DamageCap.js - deletes weapons stronger than the strongest obtainable weapon to prevent exploits
 // PLEASE UPDATE ALL SCRIPTS ON GITHUB IF YOU MAKE ANY CHANGES
 // IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
 // AUTHOR: Riken, Mighty, Ranger, Noxie
 var damageCap = 1690001; // strongest weapon's damage + 1
-var checkBlacklist = ["Ranger_Halt", "AyoteTheGod", "Kam", "Mighty_S0715", "pockington", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie"];
-var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington", "AyoteTheGod", "Kam", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie"];
+var checkBlacklist = ["Ranger_Halt", "AyoteTheGod", "Kam", "Mighty_S0715", "pockington", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie", "KingShivur"];
+var mailList = ["Ranger_Halt", "Mighty_S0715", "pockington", "AyoteTheGod", "Kam", "kleaRr", "Max1581", "_WhiteMidnight_", "Rikentod", "Noxiiie", "KingShivur"];
 
 function attack(event) {
     if(!checkItemDamage(event.player, event.player.getHeldItem())) return;
