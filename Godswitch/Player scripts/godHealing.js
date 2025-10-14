@@ -9,7 +9,10 @@ var heal = {
     fusionBoost : 2.0, //expected as a multiplier, 1.5 would be 50%, 2 is double healing.
     subZeroFail : 0.5 //expected as a percentage, 0.4 is a 40% chance. 0.25% would be a 25% chance.
 }
-var formId = 9;
+var ssgForms = [
+    DBCAPI.getForm("SSG(GodSwitch)"),
+    9
+];
 
 // TIMERS
 var HEALING_TIMER = 67;
@@ -25,10 +28,10 @@ function dbcFormChange(event) {
 
     //If the player enters SSG, start the healing timer.
     //The player should not need the timer started if it's already ongoing, it will self maintain.
-    if (formInto == formId && !player.getTimers().has(HEALING_TIMER)) timers.start(HEALING_TIMER, heal.interval, false);
+    if (ssgForms.indexOf(formInto) != -1 && !player.getTimers().has(HEALING_TIMER)) timers.start(HEALING_TIMER, heal.interval, false);
 
     //If the player leaves SSG, stop the healing timer
-    if (formFrom == formId) timers.stop(HEALING_TIMER);
+    if (ssgForms.indexOf(formFrom) != -1) timers.stop(HEALING_TIMER);
 }
 
 // Healing Function
@@ -38,7 +41,7 @@ function timer(event) {
     if(event.id != 67 || 
         !lib.isPlayer(player) || 
         !dbc || 
-        dbc.getCurrentForm().getID() != formId
+        ssgForms.indexOf(dbc.getCurrentForm()) == -1
     ) return;
 
     //player stats, relating to HP
