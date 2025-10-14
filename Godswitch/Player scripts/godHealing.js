@@ -10,7 +10,7 @@ var heal = {
     subZeroFail : 0.5 //expected as a percentage, 0.4 is a 40% chance. 0.25% would be a 25% chance.
 }
 var ssgForms = [
-    DBCAPI.getForm("SSG(GodSwitch)"),
+    7,
     9
 ];
 
@@ -41,7 +41,7 @@ function timer(event) {
     if(event.id != 67 || 
         !lib.isPlayer(player) || 
         !dbc || 
-        ssgForms.indexOf(dbc.getCurrentForm()) == -1
+        typeof dbc.getCurrentForm() == "number" ? ssgForms.indexOf(dbc.getCurrentForm()) == -1 : ssgForms.indexOf(dbc.getCurrentForm().getID()) == -1
     ) return;
 
     //player stats, relating to HP

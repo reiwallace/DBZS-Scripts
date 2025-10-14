@@ -8,11 +8,28 @@ var ssgssFormName ="SSB(GodSwitch)";// change these to the correct names for the
 var ssgForm = DBCAPI.getForm(ssgFormName);
 var ssgssForm = DBCAPI.getForm(ssgssFormName);
 
-var godswitch = {
+var gsConfig = {
     switchInterval : 20, // in ticks
     timerId : 420,
     drainModifier : 0.02, 
     initialDrain : 5
+}
+
+function godswitch(player)
+{
+    function god(action) {}
+    function blue(action) {
+        var actionManager = action.getActionManager();
+
+
+        actionManager.scheduleParallel()
+    }
+    
+    var actionManager = API.getActionManager();
+    var dbc = player ? player.getDBCPlayer() : null;
+    if (!lib.isPlayer(player) || !dbc || dbc.getCurrentForm() != ssgForm) return;
+
+    actionManager.scheduleParallel(gsConfig.switchInterval, blue).addData("godFunc", god);
 }
 
 /** This function goes inside the melee attack event and is responsible for activating godswitch
