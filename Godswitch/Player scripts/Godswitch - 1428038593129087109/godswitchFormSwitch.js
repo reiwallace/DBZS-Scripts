@@ -6,6 +6,7 @@
 
 var gsConfig = {
     ssgForm : DBCAPI.getForm("SAI-SSG (GS)"),
+    ssroseForm : DBCAPI.getForm("SAI-Rose (GS)"),
     ssgssForm : DBCAPI.getForm("SAI-SSB (GS)"),
     switchInterval : 20, // in ticks
     drainModifier : 0.02, 
@@ -19,11 +20,11 @@ function godswitch(action)
 {
     var actionManager = action.getManager();
     var playerData = action.getData("playerData");
-    var nextForm = playerData.currentForm == gsConfig.ssgForm ? gsConfig.ssgssForm : gsConfig.ssgForm;
     if(!lib.isPlayer(playerData.player) || !playerData.dbc || !playerData.currentForm || playerData.dbc.getCurrentForm() != playerData.currentForm) {
         action.markDone();
         return;
     } 
+    var nextForm = playerData.currentForm == gsConfig.ssgForm ? (playerData.dbc.isDivine() ? gsConfig.ssroseForm : gsConfig.ssgssForm) : gsConfig.ssgForm;
     playerData.dbc.setCustomForm(nextForm, true);
     playerData.currentForm = nextForm;
     if(nextForm == gsConfig.ssgForm) playerData.player.timers.forceStart(godHeal.timer, godHeal.interval, false);
@@ -39,7 +40,9 @@ function tick(event)
     var dbc = player ? player.getDBCPlayer() : null;
     if(!lib.isPlayer(player) || !dbc) return;
     // Start action manager
-    if((dbc.getCurrentForm() == gsConfig.ssgForm || dbc.getCurrentForm() == gsConfig.ssgssForm) && !actionManager.hasAny("gs" + player.getName()) && !dbc.isChargingKi()) {
+    if((dbc.getCurrentForm() == gsConfig.ssgForm || dbc.getCurrentForm() == gsConfig.ssgssForm || dbc.getCurrentForm() == gsConfig.ssroseForm) && 
+        !actionManager.hasAny("gs" + player.getName()) && 
+        !dbc.isChargingKi()) {
         var playerData = {
             player: player,
             dbc: dbc,
@@ -49,11 +52,13 @@ function tick(event)
         actionManager.start();
     } 
     // Flash blue
-    if((dbc.getCurrentForm() == gsConfig.ssgForm || dbc.getCurrentForm() == gsConfig.ssgssForm) && actionManager.hasAny("gs" + player.getName()) && dbc.isChargingKi()) {
+    if((dbc.getCurrentForm() == gsConfig.ssgForm || dbc.getCurrentForm() == gsConfig.ssgssForm || dbc.getCurrentForm() == gsConfig.ssroseForm) && 
+        actionManager.hasAny("gs" + player.getName()) && dbc.isChargingKi()) {
         actionManager.cancelAny("gs" + player.getName());
         if(dbc.getCurrentForm() == gsConfig.ssgForm) {
             player.timers.stop(godHeal.timer);
-            dbc.setCustomForm(gsConfig.ssgssForm, true);
+            if(dbc.isDivine()) dbc.setCustomForm(gsConfig.ssroseForm, true);
+            else dbc.setCustomForm(gsConfig.ssgssForm, true);
         }
     }
 }
@@ -61,7 +66,7 @@ function tick(event)
 function attack(event)
 {
     var dbc = event.getPlayer().getDBCPlayer();
-    if(!dbc || dbc.getCurrentForm() != gsConfig.ssgssForm) return;
+    if(!dbc || (dbc.getCurrentForm() != gsConfig.ssgssForm && dbc.getCurrentForm() != gsConfig.ssroseForm)) return;
     var masteryPercent = dbc.getCustomMastery(gsConfig.ssgForm) / gsConfig.ssgForm.getMastery().getMaxLevel();
     dbc.setKi(dbc.getKi() -  dbc.getMaxKi() * gsConfig.drainModifier * (gsConfig.initialDrain - (gsConfig.initialDrain - 1) * masteryPercent)) // currentKi -  (MaxKi * drainModifier * masteryModifier)
 }
