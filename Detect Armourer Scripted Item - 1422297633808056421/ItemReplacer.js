@@ -61,6 +61,12 @@ function checkDeprecatedItems(player){
             player.giveItem(replacementsChest.getSlot(compItem.replaceSlot), itemStackSize);
             sendMail(compItem, player.getDisplayName(), API.getIWorld(0));
         }
+
+        if(isRpgWeapon(item)) {
+            player.removeItem(item, 1, false, false);
+            player.giveItem(replacementsChest.getSlot(5), 1);
+            sendMail({name: "RPG Weapon"}, player.getDisplayName(), API.getIWorld(0));
+        }
     }
 }
 
@@ -81,6 +87,25 @@ function doReplace(item, nameCheck, itemCheck, attackCheck, fixedTag)
         item.getName() == itemCheck &&
         item.getAttribute("generic.attackDamage") == attackCheck
     );
+}
+
+/** Checks item lore to detect rpgweapons
+ * @param {IItemStack} item 
+ */
+function isRpgWeapon(item)
+{
+    if(!item) return;
+    var itemLore = item.getLore();
+    var levelFlag = false;
+    var xpFlag = false;
+    var replicaFlag = true;
+    for(var line in itemLore) {
+        line = itemLore[line];
+        if(line.indexOf("RPG Level") >= 0) levelFlag = true;  
+        if(line.indexOf("Xp:") >= 0) xpFlag = true;  
+        if(line.indexOf("Xp: NaN") >= 0) replicaFlag = false;
+    }
+    return (levelFlag && xpFlag && replicaFlag);
 }
 
 /** Sends mail to all players in mailList
