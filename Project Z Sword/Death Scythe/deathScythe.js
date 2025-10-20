@@ -134,14 +134,17 @@ function updateItem(item)
 
     var appearance = 0;
     var levelReq = 0;
+    var skillDamage = 0;
     for(var quest in quests) {
         if(item.getTag(quests[quest]["quest_id"]) != 1) continue;
         if(quests[quest]["appearance"]) appearance += quests[quest]["appearance"];
         if(quests[quest]["level_req"]) levelReq += quests[quest]["level_req"];
         if(quests[quest]["skill.unlock"]) item.setTag("skillUnlocked", 1);
+        if(quests[quest]["skill.damage"]) skillDamage += quests[quest]["skill.damage"];
     }
     item.setTag("appearance", appearance)
     item.setTag("level_req", levelReq)
+    item.setTag("skill_damage")
 
     var attributes = getAttributes(item);
     applyAttributes(item, attributes);
@@ -236,10 +239,14 @@ function useSkill(player, item)
     var timers = player.timers;
     if(timers.has(playerSlot + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(playerSlot + SKILL_COOLDOWN);
-        player.sendMessage("Remaining Cooldown on " + skill.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        player.sendMessage("Remaining Cooldown on " + skillData.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
-    }
-    lib.debugMessage("Noxiiie", "Performing skill: " + skill.name)
-    player.timers.forceStart(playerSlot + SKILL_COOLDOWN, skill.cooldown, false);
+    } else if(timers.has(SPAM_PREVENTER)) return;
+    player.timers.forceStart(playerSlot + SKILL_COOLDOWN, skillData.cooldown, false);
+
+    performSkill(player, item.getTag("skill_damage"));
 }
+
+// PLACEHOLDER
+function performSkill(player, skillDamage) {}
