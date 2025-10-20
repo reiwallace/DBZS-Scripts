@@ -242,7 +242,7 @@ function useSkill(player, item)
         player.sendMessage("Remaining Cooldown on " + skillData.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
-    } else if(timers.has(SPAM_PREVENTER)) return;
+    } else if(timers.has(playerSlot + SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
     player.timers.forceStart(playerSlot + SKILL_COOLDOWN, skillData.cooldown, false);
 
     performSkill(player, item.getTag("skill_damage"));
