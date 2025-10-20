@@ -21,6 +21,12 @@
     "ability_slots" (int) - number of ability slots to unlock with quest
 */
 var quests = {
+    defaultState : defaultState = {
+        "quest_id" : -1, // DON'T EDIT QUEST ID OF DEFAULT STATE
+        "attribute.main_attack" : 10,
+        "level_req" : 1
+    },
+
     funQuest : funQuest = {
         "quest_id" : 11,
         "attribute.main_attack" : 100,
@@ -36,12 +42,6 @@ var quests = {
         "skill.unlock" : 1,
         "skill.damage" : 100
     }
-};
-
-var defaultState = {
-    "attribute.main_attack" : 1,
-    "appearance" : 1,
-    "level_req" : 1
 };
 
 /*
@@ -62,9 +62,9 @@ var defaultState = {
 */
 var appearanceLevel = [
     level0 = {
-        "item_name" : "Sheathed Z Sword",
-        "item_texture" : "https://i.imgur.com/ov14aCX.png",
-        "lore" : ["type shi"]
+        "item_name" : "Level 0 Scythe",
+        "item_texture" : "customnpcs:textures/items/npcDemonicScythe.png",
+        "lore" : ["not a z sword"]
     },
 
     level1 = {
@@ -87,47 +87,70 @@ var skillData = {
 
 // TIMERS 
 var SKILL_COOLDOWN = 356;
+var SPAM_PREVENTER = 357
 
 // DO NOT EDIT
 var item;
 
+function init(event)
+{
+    var item = event.item;
+    item.setTag(-1, 1);
+    item.setTag("isDeathScythe", 1);
+    updateItem(item)
+}
+
+function buildingItem(event)
+{
+    var item = event.item;
+    item.setTag(-1, 1);
+    item.setTag("isDeathScythe", 1);
+    updateItem(item)
+}
+
 function tick(event) 
 {
-    
+    var item = event.item;
+    if(item.getTag("update") != 1) return;
+    item.setTag("update", 0);
+    clearStats(item);
+    updateItem(item);
 }
 
 function rightClick(event)
 {
-    item = event.item;
+    var item = event.item;
     var player = event.player;
-    ac
+    useSkill(player, item);
 }   
 
 /** Swaps item to a functional state based on player data
  * @param {IItemLinked} item 
  * @param {IPlayer} player - Player to use data from
  */
-function updateItem(item, player)
+function updateItem(item)
 {
     clearStats(item);
 
     var appearance = 0;
+    var levelReq = 0;
     for(var quest in quests) {
-        if(!player.hasFinishedQuest(quests[quest]["quest_id"])) continue;
+        if(item.getTag(quests[quest]["quest_id"]) != 1) continue;
         if(quests[quest]["appearance"]) appearance += quests[quest]["appearance"];
+        if(quests[quest]["level_req"]) levelReq += quests[quest]["level_req"];
+        if(quests[quest]["skill.unlock"]) item.setTag("skillUnlocked", 1);
     }
     item.setTag("appearance", appearance)
+    item.setTag("level_req", levelReq)
 
-    var attributes = getAttributes(player);
+    var attributes = getAttributes(item);
     applyAttributes(item, attributes);
 
     var activeAppearance = appearanceLevel[appearance];
     setAppearance(item, activeAppearance);
     item.setTag("appearance", appearanceLevel);
 
-    var selectedSkills = getSelectedSkills(player);
     var currentLore = item.getLore();
-    addSkillLore(item, currentLore, selectedSkills);
 }
 
 /** Sets appearence of item from appearance object
@@ -157,6 +180,8 @@ function clearStats(item)
                 // Trim off magic attribute tag
                 var trimmedAttribute = attribute.substring(16);
                 item.removeMagicAttribute(trimmedAttribute);
+            } else if(attribute == "skill.unlock") {
+                item.setTag("skillUnlocked", 0);
             }
         }
     }
@@ -166,16 +191,14 @@ function clearStats(item)
  * @param {IPlayer} player 
  * @returns all available attributes for player's current progression
  */
-function getAttributes(player) 
+function getAttributes(item) 
 {
     var availableAttributes = {};
     for(var quest in quests) {
         quest = quests[quest];
-        if(!player.hasFinishedQuest(quest["quest_id"])) continue;
-
+        if(item.getTag(quest["quest_id"]) != 1) continue;
         for(var attribute in quest) {
             if(!(attribute.startsWith("attribute") || attribute.startsWith("magic_attribute"))) continue;
-
             if(availableAttributes[attribute]) availableAttributes[attribute] += quest[attribute];
             else availableAttributes[attribute] = quest[attribute];
         }
@@ -204,15 +227,19 @@ function applyAttributes(item, attributes)
 
 /** Uses active ability in player's first slot
  * @param {IPlayer} player
+ * @param {ILinkedItem} item
  */
-function useSkill(player)
+function useSkill(player, item)
 {
-    if(lib.getDbcLevel(player) < item.getTag("levelReq") || item.getTag("skillUnlocked") != "true") return;
-    if(player.timers.has(playerSlot + cooldownTimerId)) {
-        var remainingCooldown = player.timers.ticks(playerSlot + cooldownTimerId);
-        player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+    var playerSlot = lib.getActiveSlotId(player);
+    if(!lib.isPlayer(player) || lib.getDbcLevel(player) < item.getTag("level_req") || item.getTag("skillUnlocked") != 1) return;
+    var timers = player.timers;
+    if(timers.has(playerSlot + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
+        var remainingCooldown = timers.ticks(playerSlot + SKILL_COOLDOWN);
+        player.sendMessage("Remaining Cooldown on " + skill.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
     }
-    lib.debugMessage("Noxiiie", "Performing skill: " + skill.skillName)
-    player.timers.forceStart(cooldownTimerId, skill.cooldown, false);
+    lib.debugMessage("Noxiiie", "Performing skill: " + skill.name)
+    player.timers.forceStart(playerSlot + SKILL_COOLDOWN, skill.cooldown, false);
 }
