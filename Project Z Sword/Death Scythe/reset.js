@@ -1,3 +1,0 @@
-function kills(event) {
-    if
-}
