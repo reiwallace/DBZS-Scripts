@@ -1,4 +1,4 @@
-// Z Sword.js
+// deathScythe.js
 // AUTHOR: Noxie
 
 /*
@@ -16,33 +16,36 @@
     "quest_id" (int)
     "attribute.ATTRIBUTE_NAME" (int) - Any custom attribute from CNPC+
     "magic_attribute.MAGIC_ATTRIBUTE_NAME" (int) - Any magic attribute from CNPC+
-    "skill.SKILL_NAME" (int) - Any custom skill added by us
+    "skill.unlock" (int) - Unlocks weapon skill
+    "skill.damage" (int) - weapon damage
     "apperance" (int) - value to add to appearance level (set this to 1)
     "ability_slots" (int) - number of ability slots to unlock with quest
+    "level_req" (int) - Add to level requirement
 */
 var quests = {
     defaultState : defaultState = {
         "quest_id" : -1, // DON'T EDIT QUEST ID OF DEFAULT STATE
         "attribute.main_attack" : 10,
-        "level_req" : 1
+        "level_req" : 1,
+        "skill.damage" : 100
     },
 
     funQuest : funQuest = {
         "quest_id" : 11,
         "attribute.main_attack" : 100,
-        "attribute.dbc.Constitution.Multi" : 200,
+        "level_req": 1000,
+        "skill.damage" : 100
     },
 
     boringQuest : boringQuest = {
         "quest_id" : 12,
         "attribute.main_attack" : 200,
-        "attribute.critical_chance" : 100,
-        "attribute.dbc.Strength" : 2000,
         "appearance" : 1,
         "skill.unlock" : 1,
         "skill.damage" : 100
     }
 };
+API.addGlobalObject("scytheData", quests);
 
 /*
     APPEARANCES DATA FORMAT
@@ -94,6 +97,7 @@ var item;
 
 function init(event)
 {
+    API.addGlobalObject("scytheData", quests);
     var item = event.item;
     item.setTag(-1, 1);
     item.setTag("isDeathScythe", 1);
@@ -115,6 +119,9 @@ function tick(event)
     item.setTag("update", 0);
     clearStats(item);
     updateItem(item);
+    if(item.getTag("reset") == 1) {
+
+    }
 }
 
 function rightClick(event)
@@ -142,9 +149,9 @@ function updateItem(item)
         if(quests[quest]["skill.unlock"]) item.setTag("skillUnlocked", 1);
         if(quests[quest]["skill.damage"]) skillDamage += quests[quest]["skill.damage"];
     }
-    item.setTag("appearance", appearance)
-    item.setTag("level_req", levelReq)
-    item.setTag("skill_damage")
+    item.setTag("appearance", appearance);
+    item.setTag("level_req", levelReq);
+    item.setTag("skill_damage", skillDamage);
 
     var attributes = getAttributes(item);
     applyAttributes(item, attributes);
@@ -163,7 +170,7 @@ function updateItem(item)
 function setAppearance(item, appearance)
 {
     if(appearance.item_name) item.setCustomName(appearance.item_name);
-    if(appearance.lore) item.setLore(appearance.lore);
+    if(appearance.lore) item.setLore(appearance.lore.concat("\u00A77\u00A7rLevel Req: " + item.getTag("level_req")));
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
 }
 
@@ -191,7 +198,7 @@ function clearStats(item)
 }
 
 /** Gets weapon attributes from player data
- * @param {IPlayer} player 
+ * @param {IItemLinked} item 
  * @returns all available attributes for player's current progression
  */
 function getAttributes(item) 
