@@ -23,21 +23,27 @@
     "level_req" (int) - Add to level requirement
 */
 var quests = {
-    defaultState : defaultState = {
+    defaultState: {
         "quest_id" : -1, // DON'T EDIT QUEST ID OF DEFAULT STATE
         "attribute.main_attack" : 10,
         "level_req" : 1,
         "skill.damage" : 100
     },
 
-    funQuest : funQuest = {
+    quest2: {
+        "quest_id" : 10,
+        "attribute.main_attack" : 1069,
+        "level_req": 101
+    },
+
+    funQuest: {
         "quest_id" : 11,
         "attribute.main_attack" : 100,
         "level_req": 1000,
         "skill.damage" : 100
     },
 
-    boringQuest : boringQuest = {
+    boringQuest: {
         "quest_id" : 12,
         "attribute.main_attack" : 200,
         "appearance" : 1,
@@ -45,6 +51,8 @@ var quests = {
         "skill.damage" : 100
     }
 };
+var fullPowerQuestId = 12;
+
 API.addGlobalObject("scytheData", quests);
 
 /*
@@ -66,7 +74,7 @@ API.addGlobalObject("scytheData", quests);
 var appearanceLevel = [
     level0 = {
         "item_name" : "Level 0 Scythe",
-        "item_texture" : "customnpcs:textures/items/npcDemonicScythe.png",
+        "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
         "lore" : ["not a z sword"]
     },
 
@@ -106,29 +114,46 @@ function init(event)
 
 function buildingItem(event)
 {
+    API.addGlobalObject("scytheData", quests);
     var item = event.item;
+    item.setTranslate(-0.3, 0.1, -0.4);
+    item.setRotation(0, 180, 0);
     item.setTag(-1, 1);
     item.setTag("isDeathScythe", 1);
     updateItem(item)
 }
 
+function versionChanged(event) {
+    var item = event.item;
+    item.setTranslate(-0.3, 0.1, -0.4);
+    item.setRotation(0, 180, 0);
+    item.setTag(-1, 1);
+    item.setTag("isDeathScythe", 1);
+    updateItem(item)
+}
+
+// Check for item updates
 function tick(event) 
 {
     var item = event.item;
     if(item.getTag("update") != 1) return;
     item.setTag("update", 0);
-    clearStats(item);
-    updateItem(item);
-    if(item.getTag("reset") == 1) {
 
+    // Check for item reset
+    if(item.getTag("reset") == 1) {
+        var player = API.getPlayer(item.getTag("player"));
+        if(!lib.isPlayer(player)) return;
+        lib.debugMessage("Noxiiie", "RESETING")
+        reset(item, player);
+        item.setTag("reset", 0);
     }
+    
+    updateItem(item);
 }
 
 function rightClick(event)
 {
-    var item = event.item;
-    var player = event.player;
-    useSkill(player, item);
+    useSkill(event.player, event.item);
 }   
 
 /** Swaps item to a functional state based on player data
@@ -139,6 +164,7 @@ function updateItem(item)
 {
     clearStats(item);
 
+    // Check outlier stats
     var appearance = 0;
     var levelReq = 0;
     var skillDamage = 0;
@@ -150,7 +176,7 @@ function updateItem(item)
         if(quests[quest]["skill.damage"]) skillDamage += quests[quest]["skill.damage"];
     }
     item.setTag("appearance", appearance);
-    item.setTag("level_req", levelReq);
+    item.setTag("power", levelReq);
     item.setTag("skill_damage", skillDamage);
 
     var attributes = getAttributes(item);
@@ -159,8 +185,6 @@ function updateItem(item)
     var activeAppearance = appearanceLevel[appearance];
     setAppearance(item, activeAppearance);
     item.setTag("appearance", appearanceLevel);
-
-    var currentLore = item.getLore();
 }
 
 /** Sets appearence of item from appearance object
@@ -170,7 +194,7 @@ function updateItem(item)
 function setAppearance(item, appearance)
 {
     if(appearance.item_name) item.setCustomName(appearance.item_name);
-    if(appearance.lore) item.setLore(appearance.lore.concat("\u00A77\u00A7rLevel Req: " + item.getTag("level_req")));
+    if(appearance.lore) item.setLore(appearance.lore.concat("\u00A77\u00A7rLevel Req: " + item.getTag("power")));
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
 }
 
@@ -182,7 +206,9 @@ function clearStats(item)
     // Removes every attribute listed in the quest list
     for(var quest in quests) {
         for(var attribute in quest) {
-            if(attribute.startsWith("attribute")) {
+            if(attribute == "attribute.main_attack") {
+                item.setAttribute("generic.attackDamage", 1);
+            } else if(attribute.startsWith("attribute")) {
                 // Trim off attribute tag
                 var trimmedAttribute = attribute.substring(10);
                 item.removeCustomAttribute(trimmedAttribute);
@@ -223,15 +249,33 @@ function getAttributes(item)
 function applyAttributes(item, attributes) 
 {
     for(var attribute in attributes) {
-        if(attribute.startsWith("attribute")) {
+        if(attribute == "attribute.main_attack") {
+            item.setAttribute("generic.attackDamage", attributes[attribute]);
+        } else if(attribute.startsWith("attribute")) {
             // Trim off attribute tag
             var trimmedAttribute = attribute.substring(10);
-            item.setCustomAttribute(trimmedAttribute, attributes[attribute] + item.getCustomAttribute(trimmedAttribute));
+            item.setCustomAttribute(trimmedAttribute, attributes[attribute]);
         } else if(attribute.startsWith("magic_attribute")) {
             // Trim off magic attribute tag
             var trimmedAttribute = attribute.substring(16);
-            item.setMagicAttribute(trimmedAttribute, attributes[attribute] + item.getMagicAttribute(trimmedAttribute));
+            item.setMagicAttribute(trimmedAttribute, attributes[attribute]);
         }
+    }
+}
+
+/** Resets the scythe back to default level
+ * @param {IItemStack} item 
+ * @param {IPlayer} player 
+ */
+function reset(item, player) {
+    if(item.getTag(fullPowerQuestId) == 1) return;
+    for(var quest in quests) {
+        quest = quests[quest];
+        var id = quest["quest_id"];
+        if(id == -1 || id == fullPowerQuestId) continue;
+        item.setTag(id, 0);
+        player.setStoredData("s" + lib.getActiveSlotId(player) + "id" + id, 0);
+        player.removeQuest(id);
     }
 }
 
@@ -244,6 +288,7 @@ function useSkill(player, item)
     var playerSlot = lib.getActiveSlotId(player);
     if(!lib.isPlayer(player) || lib.getDbcLevel(player) < item.getTag("level_req") || item.getTag("skillUnlocked") != 1) return;
     var timers = player.timers;
+    // Check skill cd and send cooldown message
     if(timers.has(playerSlot + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(playerSlot + SKILL_COOLDOWN);
         player.sendMessage("Remaining Cooldown on " + skillData.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
