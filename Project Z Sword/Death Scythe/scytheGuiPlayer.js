@@ -9,6 +9,7 @@ var goonButtonId = 4;
 
 var upgradeSound = API.createSound("minecraft:random.anvil_use");
 var failSound = API.createSound("minecraft:random.anvil_land");
+var goonSound = API.createSound("customnpcs:human.girl.villager.heh");
 
 function customGuiSlotClicked(event) {
     if(event.getGui().getID() == scytheGuiId) event.setCancelled(true);
@@ -33,5 +34,7 @@ function customGuiButton(event) {
     } else if(button.getID() == goonButtonId) {
         if(!scytheNpc) return;
         player.interactWith(scytheNpc);
+        goonSound.setPosition(player.getPosition());
+        API.playSound(goonSound);
     }   
 }
