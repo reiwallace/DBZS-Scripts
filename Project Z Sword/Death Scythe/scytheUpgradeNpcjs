@@ -1,3 +1,6 @@
+// scytheUpgradeNpc.js
+// AUTHOR: Noxie
+
 var gui = {
     mainWindow: {
         id: 227,
