@@ -30,28 +30,64 @@ var quests = {
         "skill.damage" : 100
     },
 
-    quest2: {
-        "quest_id" : 10,
+    quest1: {
+        "quest_id" : 3248,
         "attribute.main_attack" : 1069,
         "level_req": 101
     },
 
-    funQuest: {
-        "quest_id" : 11,
+    quest2: {
+        "quest_id" : 3250,
         "attribute.main_attack" : 100,
         "level_req": 1000,
         "skill.damage" : 100
     },
 
-    boringQuest: {
-        "quest_id" : 12,
+    quest3: {
+        "quest_id" : 3251,
         "attribute.main_attack" : 200,
+        "appearance" : 1,
+        "skill.damage" : 100
+    },
+    quest4: {
+        "quest_id" : 3252,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest5: {
+        "quest_id" : 3253,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest6: {
+        "quest_id" : 3254,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest7: {
+        "quest_id" : 3255,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest8: {
+        "quest_id" : 3256,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest9: {
+        "quest_id" : 3257,
+        "attribute.main_attack" : 200,
+        "skill.damage" : 100
+    },
+    quest10: {
+        "quest_id" : 3258,
+        "attribute.main_attack" : 20000,
         "appearance" : 1,
         "skill.unlock" : 1,
         "skill.damage" : 100
     }
 };
-var fullPowerQuestId = 12;
+var fullPowerQuestId = 3258;
 
 API.addGlobalObject("scytheData", quests);
 
@@ -79,22 +115,24 @@ var appearanceLevel = [
     },
 
     level1 = {
-        "item_name" : "Z Sword",
-        "item_texture" : "jinryuudragonbc:textures/items/item.ItemZSword.png",
+        "item_name" : "Level 1 Scythe",
+        "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
         "lore" : ["Cool sword init"]
     },
 
     level2 = {
-        "item_name" : "Z Sword but stronger",
-        "item_texture" : "jinryuudragonbc:textures/items/item.ItemZSword.png",
+        "item_name" : "Level 2 Scythe but stronger",
+        "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
         "lore" : ["Cooler sword init"]
-    }
+    },
 ];
 
 var skillData = {
-    "name" : "Cool skill",
-    "cooldown" : 600  // In Ticks
+    name: "Cool skill",
+    cooldown: 600  // In Ticks
 }
+var anim1 = API.getAnimations().get("Dragon_Hunter_Charge");
+var anim2 = API.getAnimations().get("Dragon_Hunter_Attack");
 
 // TIMERS 
 var SKILL_COOLDOWN = 356;
@@ -143,7 +181,6 @@ function tick(event)
     if(item.getTag("reset") == 1) {
         var player = API.getPlayer(item.getTag("player"));
         if(!lib.isPlayer(player)) return;
-        lib.debugMessage("Noxiiie", "RESETING")
         reset(item, player);
         item.setTag("reset", 0);
     }
@@ -178,6 +215,7 @@ function updateItem(item)
     item.setTag("appearance", appearance);
     item.setTag("power", levelReq);
     item.setTag("skill_damage", skillDamage);
+    lib.debugMessage("Noxiiie", item.getTag("skillUnlocked"))
 
     var attributes = getAttributes(item);
     applyAttributes(item, attributes);
@@ -205,6 +243,7 @@ function clearStats(item)
 {
     // Removes every attribute listed in the quest list
     for(var quest in quests) {
+        quest = quests[quest];
         for(var attribute in quest) {
             if(attribute == "attribute.main_attack") {
                 item.setAttribute("generic.attackDamage", 1);
@@ -221,6 +260,9 @@ function clearStats(item)
             }
         }
     }
+    item.setTag("appearance", 0);
+    item.setTag("power", 0);
+    item.setTag("skill_damage", 0);
 }
 
 /** Gets weapon attributes from player data
@@ -289,16 +331,108 @@ function useSkill(player, item)
     if(!lib.isPlayer(player) || lib.getDbcLevel(player) < item.getTag("level_req") || item.getTag("skillUnlocked") != 1) return;
     var timers = player.timers;
     // Check skill cd and send cooldown message
-    if(timers.has(playerSlot + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
-        var remainingCooldown = timers.ticks(playerSlot + SKILL_COOLDOWN);
+    if(timers.has(playerSlot + "" + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
+        var remainingCooldown = timers.ticks(playerSlot + "" + SKILL_COOLDOWN);
         player.sendMessage("Remaining Cooldown on " + skillData.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
-    } else if(timers.has(playerSlot + SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
-    player.timers.forceStart(playerSlot + SKILL_COOLDOWN, skillData.cooldown, false);
+    } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) {
+        return;
+    }
+    player.timers.forceStart(playerSlot + "" + SKILL_COOLDOWN, skillData.cooldown, false);
 
     performSkill(player, item.getTag("skill_damage"));
 }
 
 // PLACEHOLDER
-function performSkill(player, skillDamage) {}
+function performSkill(player, skillDamage) {
+    if(player.timers.has(67)) return;
+
+    var am = player.getActionManager()
+    var data = player.getAnimationData()
+    player.getDBCPlayer().setTurboState(false)
+    
+    data.setEnabled(true)
+    data.setAnimation(anim1)
+    data.updateClient()
+    player.timers.forceStart(67,80,false)
+    am.schedule(50,executeAttack).setData("player",player).setData("dmg",skillDamage)
+    am.start()
+
+}
+
+
+function createHurtBox(entity,corner1,corner2,targetType){
+    var foundEnemies = []// empty array to be filled later
+    var hitBoxPos = API.getAllInBox(corner1,corner2) // array of possible positions within box
+
+    for(var i = 0; i< hitBoxPos.length;i++){ // iterating through all positions in array
+        var foundEntities = entity.getWorld().getEntitiesNear(hitBoxPos[i],1.1) // scanning for nearby entites at position
+        
+        if(foundEntities == null) continue; // moving onto next position of no entities are found
+
+        for(var x = 0;x<foundEntities.length;x++){// iterating through all found entities
+
+            var target = foundEntities[x] // temp variable for possible target entity
+            if(target == entity) continue;// if found entity is the origin entity, continue
+            if(target.getType() != targetType) continue;// if target is not of desired type, continue
+            if(foundEnemies.indexOf(target) != -1) continue; // if foundEnemies array contains target, continue
+            foundEnemies.push(target) // adding target to found entities array
+            continue;
+        }
+    }
+    
+    if (foundEnemies.length < 0)return null;
+    return foundEnemies;
+
+}
+
+
+function spawnParticles(npc){
+    x = 2
+    while(x< 7){
+        var x2 = 0
+        while(x2 < 20){
+            var angle = x2*6 - 60
+            var dx = -Math.sin(toRadians(npc.getRotation()+angle)) * x
+            var dz = Math.cos(toRadians(npc.getRotation()+angle)) * x
+            
+            npc.getWorld().spawnParticle("mobSpell",npc.getPosition().add(dx,1.7-0.07*x,dz),0.01*x,0.1,0.01*x,1.0,2)
+            npc.getWorld().spawnParticle("instantSpell",npc.getPosition().add(dx,1.7-0.07*x,dz),0.01*x,0.1,0.01*x,0.01,2)
+            npc.getWorld().spawnParticle("magiCrit",npc.getPosition().add(dx,1.7-0.07*x,dz),0.01*x,0.1,0.01*x,0.01,3)
+            x2++
+        }
+        x = x+2
+    }
+}
+
+function toRadians(angle){
+    return Math.PI*angle / 180.0
+}
+
+function executeAttack(act){
+    var player = act.getData("player")
+    var data = player.getAnimationData()
+    var vector = player.getLookVector()
+    var perpVector1 = API.getIPos(vector.getZD()*-1,0.0,vector.getXD())
+    var perpVector2 = API.getIPos(vector.getZD(),0.0,vector.getXD()*-1)
+
+    var corner1= player.getPosition().add(3*perpVector1.getXD(),vector.getYD(),3*perpVector1.getZD())
+    var corner2 = player.getPosition().add(3.0*vector.getXD()+perpVector2.getXD()*3.0 ,vector.getYD()+1.0,vector.getZD()*3.0 + perpVector2.getZD()*3.0)
+
+    //player.getWorld().spawnParticle("flame",corner1,0.0,0.0,0.0,0.1,20)
+    //player.getWorld().spawnParticle("flame",corner2,0.0,0.0,0.0,0.1,20)
+
+    var enemies = createHurtBox(player,corner1,corner2,2)
+    if(enemies == null) return;
+    for (var i = 0; i< enemies.length;i++){
+        enemies[i].hurt(act.getData("dmg"),player)
+    }
+
+    data.setEnabled(true)
+    data.setAnimation(anim2)
+    data.updateClient()
+    spawnParticles(player)
+    act.markDone()
+
+}
