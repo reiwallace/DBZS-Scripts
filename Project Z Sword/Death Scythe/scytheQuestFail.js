@@ -12,12 +12,10 @@ function kills(event) {
     if(!lib.isPlayer(player) || !player.hasActiveQuest(failQuestId) || !entity || entity.getType() != 2 || !entity.hasTempData("soulType")) return;
     switch(entity.getTempData("soulType")) {
         case 1:
-            lib.debugMessage("Noxiiie", "QUEST FAIL");
             resetAllScythes(player);
         break;
 
         case 2:
-            lib.debugMessage("Noxiiie", "QUEST PASS");
             player.stopQuest(11);
             player.finishQuest(11);
         break;
