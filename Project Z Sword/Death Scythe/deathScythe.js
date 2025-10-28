@@ -25,66 +25,73 @@
 var quests = {
     defaultState: {
         "quest_id" : -1, // DON'T EDIT QUEST ID OF DEFAULT STATE
-        "attribute.main_attack" : 10,
+        "attribute.main_attack" : 1,
         "level_req" : 1,
-        "skill.damage" : 100
     },
 
     quest1: {
         "quest_id" : 3248,
-        "attribute.main_attack" : 1069,
-        "level_req": 101
+        "attribute.main_attack" : 2399,
+        "level_req": 199
     },
 
     quest2: {
         "quest_id" : 3250,
-        "attribute.main_attack" : 100,
-        "level_req": 1000,
-        "skill.damage" : 100
+        "attribute.main_attack" : 2600,
+        "level_req": 400,
     },
 
     quest3: {
         "quest_id" : 3251,
-        "attribute.main_attack" : 200,
-        "appearance" : 1,
-        "skill.damage" : 100
+        "attribute.main_attack" : 5000,
+        "level_req": 400,
+        "skill.unlock" : 1,
+        "skill.damage" : 1500000
     },
     quest4: {
         "quest_id" : 3252,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 14000,
+        "level_req": 1500,
+        "skill.damage" : 1500000
     },
     quest5: {
         "quest_id" : 3253,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 36000,
+        "level_req": 3500,
+        "skill.damage" : 4500000
     },
     quest6: {
         "quest_id" : 3254,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 40000,
+        "level_req": 6000,
+        "skill.damage" : 7500000
     },
     quest7: {
         "quest_id" : 3255,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 90000,
+        "level_req": 6000,
+        "skill.damage" : 7500000
     },
     quest8: {
         "quest_id" : 3256,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 20000,
+        "level_req": 3000,
+        "skill.damage" : 7500000
+
     },
     quest9: {
         "quest_id" : 3257,
-        "attribute.main_attack" : 200,
-        "skill.damage" : 100
+        "attribute.main_attack" : 140000,
+        "level_req": 9000,
+        "skill.damage" : 22500000
     },
     quest10: {
         "quest_id" : 3258,
-        "attribute.main_attack" : 20000,
+        "attribute.main_attack" : 130000,
+        "level_req": 15000,
         "appearance" : 1,
         "skill.unlock" : 1,
-        "skill.damage" : 100000000
+        "skill.damage" : 60000000
     }
 };
 var fullPowerQuestId = 3258;
@@ -243,7 +250,7 @@ function setAppearance(item, appearance)
             for(var text in skillData.description) {
                 skillLore.push(skillData.description[text]);
             }
-            skillLore[1] = skillLore[1].replace("DAMAGE", item.getTag("skill_damage"))
+            skillLore[1] = skillLore[1].replace("DAMAGE", item.getTag("skill_damage")/1000000 + " Million")
             lore = lore.concat(skillLore);
         }
         item.setLore(lore);
