@@ -3,8 +3,8 @@
 // IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
 // AUTHOR: Noxie
 
-var fullPowerQuestId = 12;
-var failQuestId = 11;
+var fullPowerQuestId = 3258;
+var failQuestId = 3258;
 
 function kills(event) {
     var entity = event.getEntity();
