@@ -84,7 +84,7 @@ var quests = {
         "attribute.main_attack" : 20000,
         "appearance" : 1,
         "skill.unlock" : 1,
-        "skill.damage" : 100
+        "skill.damage" : 100000000
     }
 };
 var fullPowerQuestId = 3258;
@@ -129,7 +129,8 @@ var appearanceLevel = [
 
 var skillData = {
     name: "Cool skill",
-    cooldown: 600  // In Ticks
+    cooldown: 600,  // In Ticks
+    description: ["\u00A7a§lCool Skill:", "\u00A7aDoes a thing a ding that does DAMAGE damage"]
 }
 var anim1 = API.getAnimations().get("Dragon_Hunter_Charge");
 var anim2 = API.getAnimations().get("Dragon_Hunter_Attack");
@@ -215,7 +216,6 @@ function updateItem(item)
     item.setTag("appearance", appearance);
     item.setTag("power", levelReq);
     item.setTag("skill_damage", skillDamage);
-    lib.debugMessage("Noxiiie", item.getTag("skillUnlocked"))
 
     var attributes = getAttributes(item);
     applyAttributes(item, attributes);
@@ -232,7 +232,22 @@ function updateItem(item)
 function setAppearance(item, appearance)
 {
     if(appearance.item_name) item.setCustomName(appearance.item_name);
-    if(appearance.lore) item.setLore(appearance.lore.concat("\u00A77\u00A7rLevel Req: " + item.getTag("power")));
+    if(appearance.lore) {
+        var lore = [];
+        for(var text in appearance.lore) {
+            lore.push(appearance.lore[text]);
+        }
+        if(item.getTag("power") > 0) lore.push("\u00A77\u00A7rLevel Req: " + item.getTag("power"));
+        if(item.getTag("skillUnlocked") == 1) {
+            var skillLore = [];
+            for(var text in skillData.description) {
+                skillLore.push(skillData.description[text]);
+            }
+            skillLore[1] = skillLore[1].replace("DAMAGE", item.getTag("skill_damage"))
+            lore = lore.concat(skillLore);
+        }
+        item.setLore(lore);
+    }
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
 }
 
@@ -314,7 +329,7 @@ function reset(item, player) {
     for(var quest in quests) {
         quest = quests[quest];
         var id = quest["quest_id"];
-        if(id == -1 || id == fullPowerQuestId) continue;
+        if(id == -1) continue;
         item.setTag(id, 0);
         player.setStoredData("s" + lib.getActiveSlotId(player) + "id" + id, 0);
         player.removeQuest(id);
@@ -328,7 +343,11 @@ function reset(item, player) {
 function useSkill(player, item)
 {
     var playerSlot = lib.getActiveSlotId(player);
-    if(!lib.isPlayer(player) || lib.getDbcLevel(player) < item.getTag("level_req") || item.getTag("skillUnlocked") != 1) return;
+    if(!lib.isPlayer(player) || item.getTag("skillUnlocked") != 1) return;
+    if(lib.getDbcLevel(player) < item.getTag("power")) {
+        player.sendMessage("You are not strong enough to wield this power.");
+        return;
+    }
     var timers = player.timers;
     // Check skill cd and send cooldown message
     if(timers.has(playerSlot + "" + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
