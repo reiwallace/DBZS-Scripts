@@ -132,7 +132,7 @@ function displayUpgradeMenu(player)
         gui.upgradeButton.height, 
         gui.upgradeButton.texture
     );
-    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).push("\u00A76§l"));
+    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes));
     else upgradeButton.setHoverText(["\u00A76§lNo Available Upgrades"]);
 
     player.setTempData("scytheUpgradeFunctions", {apply: applyUpgrades, upgrades: availableUpgrades});
