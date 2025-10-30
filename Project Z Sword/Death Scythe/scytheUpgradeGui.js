@@ -1,5 +1,10 @@
-// scytheUpgradeNpc.js
-// AUTHOR: Noxie
+/**  
+ * @file scytheUpgradeGui.js
+ * @purpose Display and handle input or death scythe upgrade menu
+ * @author Noxie, Max
+ **/ 
+// PLEASE UPDATE ALL SCRIPTS ON GITHUB IF YOU MAKE ANY CHANGES
+// IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
 
 var gui = {
     mainWindow: {
@@ -54,14 +59,48 @@ var gui = {
     }, 
 }
 
-function interact(event) {
+var upgradeSound = API.createSound("minecraft:random.anvil_use");
+var failSound = API.createSound("minecraft:random.anvil_land");
+var goonSound = API.createSound("customnpcs:human.girl.villager.heh");
+
+
+function keyPressed(event) {
     var player = event.player;
     var item = player.getHeldItem();
-    if(!lib.isPlayer(player) || !item || item.getTag("isDeathScythe") != 1) {
-        event.npc.say("I can only upgrade Death Scythes");
-        return;
+    if(lib.isPlayer(player) && item && item.getTag("isDeathScythe") == 1 && event.getKey() == 23) {
+        displayUpgradeMenu(player);
     }
-    displayUpgradeMenu(player);
+}
+
+function customGuiSlotClicked(event) {
+    // Stop player from duplicating item
+    if(event.getGui().getID() == gui.mainWindow.id) event.setCancelled(true);
+}
+
+function customGuiButton(event) {
+    var gui = event.getGui();
+    var button = gui.getComponent(event.id);
+    var player = event.player;
+    if(event.getGui().getID() != gui.mainWindow.id || !lib.isPlayer(player)) return;
+    if(button.getID() == gui.ids.upgradeButton) {
+        // Upgrade sounds
+        if(!player.hasTempData("scytheUpgradeFunctions")) return;
+        player.getTempData("scytheUpgradeFunctions").apply(player, player.getHeldItem(), player.getTempData("scytheUpgradeFunctions").upgrades);
+        if(player.getTempData("scytheUpgradeFunctions").upgrades.length > 0) {
+            player.closeGui();
+            upgradeSound.setPosition(player.getPosition());
+            API.playSound(upgradeSound);
+        } else {
+            failSound.setPosition(player.getPosition());
+            API.playSound(failSound);
+        }
+    } else if(button.getID() == gui.ids.goonButton) {
+        // Goon Buton
+        if(!scytheNpc) return;
+        player.interactWith(scytheNpc);
+        goonSound.setPosition(player.getPosition());
+        API.playSound(goonSound);
+    }   
 }
 
 /** Displays the upgrade window to the player
@@ -89,12 +128,14 @@ function displayUpgradeMenu(player)
         gui.mainWindow.width, 
         gui.mainWindow.height
     );
-    menu.addItemSlot(
+
+    var itemDisplay = menu.addItemSlot(
         gui.ids.itemSlot, 
         gui.itemSlot.x, 
         gui.itemSlot.y, 
         weapon
     );
+
     var goonButton = menu.addButton(
         gui.ids.goonButton, 
         "", 
@@ -132,13 +173,18 @@ function displayUpgradeMenu(player)
         gui.upgradeButton.height, 
         gui.upgradeButton.texture
     );
-    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).concat("\u00A74§lALL UPGRADES ARE ONE TIME!"));
+    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).concat("\u00A74§l§uALL UPGRADES ARE ONE TIME!"));
     else upgradeButton.setHoverText(["\u00A76§lNo Available Upgrades"]);
 
     player.setTempData("scytheUpgradeFunctions", {apply: applyUpgrades, upgrades: availableUpgrades});
     player.showCustomGui(menu);
 }
 
+/** Applies all valid upgrades to item
+ * @param {IPlayer} player 
+ * @param {IItemLinked} item 
+ * @param {Object} upgrades 
+ */
 function applyUpgrades(player, item, upgrades) {
     if(!item || !lib.isPlayer(player) || upgrades.length < 1) return;
     for(var upgrade in upgrades) {
@@ -149,6 +195,11 @@ function applyUpgrades(player, item, upgrades) {
     }
 }
 
+/** Gets available upgrades from quest and player data
+ * @param {IPlayer} player 
+ * @param {IItemLinked} item 
+ * @returns 
+ */
 function getUpgrades(player, item) {
     if(!lib.isPlayer(player) || !item) return;
     var availableUpgrades = [];
@@ -160,6 +211,10 @@ function getUpgrades(player, item) {
     return availableUpgrades;
 }
 
+/** Gets attributes from upgrades used for display
+ * @param {Int[]} questIds 
+ * @returns Object
+ */
 function getUpgradeAttributes(questIds) {
     var upgrades = {};
     for(var quest in scytheData) {
@@ -183,7 +238,7 @@ function getUpgradeAttributes(questIds) {
                 attributeName = "\u00A7eAppearance Level: +";
                 break;
             case "skill.unlock":
-                attributeName = "\u00A72Skill Unlock: +";
+                attributeName = "\u00A72Skill Level: +";
                 break;
             case "skill.damage":
                 attributeName = "\u00A7aSkill Damage: +";
