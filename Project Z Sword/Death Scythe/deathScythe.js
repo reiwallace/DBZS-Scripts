@@ -58,6 +58,7 @@ var quests = {
         "quest_id" : 3253,
         "attribute.main_attack" : 36000,
         "level_req": 3500,
+        "appearance": 1,
         "skill.damage" : 4500000
     },
     quest6: {
@@ -116,22 +117,23 @@ API.addGlobalObject("scytheData", quests);
 */
 var appearanceLevel = [
     level0 = {
-        "item_name" : "Level 0 Scythe",
+        "item_name" : "Haruna",
         "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
-        "lore" : ["not a z sword"]
+        "lore" : ["A weapon given to you from Lord Death. Her name is \"Haruna\".", "It's said her Soul wavelenth was too powerfull for any of the meisters at the acadamy."]
     },
 
     level1 = {
-        "item_name" : "Level 1 Scythe",
+        "item_name" : "Haruna",
         "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
-        "lore" : ["Cool sword init"]
+        "lore" : ["Your trusted weapon, Haruna.", "She grows stronger as you feed her more souls."]
+    },
+    
+    level2 = {
+        "item_name" : "Death Scythe Haruna",
+        "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenDeathScythe.png",
+        "lore" : ["A demon weapon that has finally reached it's pinnacle", "and achived the rank of \"Death scythe\".", "A weapon worthy of being weilded by the Lord of Death himself.", "She is your partner, Death Scythe Haruna."]
     },
 
-    level2 = {
-        "item_name" : "Level 2 Scythe but stronger",
-        "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
-        "lore" : ["Cooler sword init"]
-    },
 ];
 
 var skillData = {
@@ -141,10 +143,25 @@ var skillData = {
 }
 var anim1 = API.getAnimations().get("Dragon_Hunter_Charge");
 var anim2 = API.getAnimations().get("Dragon_Hunter_Attack");
+var combo1Anim = API.getAnimations().get("Scythe_combo_1")
+var combo2Anim = API.getAnimations().get("Scythe_combo_2")
+var combo3Anim = API.getAnimations().get("Scythe_combo_3")
+var combo4Anim = API.getAnimations().get("Scythe_combo_4")
+var combo5Anim = API.getAnimations().get("Scythe_combo_5")
+
+var attackTexture1 = "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenWitchHunterScythe.png"
+var attackTexture2 = "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenDragonHunterScythe.png"
+
+var messageLines = ["a", "b"];
+var messageChance = 0.05
+
+var comboCount = 0
 
 // TIMERS 
 var SKILL_COOLDOWN = 356;
-var SPAM_PREVENTER = 357
+var SPAM_PREVENTER = 357;
+var SKILL_PERFORMING = 358;
+var COMBO_RESET = 359;
 
 // DO NOT EDIT
 var item;
@@ -199,7 +216,49 @@ function tick(event)
 function rightClick(event)
 {
     useSkill(event.player, event.item);
-}   
+}  
+
+function attack(event) {
+    var player = event.getSwingingEntity();
+
+    if(Math.random() < messageChance) player.sendMessage(messageLines[lib.getRandom(0, messageLines.length, true)])
+
+    if(player.timers.has(SKILL_PERFORMING)) return;
+    if(!player.timers.has(COMBO_RESET)){
+        comboCount = 0
+    }
+    var data = player.getAnimationData()
+    data.setEnabled(true)
+    player.timers.forceStart(COMBO_RESET,30,false)
+        
+    switch(comboCount){
+
+        case 0:
+        data.setAnimation(combo1Anim)
+        comboCount += 1
+        break;
+        case 1:
+        data.setAnimation(combo2Anim)
+        comboCount += 1
+        break;
+        case 2:
+        data.setAnimation(combo3Anim)
+        comboCount += 1
+        break;
+        case 3:
+        data.setAnimation(combo4Anim)
+        comboCount += 1
+        break;
+        case 4:
+
+        data.setAnimation(combo5Anim)
+        comboCount = 0
+        break;
+
+    }
+    data.updateClient()
+}
+
 
 /** Swaps item to a functional state based on player data
  * @param {IItemLinked} item 
@@ -367,22 +426,28 @@ function useSkill(player, item)
     }
     player.timers.forceStart(playerSlot + "" + SKILL_COOLDOWN, skillData.cooldown, false);
 
-    performSkill(player, item.getTag("skill_damage"));
+    performSkill(player, item.getTag("skill_damage"),item);
 }
 
 // PLACEHOLDER
-function performSkill(player, skillDamage) {
-    if(player.timers.has(67)) return;
-
+function performSkill(player, skillDamage,item) {
+    
+    player.timers.forceStart(SKILL_PERFORMING,60,false)
+    if(item.getTag("appearance") == 1) item.setTexture(attackTexture2);
+    else item.setTexture(attackTexture1);
+    item.setTranslate(-0.6,0.0,-0.65)
+    item.setScale(4.0,4.0,4.0)
+    item.setColor(player.getDBCPlayer().getAuraColor())
     var am = player.getActionManager()
     var data = player.getAnimationData()
     player.getDBCPlayer().setTurboState(false)
-    
+    player.addPotionEffect(2,3,2,true)
+    player.getWorld().playSoundAtEntity(player,"minecraft_1.20.2:block.beacon.deactivate",1.0,0.8)
     data.setEnabled(true)
     data.setAnimation(anim1)
     data.updateClient()
-    player.timers.forceStart(67,80,false)
-    am.schedule(50,executeAttack).setData("player",player).setData("dmg",skillDamage)
+    am.schedule(50,executeAttack).setData("player",player).setData("item",item).setData("damage",skillDamage)
+    am.schedule(3,returnToNormalState).setData("item",item)
     am.start()
 
 }
@@ -440,25 +505,48 @@ function executeAttack(act){
     var player = act.getData("player")
     var data = player.getAnimationData()
     var vector = player.getLookVector()
+    var attackDmg = act.getData("damage")
+    var item = act.getData("item")
+    if(player.getDBCPlayer().isTurboOn()){
+        player.sendMessage("&cI can't focus on my attack while using ki")
+        act.markDone()
+        return;
+    }
+    if(player.getHeldItem() != act.getData("item")){
+        player.sendMessage("&cI need to use the scythe")
+        act.markDone()
+        return;
+    }
     var perpVector1 = API.getIPos(vector.getZD()*-1,0.0,vector.getXD())
     var perpVector2 = API.getIPos(vector.getZD(),0.0,vector.getXD()*-1)
 
-    var corner1= player.getPosition().add(3*perpVector1.getXD(),vector.getYD(),3*perpVector1.getZD())
-    var corner2 = player.getPosition().add(3.0*vector.getXD()+perpVector2.getXD()*3.0 ,vector.getYD()+1.0,vector.getZD()*3.0 + perpVector2.getZD()*3.0)
+    var length = 3.0 * Math.pow(1.5,item.getTag("appearance"))
+    var width = 3.0 * Math.pow(1.5,item.getTag("appearance"))
 
-    //player.getWorld().spawnParticle("flame",corner1,0.0,0.0,0.0,0.1,20)
-    //player.getWorld().spawnParticle("flame",corner2,0.0,0.0,0.0,0.1,20)
+
+    var corner1= player.getPosition().add(width*perpVector1.getXD(),vector.getYD(),width*perpVector1.getZD())
+    var corner2 = player.getPosition().add(length*vector.getXD()+perpVector2.getXD()*width ,vector.getYD()+1.5,vector.getZD()*length + perpVector2.getZD()*width)
 
     var enemies = createHurtBox(player,corner1,corner2,2)
     if(enemies == null) return;
     for (var i = 0; i< enemies.length;i++){
-        enemies[i].hurt(act.getData("dmg"),player)
+        enemies[i].hurt(attackDmg,player)
     }
-
+    player.getWorld().playSoundAtEntity(player,"jinryuudragonbc:1610.sss",1.0,0.65)
     data.setEnabled(true)
     data.setAnimation(anim2)
     data.updateClient()
     spawnParticles(player)
     act.markDone()
 
+}
+
+function returnToNormalState(act){
+    var item = act.getData("item")
+    var activeAppearance = appearanceLevel[item.getTag("appearance")];
+    setAppearance(item, activeAppearance);
+    item.setTranslate(-0.3, 0.1, -0.4);
+    item.setScale(2.0,2.0,2.0)
+    item.setColor(0xffffff)
+    act.markDone()
 }
