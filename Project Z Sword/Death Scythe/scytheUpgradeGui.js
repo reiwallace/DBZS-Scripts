@@ -27,7 +27,7 @@ var gui = {
             texture: "https://i.ibb.co/ZpSmMVTW/zs-GUI-locked.png"
         },
         text: [
-            "Does this",
+            "Skill Name",
             "CD: 1000000",
             "pree cool"
         ]
@@ -40,7 +40,8 @@ var gui = {
         width: 94,
         height: 102,
         x: 17,
-        y: 62
+        y: 62,
+        dialogId: 12827
     },
     upgradeButton: {
         width: 18,
@@ -74,14 +75,14 @@ function keyPressed(event) {
 
 function customGuiSlotClicked(event) {
     // Stop player from duplicating item
-    if(event.getGui().getID() == gui.mainWindow.id) event.setCancelled(true);
+    if(event.getGui().getID() == event.player.getEntityId()) event.setCancelled(true);
 }
 
 function customGuiButton(event) {
-    var gui = event.getGui();
-    var button = gui.getComponent(event.id);
+    var eventGui = event.getGui();
+    var button = eventGui.getComponent(event.id);
     var player = event.player;
-    if(event.getGui().getID() != gui.mainWindow.id || !lib.isPlayer(player)) return;
+    if(eventGui.getID() != player.getEntityId() || !lib.isPlayer(player)) return;
     if(button.getID() == gui.ids.upgradeButton) {
         // Upgrade sounds
         if(!player.hasTempData("scytheUpgradeFunctions")) return;
@@ -97,7 +98,7 @@ function customGuiButton(event) {
     } else if(button.getID() == gui.ids.goonButton) {
         // Goon Buton
         if(!scytheNpc) return;
-        player.interactWith(scytheNpc);
+        API.executeCommand(player.world, "kam dialog show " + player.getName() + " " + gui.goonButton.dialogId + " Haruna");
         goonSound.setPosition(player.getPosition());
         API.playSound(goonSound);
     }   
@@ -115,7 +116,7 @@ function displayUpgradeMenu(player)
     var upgradeAttributes = getUpgradeAttributes(availableUpgrades);
 
     var menu = API.createCustomGui(
-        gui.mainWindow.id, 
+        player.getEntityId(),
         gui.mainWindow.width, 
         gui.mainWindow.height, 
         false
@@ -154,7 +155,7 @@ function displayUpgradeMenu(player)
         gui.ability.width, 
         gui.ability.height
     );
-    if(upgradeAttributes.indexOf("\u00A72Skill Unlock: +1") != -1 || weapon.getTag("skillUnlocked") == 1) ability.setHoverText(gui.ability.text);
+    if(upgradeAttributes.indexOf("\u00A72Skill Unlock: +1") != -1 || weapon.getTag("skillUnlocked") >= 1) ability.setHoverText(gui.ability.text);
     else menu.addTexturedRect(
         gui.ids.lock, 
         gui.ability.lock.texture, 
