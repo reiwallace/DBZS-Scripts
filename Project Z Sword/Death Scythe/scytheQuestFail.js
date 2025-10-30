@@ -15,16 +15,8 @@ function kills(event) {
     if(!lib.isPlayer(player) || !player.hasActiveQuest(failQuestId) || !entity || entity.getType() != 2 || !entity.hasTempData("soulType")) return;
     switch(entity.getTempData("soulType")) {
         case 1:
+            player.startQuest(3261);
             resetAllScythes(player);
-        break;
-
-        case 2:
-            player.stopQuest(11);
-            player.finishQuest(11);
-        break;
-
-        case 3:
-            // Alternative completion?
         break;
     }
 }
