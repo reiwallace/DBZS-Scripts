@@ -1,7 +1,10 @@
-// scytheQuestFail.js
+/**
+ * @file scytheQuestFile.js
+ * @purpose Reset death scythe when failing final upgrade quest
+ * @author Noxie
+ */
 // PLEASE UPDATE ALL SCRIPTS ON GITHUB IF YOU MAKE ANY CHANGES
 // IF YOU REMOVE ANY GLOBAL SCRIPT PLEASE MARK IT AS 'INACTIVE' ON THE GITHUB
-// AUTHOR: Noxie
 
 var fullPowerQuestId = 3258;
 var failQuestId = 3258;
