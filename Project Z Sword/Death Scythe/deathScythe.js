@@ -117,29 +117,56 @@ API.addGlobalObject("scytheData", quests);
 */
 var appearanceLevel = [
     level0 = {
-        "item_name" : "Haruna",
+        "item_name" : "§r\u00A76§lHaruna",
         "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
-        "lore" : ["A weapon given to you from Lord Death. Her name is \"Haruna\".", "It's said her Soul wavelenth was too powerfull for any of the meisters at the acadamy."]
+        "lore" : [
+            "§r\u00A7e§lA weapon given to you by \u00A74§lLord Death§r\u00A7e§l.",
+            "§r\u00A7e§lHer name is \u00A76§lHaruna§r\u00A7e§l.", 
+            "§r\u00A7e§lIt's said her soul wavelength was too powerful",
+            "§r\u00A7e§lfor any of the meisters at the academy."]
     },
 
     level1 = {
-        "item_name" : "Haruna",
+        "item_name" : "§r\u00A76§lHaruna",
         "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenScythe.png",
-        "lore" : ["Your trusted weapon, Haruna.", "She grows stronger as you feed her more souls."]
+        "lore" : [
+            "§r\u00A7e§lYour trusted weapon, \u00A76§lHaruna§r\u00A7e§l.", 
+            "§r\u00A7e§lShe grows stronger as you feed her more souls."
+        ]
     },
     
     level2 = {
-        "item_name" : "Death Scythe Haruna",
+        "item_name" : "§r\u00A76§lDeath Scythe Haruna",
         "item_texture" : "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenDeathScythe.png",
-        "lore" : ["A demon weapon that has finally reached it's pinnacle", "and achived the rank of \"Death scythe\".", "A weapon worthy of being weilded by the Lord of Death himself.", "She is your partner, Death Scythe Haruna."]
+        "lore" : [
+            "§r\u00A7e§lA demon weapon that has finally reached its pinnacle", 
+            "§r\u00A7e§land achieved the rank of \u00A74§lDeath Scythe§r\u00A7e§l.", 
+            "§r\u00A7e§lA weapon worthy of being wielded by the \u00A74§lLord of Death§r\u00A7e§l himself.", 
+            "§r\u00A7e§lShe is your partner: \u00A76§lDeath Scythe Haruna§r\u00A7e§l."
+        ]
     },
 
 ];
 
 var skillData = {
-    name: "Cool skill",
-    cooldown: 600,  // In Ticks
-    description: ["\u00A7a§lCool Skill:", "\u00A7aDoes a thing a ding that does DAMAGE damage"]
+    "Witch Hunter": {
+        name: "Witch Hunter",
+        cooldown: 600,  // In Ticks
+        description: [" ", 
+            "\u00A75§lNAME:", 
+            "\u00A7dThe traditional skill of the Scythe Meister.", 
+            "\u00A7dDeals DAMAGE damage", 
+            "\u00A7dCooldown: TIMEs"]
+    },
+    "Angel Hunter": {
+        name: "Angel Hunter",
+        cooldown: 600,  // In Ticks
+        description: [" ", 
+            "\u00A7d§ka\u00A7f§lNAME\u00A7d§ka§r:", 
+            "\u00A7dA modified skill of the Scythe Meister. Soul and Ki are imbued together into this attack.", 
+            "\u00A7dDeals DAMAGE damage", 
+            "\u00A7dCooldown: TIMEs"]
+    }
 }
 var anim1 = API.getAnimations().get("Dragon_Hunter_Charge");
 var anim2 = API.getAnimations().get("Dragon_Hunter_Attack");
@@ -152,8 +179,8 @@ var combo5Anim = API.getAnimations().get("Scythe_combo_5")
 var attackTexture1 = "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenWitchHunterScythe.png"
 var attackTexture2 = "https://zsstorage.xyz/GUIs/Haruna%20GUI/HolloweenDragonHunterScythe.png"
 
-var messageLines = ["a", "b"];
-var messageChance = 0.05
+var messageLines = ["Nice one PLAYER", "Let's go!", "This'll show em!", "Take this!", "Ha!"];
+var messageChance = 0.0005
 
 var comboCount = 0
 
@@ -221,7 +248,8 @@ function rightClick(event)
 function attack(event) {
     var player = event.getSwingingEntity();
 
-    if(Math.random() < messageChance) player.sendMessage(messageLines[lib.getRandom(0, messageLines.length, true)])
+    if(Math.random() < messageChance) 
+        player.sendMessage("\u00A76[" + appearanceLevel[event.item.getTag("appearance")].item_name + "§r\u00A76 -> \u00A7cme\u00A76]§r " + messageLines[lib.getRandom(0, messageLines.length - 1, true)].replace("PLAYER", player.getName()))
 
     if(player.timers.has(SKILL_PERFORMING)) return;
     if(!player.timers.has(COMBO_RESET)){
@@ -272,16 +300,18 @@ function updateItem(item)
     var appearance = 0;
     var levelReq = 0;
     var skillDamage = 0;
+    var skillLevel = 0;
     for(var quest in quests) {
         if(item.getTag(quests[quest]["quest_id"]) != 1) continue;
         if(quests[quest]["appearance"]) appearance += quests[quest]["appearance"];
         if(quests[quest]["level_req"]) levelReq += quests[quest]["level_req"];
-        if(quests[quest]["skill.unlock"]) item.setTag("skillUnlocked", 1);
+        if(quests[quest]["skill.unlock"]) skillLevel += quests[quest]["skill.unlock"];
         if(quests[quest]["skill.damage"]) skillDamage += quests[quest]["skill.damage"];
     }
     item.setTag("appearance", appearance);
     item.setTag("power", levelReq);
     item.setTag("skill_damage", skillDamage);
+    item.setTag("skillUnlocked", skillLevel)
 
     var attributes = getAttributes(item);
     applyAttributes(item, attributes);
@@ -299,17 +329,20 @@ function setAppearance(item, appearance)
 {
     if(appearance.item_name) item.setCustomName(appearance.item_name);
     if(appearance.lore) {
-        var lore = [];
+        var lore = ["§r\u00A7eWeapon Rarity: \u00A73Limited"];
         for(var text in appearance.lore) {
             lore.push(appearance.lore[text]);
         }
         if(item.getTag("power") > 0) lore.push("\u00A77\u00A7rLevel Req: " + item.getTag("power"));
-        if(item.getTag("skillUnlocked") == 1) {
+        if(item.getTag("skillUnlocked") >= 1) {
             var skillLore = [];
-            for(var text in skillData.description) {
-                skillLore.push(skillData.description[text]);
+            var skill = skillData[item.getTag("skillUnlocked") == 1 ? "Witch Hunter" : "Angel Hunter"];
+            for(var text in skill.description) {
+                skillLore.push(skill.description[text]);
             }
-            skillLore[1] = skillLore[1].replace("DAMAGE", item.getTag("skill_damage")/1000000 + " Million")
+            skillLore[1] = skillLore[1].replace("NAME", skill.name);
+            skillLore[3] = skillLore[3].replace("DAMAGE", item.getTag("skill_damage")/1000000 + " Million");
+            skillLore[4] = skillLore[4].replace("TIME", skill.cooldown/20);
             lore = lore.concat(skillLore);
         }
         item.setLore(lore);
@@ -409,7 +442,7 @@ function reset(item, player) {
 function useSkill(player, item)
 {
     var playerSlot = lib.getActiveSlotId(player);
-    if(!lib.isPlayer(player) || item.getTag("skillUnlocked") != 1) return;
+    if(!lib.isPlayer(player) || (item.getTag("skillUnlocked") != 1 && item.getTag("skillUnlocked") != 2)) return;
     if(lib.getDbcLevel(player) < item.getTag("power")) {
         player.sendMessage("You are not strong enough to wield this power.");
         return;
@@ -418,22 +451,24 @@ function useSkill(player, item)
     // Check skill cd and send cooldown message
     if(timers.has(playerSlot + "" + SKILL_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(playerSlot + "" + SKILL_COOLDOWN);
-        player.sendMessage("Remaining Cooldown on " + skillData.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        var skill = skillData[item.getTag("skillUnlocked") == 1 ? "Witch Hunter" : "Angel Hunter"];
+        player.sendMessage("Remaining Cooldown on " + skill.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
     } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) {
         return;
     }
-    player.timers.forceStart(playerSlot + "" + SKILL_COOLDOWN, skillData.cooldown, false);
+    var skill = skillData[item.getTag("skillUnlocked") == 1 ? "Witch Hunter" : "Angel Hunter"];
+    player.timers.forceStart(playerSlot + "" + SKILL_COOLDOWN, skill.cooldown, false);
 
     performSkill(player, item.getTag("skill_damage"),item);
 }
 
 // PLACEHOLDER
-function performSkill(player, skillDamage,item) {
+function performSkill(player, skillDamage, item) {
     
     player.timers.forceStart(SKILL_PERFORMING,60,false)
-    if(item.getTag("appearance") == 1) item.setTexture(attackTexture2);
+    if(item.getTag("appearance") == 2) item.setTexture(attackTexture2);
     else item.setTexture(attackTexture1);
     item.setTranslate(-0.6,0.0,-0.65)
     item.setScale(4.0,4.0,4.0)
