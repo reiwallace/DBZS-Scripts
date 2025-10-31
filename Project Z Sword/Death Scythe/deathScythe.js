@@ -242,6 +242,8 @@ function tick(event)
 
 function rightClick(event)
 {
+    var target = event.getTarget()
+    if(event.getType() != 1 || !target || target.getType() != 2 || target.getFaction() == 0) return;
     useSkill(event.player, event.item);
 }  
 
@@ -251,7 +253,7 @@ function attack(event) {
     if(Math.random() < messageChance) 
         player.sendMessage("\u00A76[" + appearanceLevel[event.item.getTag("appearance")].item_name + "§r\u00A76 -> \u00A7cme\u00A76]§r " + messageLines[lib.getRandom(0, messageLines.length - 1, true)].replace("PLAYER", player.getName()))
 
-    if(player.timers.has(SKILL_PERFORMING)) return;
+    if(player.timers.has(SKILL_PERFORMING) || !player.getHeldItem() || player.getHeldItem().getTag("isDeathScythe") != 1) return;
     if(!player.timers.has(COMBO_RESET)){
         comboCount = 0
     }
