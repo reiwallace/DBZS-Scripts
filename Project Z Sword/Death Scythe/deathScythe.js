@@ -242,8 +242,6 @@ function tick(event)
 
 function rightClick(event)
 {
-    var target = event.getTarget()
-    if(event.getType() == 1 && target && target.getType() == 2 && target.getFaction() == 0) return;
     useSkill(event.player, event.item);
 }  
 
