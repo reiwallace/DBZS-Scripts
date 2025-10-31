@@ -14,11 +14,12 @@ var gui = {
         background: "https://i.ibb.co/6RRH4nrC/Death-Scythe-GUI-Base-Filled1.png"
     },
     ability: {
-        width: 18,
-        height: 18,
-        x: 177,
+        width: 20,
+        height: 20,
+        x: 175,
         y: 113,
-        texture: "https://i.ibb.co/wZb8FY0K/zs-GUI-selected.png",
+        witchHunter: "https://i.ibb.co/MDHkJgwS/BUTTON-Ability1.png",
+        angelHunter: "https://i.ibb.co/HDt1Wgp8/BUTTON-Ability2.png",
         lock: {
             x: 162,
             y: 100,
@@ -26,11 +27,24 @@ var gui = {
             height: 46,
             texture: "https://i.ibb.co/ZpSmMVTW/zs-GUI-locked.png"
         },
-        text: [
-            "Skill Name",
-            "CD: 1000000",
-            "pree cool"
-        ]
+        "Witch Hunter": {
+            name: "Witch Hunter",
+            cooldown: 600,  // In Ticks
+            description: [
+                "\u00A75§lNAME:", 
+                "\u00A7dThe traditional skill of the Scythe Meister.", 
+                "\u00A7dDeals DAMAGE damage", 
+                "\u00A7dCooldown: TIMEs"]
+        },
+        "Angel Hunter": {
+            name: "Angel Hunter",
+            cooldown: 600,  // In Ticks
+            description: [
+                "\u00A7d§ka\u00A7f§lNAME\u00A7d§ka§r:", 
+                "\u00A7dA modified skill of the Scythe Meister. Soul and Ki are imbued together into this attack.", 
+                "\u00A7dDeals DAMAGE damage", 
+                "\u00A7dCooldown: TIMEs"]
+        }
     },
     itemSlot: {
         x: 177,
@@ -149,13 +163,30 @@ function displayUpgradeMenu(player)
 
     var ability = menu.addTexturedRect(
         gui.ids.ability, 
-        gui.ability.texture, 
+        (weapon.getTag("skillUnlocked") + (upgradeAttributes.indexOf("\u00A72Skill Level: +1") != -1 ? 1 : upgradeAttributes.indexOf("\u00A72Skill Level: +2") != -1 ? 2 : 0)) <= 1 ? gui.ability.witchHunter : gui.ability.angelHunter, 
         gui.ability.x, 
         gui.ability.y, 
         gui.ability.width, 
         gui.ability.height
     );
-    if(upgradeAttributes.indexOf("\u00A72Skill Unlock: +1") != -1 || weapon.getTag("skillUnlocked") >= 1) ability.setHoverText(gui.ability.text);
+    // Calculate skill description from available upgrades
+    var skillDesc = [];
+    if((upgradeAttributes.indexOf("\u00A72Skill Level: +1") != -1 || upgradeAttributes.indexOf("\u00A72Skill Level: +2") != -1) || weapon.getTag("skillUnlocked") >= 1) {
+        var skill = gui.ability[(weapon.getTag("skillUnlocked") + (upgradeAttributes.indexOf("\u00A72Skill Level: +1") != -1 ? 1 : upgradeAttributes.indexOf("\u00A72Skill Level: +2") != -1 ? 2 : 0)) <= 1 ? "Witch Hunter" : "Angel Hunter"];
+        for(var text in skill.description) {
+            skillDesc.push(skill.description[text]);
+        }
+        var upgradeDamage = 0;
+        for(var upgrade in upgradeAttributes) {
+            if(upgradeAttributes[upgrade].startsWith("\u00A7aSkill Damage: +")) {
+                upgradeDamage = parseInt(upgradeAttributes[upgrade].substring(17), 10);
+            }
+        }
+        skillDesc[0] = skillDesc[0].replace("NAME", skill.name);
+        skillDesc[2] = skillDesc[2].replace("DAMAGE", (weapon.getTag("skill_damage") + upgradeDamage)/1000000 + " Million");
+        skillDesc[3] = skillDesc[3].replace("TIME", skill.cooldown/20);
+        ability.setHoverText(skillDesc)
+    }
     else menu.addTexturedRect(
         gui.ids.lock, 
         gui.ability.lock.texture, 
@@ -174,7 +205,7 @@ function displayUpgradeMenu(player)
         gui.upgradeButton.height, 
         gui.upgradeButton.texture
     );
-    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).concat("\u00A74§l§uALL UPGRADES ARE ONE TIME!"));
+    if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).concat("\u00A74§lALL UPGRADES ARE ONE TIME!"));
     else upgradeButton.setHoverText(["\u00A76§lNo Available Upgrades"]);
 
     player.setTempData("scytheUpgradeFunctions", {apply: applyUpgrades, upgrades: availableUpgrades});
