@@ -93,6 +93,10 @@ var quests = {
         "appearance" : 1,
         "skill.unlock" : 1,
         "skill.damage" : 60000000
+    },
+    secret: {
+        "quest_id" : 3265,
+        "appearance" : 1,
     }
 };
 var fullPowerQuestId = 3258;
@@ -143,6 +147,17 @@ var appearanceLevel = [
             "§r\u00A7e§land achieved the rank of \u00A74§lDeath Scythe§r\u00A7e§l.", 
             "§r\u00A7e§lA weapon worthy of being wielded by the \u00A74§lLord of Death§r\u00A7e§l himself.", 
             "§r\u00A7e§lShe is your partner: \u00A76§lDeath Scythe Haruna§r\u00A7e§l."
+        ]
+    },
+
+    level3 = {
+        "item_name" : "§r\u00A78§lDeath Scythe Haruna",
+        "item_texture" : "https://i.ibb.co/JWH6pvzF/haruna-Dark.png",
+        "lore" : [
+            "§r\u00A77§lA demon weapon that has finally reached its pinnacle", 
+            "§r\u00A77§land achieved the rank of \u00A78§lDeath Scythe§r\u00A77§l.", 
+            "§r\u00A77§lA weapon worthy of being wielded by the \u00A78§lLord of Death§r\u00A77§l himself.", 
+            "§r\u00A77§lShe is your partner: \u00A78§lDeath Scythe Haruna§r\u00A77§l."
         ]
     },
 
@@ -345,6 +360,7 @@ function setAppearance(item, appearance)
             skillLore[4] = skillLore[4].replace("TIME", skill.cooldown/20);
             lore = lore.concat(skillLore);
         }
+        lore = lore.concat([" ", "§r\u00A77[Press 'I' to talk with Haruna]"])
         item.setLore(lore);
     }
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
@@ -464,7 +480,6 @@ function useSkill(player, item)
     performSkill(player, item.getTag("skill_damage"),item);
 }
 
-// PLACEHOLDER
 function performSkill(player, skillDamage, item) {
     
     player.timers.forceStart(SKILL_PERFORMING,60,false)

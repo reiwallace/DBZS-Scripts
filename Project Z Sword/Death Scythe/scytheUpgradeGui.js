@@ -11,21 +11,23 @@ var gui = {
         id: 227,
         width: 240,
         height: 167,
-        background: "https://i.ibb.co/6RRH4nrC/Death-Scythe-GUI-Base-Filled1.png"
+        background: "https://zsstorage.xyz/GUIs/Haruna%20GUI/Haruna_GUI_Base_Filled.png",
+        evilBackground: "https://zsstorage.xyz/GUIs/Haruna%20GUI/evilBackground.png"
     },
     ability: {
         width: 20,
         height: 20,
         x: 175,
         y: 113,
-        witchHunter: "https://i.ibb.co/MDHkJgwS/BUTTON-Ability1.png",
-        angelHunter: "https://i.ibb.co/HDt1Wgp8/BUTTON-Ability2.png",
+        witchHunter: "https://zsstorage.xyz/GUIs/Haruna%20GUI/BUTTON_Ability1.png",
+        angelHunter: "https://zsstorage.xyz/GUIs/Haruna%20GUI/BUTTON_Ability2.png",
+        evil: "https://zsstorage.xyz/GUIs/Haruna%20GUI/abilityEvil.png",
         lock: {
             x: 162,
             y: 100,
             width: 46,
             height: 46,
-            texture: "https://i.ibb.co/ZpSmMVTW/zs-GUI-locked.png"
+            texture: "https://zsstorage.xyz/GUIs/Z_Sword%20GUI/zsGUI%20-%20locked.png"
         },
         "Witch Hunter": {
             name: "Witch Hunter",
@@ -62,7 +64,8 @@ var gui = {
         height: 18,
         x: 128,
         y: 83,
-        texture: "https://i.ibb.co/b5KWtx1w/upgradebutton.png"
+        texture: "https://zsstorage.xyz/GUIs/Haruna%20GUI/BUTTON_Upgrade2.png",
+        evilUpgrade: "https://zsstorage.xyz/GUIs/Haruna%20GUI/evilUpgrade.png"
     },
     ids: {
         itemSlot: 1,
@@ -112,9 +115,14 @@ function customGuiButton(event) {
     } else if(button.getID() == gui.ids.goonButton) {
         // Goon Buton
         if(!scytheNpc) return;
-        API.executeCommand(player.world, "kam dialog show " + player.getName() + " " + gui.goonButton.dialogId + " Haruna");
-        goonSound.setPosition(player.getPosition());
-        API.playSound(goonSound);
+        if(player.getHeldItem() && player.getHeldItem().getTag(3265) == 1) {
+            API.executeCommand(player.world, "kam dialog show " + player.getName() + " " + 12884 + " Haruna");
+            player.addFactionPoints(126, -10000);
+        } else {
+            API.executeCommand(player.world, "kam dialog show " + player.getName() + " " + gui.goonButton.dialogId + " Haruna");
+            goonSound.setPosition(player.getPosition());
+            API.playSound(goonSound);
+        }
     }   
 }
 
@@ -137,7 +145,7 @@ function displayUpgradeMenu(player)
     );
     menu.addTexturedRect(
         0, 
-        gui.mainWindow.background, 
+        weapon.getTag(3265) == 1 ? gui.mainWindow.evilBackground : gui.mainWindow.background, 
         0, 
         0,
         gui.mainWindow.width, 
@@ -163,7 +171,7 @@ function displayUpgradeMenu(player)
 
     var ability = menu.addTexturedRect(
         gui.ids.ability, 
-        (weapon.getTag("skillUnlocked") + (upgradeAttributes.indexOf("\u00A72Skill Level: +1") != -1 ? 1 : upgradeAttributes.indexOf("\u00A72Skill Level: +2") != -1 ? 2 : 0)) <= 1 ? gui.ability.witchHunter : gui.ability.angelHunter, 
+        weapon.getTag(3265) == 1 ? gui.ability.evil : (weapon.getTag("skillUnlocked") + (upgradeAttributes.indexOf("\u00A72Skill Level: +1") != -1 ? 1 : upgradeAttributes.indexOf("\u00A72Skill Level: +2") != -1 ? 2 : 0)) <= 1 ? gui.ability.witchHunter : gui.ability.angelHunter, 
         gui.ability.x, 
         gui.ability.y, 
         gui.ability.width, 
@@ -203,7 +211,7 @@ function displayUpgradeMenu(player)
         gui.upgradeButton.y, 
         gui.upgradeButton.width, 
         gui.upgradeButton.height, 
-        gui.upgradeButton.texture
+        weapon.getTag(3265) == 1 ? gui.upgradeButton.evilUpgrade : gui.upgradeButton.texture
     );
     if(upgradeAttributes.length > 0) upgradeButton.setHoverText(["\u00A76§lClick to Upgrade!", "\u00A76§lAvailable Upgrades: "].concat(upgradeAttributes).concat("\u00A74§lALL UPGRADES ARE ONE TIME!"));
     else upgradeButton.setHoverText(["\u00A76§lNo Available Upgrades"]);
