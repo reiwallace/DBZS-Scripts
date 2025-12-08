@@ -203,11 +203,6 @@ var zSwordFunctions = {
     heavyAttack : doHeavyAttack
 };
 
-// TIMERS 
-var ACTIVE_1_COOLDOWN = 341;
-var ACTIVE_2_COOLDOWN = 342;
-var HEAVY_COOLDOWN = 343;
-
 // CONFIG
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
@@ -245,6 +240,11 @@ slashParticle.setSize(964, 575);
 slashParticle.setMaxAge(60);
 slashParticle.setAlpha(1, 0, 0.5, 6);
 slashParticle.setRotationY(90, 90, 1, 90);
+
+// TIMERS DON'T EDIT
+var ACTIVE_1_COOLDOWN = 341;
+var ACTIVE_2_COOLDOWN = 342;
+var HEAVY_COOLDOWN = 343;
 
 var item;
 
