@@ -242,9 +242,10 @@ slashParticle.setAlpha(1, 0, 0.5, 6);
 slashParticle.setRotationY(90, 90, 1, 90);
 
 // TIMERS DON'T EDIT
-var ACTIVE_1_COOLDOWN = 341;
-var ACTIVE_2_COOLDOWN = 342;
-var HEAVY_COOLDOWN = 343;
+var ACTIVE_1_COOLDOWN = 321;
+var ACTIVE_2_COOLDOWN = 322;
+var HEAVY_COOLDOWN = 323;
+var SPAM_PREVENTER = 357;
 
 var item;
 
@@ -292,6 +293,16 @@ function rightClick(event)
         //doHeavyAttack();
     }
 }   
+
+function attack(event) {
+    var player = event.getSwingingEntity();
+    var item = event.getItem();
+    // Sheathe if attacking with an incompatible weapon
+    if(!lib.isPlayer(player)) return;
+    if(player.getEntityId() != item.getTag("playerId") || !player.hasTempData("zSwordFunctions")) {
+        sheatheWeapon(item);
+    }
+}
 
 /** Sets item to sheathed state
  * @param {IItemLinked} item 
@@ -608,7 +619,7 @@ function addSkillLore(item, oldLore, selectedSkills)
  */
 function findHeavyAttack(heavyId)
 {
-    for(var heavy in heavyAttacks) {
+    for(var heavy in heavyAttacks) {  // EDIT ------------------------------------------------
         if(heavyAttacks[heavy].heavyId == heavyId) return heavyAttacks[heavy];
     }
 }
@@ -630,7 +641,15 @@ function doHeavyAttack(player)
 {
     var playerSlot = lib.getActiveSlotId(player);
     var attack = findHeavyAttack(player.getStoredData(playerSlot + "zSwordHeavy"));
-    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return;
+    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return; // EDIT ------------------------------------------------
+    if(timers.has(playerSlot + "" + HEAVY_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
+        var remainingCooldown = player.timers.ticks(playerSlot + HEAVY_COOLDOWN);
+        player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        timers.forceStart(SPAM_PREVENTER, 10, false);
+        return;
+    } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
+    
+    player.timers.forceStart(HEAVY_COOLDOWN, attack.cooldown, false);
 }
 
 /** Uses active ability in player's first slot
@@ -639,14 +658,16 @@ function doHeavyAttack(player)
 function active(player, activeSlot)
 {
     var playerSlot = lib.getActiveSlotId(player);
+    var timers = player.timers;
     var cooldownTimerId = activeSlot == 1 ? ACTIVE_1_COOLDOWN : ACTIVE_2_COOLDOWN
     var skill = findSkill(player.getStoredData(playerSlot + "zSwordActive" + activeSlot));
     if(!skill.skillName || item.getTag("sheathed") == "true") return;
-    if(player.timers.has(playerSlot + cooldownTimerId)) {
-        var remainingCooldown = player.timers.ticks(playerSlot + cooldownTimerId);
+    if(timers.has(playerSlot + "" + cooldownTimerId) && !timers.has(SPAM_PREVENTER)) {
+        var remainingCooldown = timers.ticks(playerSlot + "" + cooldownTimerId);
         player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
-    }
-    lib.debugMessage("Noxiiie", "Performing skill: " + skill.skillName)
+    } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
+    player.sendMessage("Performing skill: " + skill.skillName);
     player.timers.forceStart(cooldownTimerId, skill.cooldown, false);
 }
