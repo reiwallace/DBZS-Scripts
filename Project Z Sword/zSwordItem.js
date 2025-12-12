@@ -248,6 +248,7 @@ var HEAVY_COOLDOWN = 323;
 var SPAM_PREVENTER = 357;
 
 var item;
+var abilityHandler;
 
 function buildingItem(event)
 {
@@ -670,4 +671,36 @@ function active(player, activeSlot)
     } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
     player.sendMessage("Performing skill: " + skill.skillName);
     player.timers.forceStart(cooldownTimerId, skill.cooldown, false);
+}
+
+function abilityHandler(player) {
+    // Ability setup
+    this.player = player;
+    this.active1 = null;
+    this.active2 = null;
+    this.passive1 = null;
+    this.passive2 = null;
+
+    // Timer config
+    this.ACTIVE_1_COOLDOWN = 321;
+    this.ACTIVE_1_COOLDOWN = 322;
+    this.SPAM_PREVENTER = 324;
+    this.spamCd = 10;
+}
+
+passiveHandler.prototype.abilityActivate = function(activeSlot) {
+    if(!this.player) return;
+    var timers = this.player.timers;
+    var slot = lib.getActiveSlotId(this.player);
+    var cooldownTimerId = activeSlot == 1 ? this.ACTIVE_1_COOLDOWN : this.ACTIVE_2_COOLDOWN;
+
+    if(timers.has(slot + "" + cooldownTimerId + "") && !timers.has(this.SPAM_PREVENTER)) {
+        var remainingCooldown = timers.ticks(slot + "" + cooldownTimerId + "");
+        this.player.sendMessage("Remaining Cooldown on " + skills[this.active1] + " : " + (Math.round(remainingCooldown/2)/10) + seconds);
+        timers.forceStart(this.SPAM_PREVENTER, this.spamCd, false);
+        return;
+    } else if(timers.has(slot + "" + cooldownTimerId) && timers.has(this.SPAM_PREVENTER)) return;
+
+    skills[this.passive1].passive(player, potency, "abilityActivate");
+    skills[this.passive2].passive(player, potency, "abilityActivate");
 }
