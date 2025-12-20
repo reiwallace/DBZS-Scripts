@@ -676,10 +676,11 @@ function active(player, activeSlot)
 function abilityHandler(player) {
     // Ability setup
     this.player = player;
-    this.active1 = null;
-    this.active2 = null;
-    this.passive1 = null;
-    this.passive2 = null;
+    this.slot = lib.getActiveSlotId(this.player);
+    this.active1 = this.player.getStoredData(this.slot + "zSwordActive" + 1);
+    this.active2 = this.player.getStoredData(this.slot + "zSwordActive" + 2);
+    this.passive1 = this.player.getStoredData(this.slot + "zSwordPassive" + 1);
+    this.passive2 = this.player.getStoredData(this.slot + "zSwordPassive" + 2);
 
     // Timer config
     this.ACTIVE_1_COOLDOWN = 321;
@@ -688,10 +689,9 @@ function abilityHandler(player) {
     this.spamCd = 10;
 }
 
-passiveHandler.prototype.abilityActivate = function(activeSlot) {
+abilityHandler.prototype.abilityActivate = function(activeSlot) {
     if(!this.player) return;
     var timers = this.player.timers;
-    var slot = lib.getActiveSlotId(this.player);
     var cooldownTimerId = activeSlot == 1 ? this.ACTIVE_1_COOLDOWN : this.ACTIVE_2_COOLDOWN;
 
     if(timers.has(slot + "" + cooldownTimerId + "") && !timers.has(this.SPAM_PREVENTER)) {
@@ -703,4 +703,8 @@ passiveHandler.prototype.abilityActivate = function(activeSlot) {
 
     skills[this.passive1].passive(player, potency, "abilityActivate");
     skills[this.passive2].passive(player, potency, "abilityActivate");
+}
+
+abilityHandler.prototype.setActive1 = function(ability) {
+    this.active1 = ability;
 }
