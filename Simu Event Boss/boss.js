@@ -22,7 +22,7 @@ function meleeAttack(event) {
     var nearby = npc.getSurroundingEntities(30, 1);
     for(var entity in nearby) {
         entity = nearby[entity];
-        if(!lib.isValidPlayer(entity)) return;
+        if(!lib.isValidPlayer(entity)) continue;
         var dbcEntity = entity.getDBCPlayer();
         dbcEntity.setBody(dbcEntity.getBody() - dbcEntity.getMaxBody() * ((1 - npc.getHealth() / npc.getMaxHealth()) / 8));
     }

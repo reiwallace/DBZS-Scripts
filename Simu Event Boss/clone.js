@@ -7,7 +7,7 @@ function timers(event) {
     var nearby = npc.getSurroundingEntities(6, 1);
     for(var entity in nearby) {
         entity = nearby[entity];
-        if(!lib.isValidPlayer(entity)) return;
+        if(!lib.isValidPlayer(entity)) continue;
         var dbcEntity = entity.getDBCPlayer();
         dbcEntity.setBody(dbcEntity.getMaxBody() - dbcEntity.getMaxBody() * 0.1);
     }
