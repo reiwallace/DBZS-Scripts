@@ -98,6 +98,7 @@ function updatePlayers(activatingPlayer) {
             dbcPlayer.setSkills(skills);
             dbcPlayer.setJRMCSE(effects);
             API.executeCommand(API.getIWorld(0), "/jrmcse set Pain 0.1 " + playerName);
+            API.executeCommand(API.getIWorld(0), "jrmcracialskill set 1 PLAYER".replace("PLAYER", playerName));
 
             if(playerTData.formIsCustom) {
                 dbcPlayer.giveCustomForm(playerTData.form);
