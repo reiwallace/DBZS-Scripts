@@ -190,7 +190,13 @@ var skills = {
         skillName : "Red Skill",
         icon : "https://i.imgur.com/RtJFgtI.png",
         hoverText : "I'm red",
-        cooldown : 200
+        cooldown : 200,
+        active : function() {
+
+        },
+        passive : function() {
+            
+        }
     }
 };
 
@@ -707,4 +713,15 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
 
 abilityHandler.prototype.setActive1 = function(ability) {
     this.active1 = ability;
+}
+
+abilityHandler.prototype.handleEvent = function(eventType) {
+    if(!lib.isPlayer(this.player) || !lib.holdingZSword(player) || this.player.getHeldItem().getTag("sheated") == "true") return;
+    var event = {
+        player : this.player,
+        type : eventType,
+
+    }
+
+
 }
