@@ -707,8 +707,7 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
         return;
     } else if(timers.has(slot + "" + cooldownTimerId) && timers.has(this.SPAM_PREVENTER)) return;
 
-    skills[this.passive1].passive(player, potency, "abilityActivate");
-    skills[this.passive2].passive(player, potency, "abilityActivate");
+    this.handleEvent("abilityActivate")
 }
 
 abilityHandler.prototype.setActive1 = function(ability) {
@@ -720,8 +719,10 @@ abilityHandler.prototype.handleEvent = function(eventType) {
     var event = {
         player : this.player,
         type : eventType,
-
+        zsword : this.player.getHeldItem(),
+        potency: "need to figure ts out"
     }
 
-
+    skills[this.passive1].passive(event)
+    skills[this.passive2].passive(event)
 }
