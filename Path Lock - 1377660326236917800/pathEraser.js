@@ -23,4 +23,5 @@ function pathEraser(player)
         var form = playerForms[i].getName();
         dbcPlayer.removeCustomForm(form);
     }
+    API.executeCommand(player.getWorld(), "dbcskill take OldKaiUnlock " + player.getName());
 }
