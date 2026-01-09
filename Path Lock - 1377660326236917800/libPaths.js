@@ -52,9 +52,9 @@ API.addGlobalObject("libPaths", libPaths);
 
 // EDIT WITH VALID QUEST AND ID
 var libEraserIds = {
-    "quest1" : 7,
-    "quest2" : 8,
-    "quest3" : 9,
+    "Eraser" : 3267,
+    //"quest2" : 8,
+    //"quest3" : 9,
     "PASSFLAG" : false // DO NOT EDIT
 }
 API.addGlobalObject("libEraserIds", libEraserIds);
