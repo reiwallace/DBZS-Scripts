@@ -22,13 +22,13 @@
 */
 var quests = {
     defaultState : defaultState = {
-        "quest_id" : 10,
+        "quest_id" : 3269,
         "attribute.main_attack" : 1,
         "appearance" : 1
     },
 
     quest1 : quest1 = {
-        "quest_id" : 11,
+        "quest_id" : 3270,
         "attribute.main_attack" : 100,
         "attribute.dbc.Constitution.Multi" : 200,
         "slot.active" : 1,
@@ -38,7 +38,7 @@ var quests = {
     },
 
     quest2 : quest2 = {
-        "quest_id" : 12,
+        "quest_id" : 3271,
         "attribute.main_attack" : 200,
         "attribute.critical_chance" : 100,
         "attribute.dbc.Strength" : 2000,
@@ -68,7 +68,7 @@ var quests = {
 var appearanceLevel = [
     level0 = {
         "item_name" : "Sheathed Z Sword",
-        "item_texture" : "https://i.imgur.com/ov14aCX.png",
+        "item_texture" : "https://i.ibb.co/qZBpxx4/ov14a-CX.png",
         "lore" : ["type shi"]
     },
 
@@ -350,28 +350,21 @@ function clearStats(item)
 function removeSheathe(item, player)
 {
     if(!player.hasFinishedQuest(quests.defaultState.quest_id)) return;
+    clearStats(item); // Sanity check
+
     var appearance = 0;
     for(var quest in quests) {
         if(!player.hasFinishedQuest(quests[quest]["quest_id"])) continue;
         if(quests[quest]["appearance"]) appearance += quests[quest]["appearance"];
     }
+    setAppearance(item, appearanceLevel[appearance]);
     item.setTag("appearance", appearance)
-
-    var attributes = getAttributes(player);
-    applyAttributes(item, attributes);
-
-    var activeAppearance = appearanceLevel[appearance];
-    setAppearance(item, activeAppearance);
-    item.setTag("appearance", appearanceLevel);
-
-    var selectedSkills = getSelectedSkills(player);
-    var currentLore = item.getLore();
-    addSkillLore(item, currentLore, selectedSkills);
+    applyAttributes(item, getAttributes(player));
+    addSkillLore(item, item.getLore(), getSelectedSkills(player));
 
     item.setRequirement("cnpc_soulbind", player.getUniqueID());
     item.setTag("sheathed", "false");
     item.setTag("playerId", player.getEntityId())
-
     player.setTempData("zSwordFunctions", zSwordFunctions);
 }
 
@@ -396,10 +389,8 @@ function getAttributes(player)
     for(var quest in quests) {
         quest = quests[quest];
         if(!player.hasFinishedQuest(quest["quest_id"])) continue;
-
         for(var attribute in quest) {
             if(!(attribute.startsWith("attribute") || attribute.startsWith("magic_attribute"))) continue;
-
             if(availableAttributes[attribute]) availableAttributes[attribute] += quest[attribute];
             else availableAttributes[attribute] = quest[attribute];
         }
@@ -436,7 +427,6 @@ function getSkills(player)
     for(var quest in quests) {
         quest = quests[quest];
         if(!player.hasFinishedQuest(quest["quest_id"])) continue;
-
         for(var attribute in quest) {
             if(!attribute.startsWith("skill")) continue;
             var trimmedAttribute = attribute.substring(6);
@@ -453,7 +443,6 @@ function getSkillSlots(player)
     for(var quest in quests) {
         quest = quests[quest];
         if(!player.hasFinishedQuest(quest["quest_id"])) continue;
-
         for(var key in quest) {
             if(key == "slot.active") availableSlots[availableSlots[0] ? 1 : 0] = true;
             else if(key == "slot.passive") availableSlots[availableSlots[2] ? 3 : 2] = true
@@ -706,6 +695,8 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
         timers.forceStart(this.SPAM_PREVENTER, this.spamCd, false);
         return;
     } else if(timers.has(slot + "" + cooldownTimerId) && timers.has(this.SPAM_PREVENTER)) return;
+    this.player.sendMessage("Performing skill: " + skill.skillName);
+    .timers.forceStart(slot + "" + cooldownTimerId + "", skill.cooldown, false);
 
     this.handleEvent("abilityActivate")
 }
