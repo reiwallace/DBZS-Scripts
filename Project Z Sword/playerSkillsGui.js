@@ -1,3 +1,7 @@
+/** playerSkillGui.js
+ *  Handles z sword skill gui
+ */
+
 var highlightOuter = 8385016;
 var highlightInner = 6281182;
 
