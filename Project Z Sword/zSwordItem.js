@@ -100,7 +100,7 @@ var skills = {
     senzuEat : {
         skillId : 3,
         skillName : "Senzu Eat",
-        icon : "https://i.imgur.com/JapNYVe.png",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png",
         hoverText : "Eat a senzu!",
         cooldown : 200
     },
@@ -203,9 +203,7 @@ var skills = {
 var heavyAttacks = {};
 
 var zSwordFunctions = {
-    select : selectSkill,
     displaySkillMenu: displaySkillMenu,
-    active : active,
     heavyAttack : doHeavyAttack
 };
 
@@ -371,6 +369,7 @@ function removeSheathe(item, player)
     item.setTag("sheathed", "false");
     item.setTag("playerId", player.getEntityId())
     player.setTempData("zSwordFunctions", zSwordFunctions);
+    player.setTempData("zAbilityHandler", abilHandler);
 }
 
 /** Sets appearence of item from appearance object
@@ -501,7 +500,7 @@ function displaySkillMenu(player)
             var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
             skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
         }
-        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
+        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]].icon);
         selectedIcons.push(button);
         idIndex++;
     }
@@ -648,7 +647,7 @@ abilityHandler.prototype.setActive2 = function(ability) {
 
 // Event types: abilityActivate, removeSheathe, tick, attack, damaged
 abilityHandler.prototype.handleEvent = function(eventType) {
-    if(!lib.isPlayer(this.player) || !lib.holdingZSword(player) || this.zSword.getTag("sheated") == "true") return;
+    if(!lib.isPlayer(this.player) || !lib.holdingZSword(this.player) || this.zSword.getTag("sheated") == "true") return;
     var event = {
         player : this.player,
         type : eventType,
@@ -656,8 +655,8 @@ abilityHandler.prototype.handleEvent = function(eventType) {
         potency: 1
     }
 
-    this.passive1.passive(event);
-    this.passive2.passive(event);
+    if(this.passive1 in skills && "passive" in this.passive1) this.passive1.passive(event);
+    if(this.passive2 in skills && "passive" in this.passive2) this.passive2.passive(event);
 }
 
 /** Gets weapon skills from player data
@@ -666,11 +665,11 @@ abilityHandler.prototype.handleEvent = function(eventType) {
  */
 abilityHandler.prototype.getSelectedSkills = function() {
     var selected = [];
-    var playerSlot = lib.getActiveSlotId(player);
-    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordActive1")));
-    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordActive2")));
-    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordPassive1")));
-    selected.push(findSkill(player.getStoredData(playerSlot + "zSwordPassive2")));
+    var playerSlot = lib.getActiveSlotId(this.player);
+    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordActive1")));
+    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordActive2")));
+    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordPassive1")));
+    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordPassive2")));
     return selected;
 }
 
@@ -679,7 +678,7 @@ abilityHandler.prototype.getSelectedSkills = function() {
 abilityHandler.prototype.addSkillLore = function() {
     var oldLore = appearanceLevel[this.zSword.getTag("appearance")].lore;
     var lore = [];
-    var selectedSkills = this.getSkills();
+    var selectedSkills = this.getSelectedSkills();
     for(var string in oldLore) {
         lore.push(oldLore[string])
     }

@@ -5,17 +5,46 @@
 var highlightOuter = 8385016;
 var highlightInner = 6281182;
 
-// Keybind checking for keyboard keys
+// Don't edit
+var RESET_TIMER = 329;
+var keyDown = 0;
+var keyUp = 1;
+var successful = 0;
+
 function keyPressed(event) {
-    var key = event.getKey();
+    function findZSwordSlot(player)
+    {
+        var inv = player.getInventory();
+        for (var ite in inv) {
+            var item = inv[ite]
+            if(item && item.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
+                if(item.getLinkedItem().getId() != 29) return;
+                return ite;
+            }
+        }
+    }
+
     var player = event.player;
-    var playerKeybind = player.getStoredData("zSwordGuiKey");
-    var keybind = playerKeybind ? playerKeybind : 49;  
+    if(!event.keyDown()) keyDown = event.getKey();
+    else {
+        keyUp = event.getKey();
+        zSlot = findZSwordSlot(player);
+        if(zSlot && keyUp == keyDown && keyUp == zSlot + 2) {
+            if(successful == 0) {
+                successful +=1
+                player.timers.forceStart(RESET_TIMER, 20, false);
+            } else {
+                if(player.getHeldItem().getTag("sheathed") == "true" || !player.hasTempData("zSwordFunctions")) return;
+                player.getTempData("zSwordFunctions").displaySkillMenu(player);
+            }
+        }
+        keyDown = 0;
+    }
 
-    if(key != keybind || !lib.holdingZSword(player)) return;
-    if(player.getHeldItem().getTag("sheathed") == "true") return;
+}
 
-    player.getTempData("zSwordFunctions").displaySkillMenu(player);
+function timer(event) {
+    if(event.id == RESET_TIMER) successful = 0; 
 }
 
 // Add keybind support for mouse keys
@@ -25,7 +54,7 @@ function mouseClicked(event) {
     var playerKeybind = player.getStoredData("zSwordGuiKey");
 
     if(button + 1000 != playerKeybind || !lib.holdingZSword(player)) return;
-    if(player.getHeldItem().getTag("sheathed") == "true") return;
+    if(player.getHeldItem().getTag("sheathed") == "true" || !player.hasTempData("zSwordFunctions")) return;
 
     player.getTempData("zSwordFunctions").displaySkillMenu(player);
 }
@@ -114,3 +143,8 @@ function removeSelectBox(gui)
         gui.removeComponent(101 + i);
     }
 }
+
+function damaged(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("damaged"); }
+function died(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("died"); }
+function kills(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("kills"); }
+function jump(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("jump"); }
