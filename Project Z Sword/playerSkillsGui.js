@@ -12,6 +12,7 @@ var keyUp = 1;
 var successful = 0;
 
 function keyPressed(event) {
+    // Modified lib function to return z sword slot
     function findZSwordSlot(player)
     {
         var inv = player.getInventory();
@@ -24,6 +25,7 @@ function keyPressed(event) {
         }
     }
 
+    // Checks double clicking slot for menu opening
     var player = event.player;
     if(!event.keyDown()) keyDown = event.getKey();
     else {
@@ -43,20 +45,9 @@ function keyPressed(event) {
 
 }
 
+// Reset double click check after 1 second
 function timer(event) {
     if(event.id == RESET_TIMER) successful = 0; 
-}
-
-// Add keybind support for mouse keys
-function mouseClicked(event) {
-    var button = event.getButton();
-    var player = event.player;
-    var playerKeybind = player.getStoredData("zSwordGuiKey");
-
-    if(button + 1000 != playerKeybind || !lib.holdingZSword(player)) return;
-    if(player.getHeldItem().getTag("sheathed") == "true" || !player.hasTempData("zSwordFunctions")) return;
-
-    player.getTempData("zSwordFunctions").displaySkillMenu(player);
 }
 
 // Handle GUI interactions
@@ -72,7 +63,7 @@ function customGuiButton(event) {
     if(buttonId < 50) {
         try {
             // If another button is clicked
-            if(gui.getComponent(101).getPosX() != button.getPosX() || gui.getComponent(101).getPosY() != button.getPosY()){
+            if(gui.getComponent(101).getPosX() - 1 != button.getPosX() || gui.getComponent(101).getPosY() - 1 != button.getPosY()){
                 removeSelectBox(gui);
                 buildSelectBox(gui, button);
                 player.setTempData("selectedButton", buttonId);
@@ -91,8 +82,7 @@ function customGuiButton(event) {
         // Check if player has a skill selected
         gui.getComponent(101);
         if(buttonId > 54 || !player.getTempData("selectedButton")) return;
-        player.getTempData("zSwordFunctions").select(player, player.getTempData("selectedButton"), buttonId - 50, gui);
-
+        player.getTempData("zAbilityHandler").selectSkill(player.getTempData("selectedButton"), buttonId - 50, gui);
         removeSelectBox(gui);
         player.removeTempData("selectedButton");
         gui.update(player);
@@ -102,7 +92,11 @@ function customGuiButton(event) {
 // Remove selection when closing gui
 function customGuiClosed(event)
 {
-    event.player.removeTempData("selectedButton");
+    if(event.gui.getID() != 301) return;
+    var player = event.player
+    if(player.hasTempData("zAbilityHandler")) 
+        player.getTempData("zAbilityHandler").addSkillLore();
+    player.removeTempData("selectedButton");
 }
 
 /** Builds a selection box out of Ilines
@@ -144,6 +138,7 @@ function removeSelectBox(gui)
     }
 }
 
+function attack(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("attack"); }
 function damaged(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("damaged"); }
 function died(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("died"); }
 function kills(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("kills"); }

@@ -88,113 +88,181 @@ var appearanceLevel = [
 var firstSkillId = 3; 
 var skills = {
     blankSkill : {
+        skillName : "None",
         skillId : 1,
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
     },
 
     lockedSkill : {
+        skillName : "None",
         skillId : 2,
-        icon : "https://i.imgur.com/KiUzxnZ.png"
+        icon : "https://i.ibb.co/vCJJd35f/Ki-Uzxn-Z.png"
     },
 
     senzuEat : {
         skillId : 3,
         skillName : "Senzu Eat",
-        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png",
+        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
         hoverText : "Eat a senzu!",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+            event.player.sendMessage("Wow I just sent this from the active ability!!");
+        },
+        passive : function(event) {
+            
+        }
     },
 
     greenSkill : {
         skillId : 4,
-        skillName : "Green Skill",
-        icon : "https://i.imgur.com/s4mm2hB.png",
+        skillName : "Green Skill1",
+        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
         hoverText : "I'm green",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     pinkSkill : {
         skillId : 5,
         skillName : "Pink Skill",
-        icon : "https://i.imgur.com/M85psrZ.png",
+        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
         hoverText : "I'm pink",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     redSkill : {
         skillId : 6,
         skillName : "Red Skill",
-        icon : "https://i.imgur.com/RtJFgtI.png",
+        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
         hoverText : "I'm red",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     senzuEat2 : {
         skillId : 7,
         skillName : "Senzu Eat",
-        icon : "https://i.imgur.com/JapNYVe.png",
+        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
         hoverText : "Eat a senzu!",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     greenSkill2 : {
         skillId : 8,
-        skillName : "Green Skill",
-        icon : "https://i.imgur.com/s4mm2hB.png",
+        skillName : "Green Skill2",
+        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
         hoverText : "I'm green",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     pinkSkill2 : {
         skillId : 9,
         skillName : "Pink Skill",
-        icon : "https://i.imgur.com/M85psrZ.png",
+        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
         hoverText : "I'm pink",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     redSkill2 : {
         skillId : 10,
         skillName : "Red Skill",
-        icon : "https://i.imgur.com/RtJFgtI.png",
+        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
         hoverText : "I'm red",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     senzuEat3 : {
         skillId : 11,
         skillName : "Senzu Eat",
-        icon : "https://i.imgur.com/JapNYVe.png",
+        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
         hoverText : "Eat a senzu!",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     greenSkill3 : {
         skillId : 12,
-        skillName : "Green Skill",
-        icon : "https://i.imgur.com/s4mm2hB.png",
+        skillName : "Green Skill3",
+        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
         hoverText : "I'm green",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            event.player.sendMessage("Passive Trigger from: " + event.type);
+        }
     },
 
     pinkSkill3 : {
         skillId : 13,
         skillName : "Pink Skill",
-        icon : "https://i.imgur.com/M85psrZ.png",
+        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
         hoverText : "I'm pink",
-        cooldown : 200
+        cooldown : 200,
+        active : function(event) {
+
+        },
+        passive : function(event) {
+            
+        }
     },
 
     redSkill3 : {
         skillId : 14,
         skillName : "Red Skill",
-        icon : "https://i.imgur.com/RtJFgtI.png",
+        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
         hoverText : "I'm red",
         cooldown : 200,
-        active : function() {
+        active : function(event) {
 
         },
-        passive : function() {
+        passive : function(event) {
             
         }
     }
@@ -307,7 +375,7 @@ function attack(event) {
     if(player.getEntityId() != item.getTag("playerId") || !player.hasTempData("zSwordFunctions")) {
         sheatheWeapon(item);
     } else {
-        abilHandler.handleEvent("attack");
+        abilHandler.handleEvent("itemAttack");
     }
 }
 
@@ -370,6 +438,11 @@ function removeSheathe(item, player)
     item.setTag("playerId", player.getEntityId())
     player.setTempData("zSwordFunctions", zSwordFunctions);
     player.setTempData("zAbilityHandler", abilHandler);
+    lib.debugMessage(player.getName(), "Unsheathed");
+    var attribute = getAttributes(player);
+    for(var att in attribute) {
+        lib.debugMessage(player.getName(), att + ": " + attribute[att]);
+    }
 }
 
 /** Sets appearence of item from appearance object
@@ -495,12 +568,12 @@ function displaySkillMenu(player)
     var selectedIcons = [];
     // Button ids 50-54
     for(var i = 0; i < 4; i++) {
-        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = "blankSkill";
+        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
         if(!skillSlots[i]) {
             var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
             skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
         }
-        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, skills[selectedSkills[i]].icon);
+        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
         selectedIcons.push(button);
         idIndex++;
     }
@@ -521,61 +594,6 @@ function findSkill(skillId)
     for(var skill in skills) {
         if(skills[skill].skillId == skillId) return skills[skill];
     }
-}
-
-/** Sets a skill as selected
- * @param {IPlayer} player 
- * @param {Int} skillId 
- * @param {Int} skillSlot 
- */
-function selectSkill(player, skillId, skillSlot, gui)
-{
-    var playerSlot = lib.getActiveSlotId(player);
-    var zSword = lib.holdingZSword(player) ? player.getHeldItem() : item;
-    var selectedSkills = getSelectedSkills(player);
-    var skillIndex = selectedSkills.indexOf(findSkill(skillId));
-    if(skillIndex == skillSlot) return;
-    // Unselect skill if already selected
-    if(skillIndex > -1) {
-        switch(skillIndex) {
-            case(0):
-                player.setStoredData(playerSlot + "zSwordActive1", 1);
-                break;
-            case(1):
-                player.setStoredData(playerSlot + "zSwordActive2", 1);
-                break;
-            case(2):
-                player.setStoredData(playerSlot + "zSwordPassive1", 1);
-                break;
-            case(3):
-                player.setStoredData(playerSlot + "zSwordPassive2", 1);
-                break;
-        }
-        gui.getComponent(selectedSkills.indexOf(findSkill(skillId)) + 50).setTexture(skills.blankSkill.icon);
-        gui.update(player);
-    } 
-
-    switch(skillSlot) {
-        case(0):
-            player.setStoredData(playerSlot + "zSwordActive1", skillId);
-            break;
-        case(1):
-            player.setStoredData(playerSlot + "zSwordActive2", skillId);
-            break;
-        case(2):
-            player.setStoredData(playerSlot + "zSwordPassive1", skillId);
-            break;
-        case(3):
-            player.setStoredData(playerSlot + "zSwordPassive2", skillId);
-            break;
-    }
-
-    gui.getComponent(skillSlot + 50).setTexture(findSkill(skillId).icon);
-    gui.update(player);
-
-    var newSelected = getSelectedSkills(player);
-    var oldLore = appearanceLevel[zSword.getTag("appearance")].lore;
-    addSkillLore(zSword, oldLore, newSelected);
 }
 
 // function active(player, activeSlot)
@@ -618,45 +636,63 @@ function abilityHandler(player, item) {
 abilityHandler.prototype.abilityActivate = function(activeSlot) {
     if(!this.player) return;
     var timers = this.player.timers;
+    // Get timer based on slot and active
     var cooldownTimerId = activeSlot == 1 ? this.ACTIVE_1_COOLDOWN : this.ACTIVE_2_COOLDOWN;
     var compoundTimerId = this.slot + "" + cooldownTimerId + "";
     var skill = activeSlot == 1 ? this.active1 : this.active2;
-    if(!skill in skills || item.getTag("sheathed") == "true") return;
+    if(!skill || item.getTag("sheathed") == "true") return;
 
     if(timers.has(compoundTimerId) && !timers.has(this.SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(compoundTimerId);
-        this.player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + seconds);
+        this.player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(this.SPAM_PREVENTER, this.spamCd, false);
         return;
     } else if(timers.has(compoundTimerId) && timers.has(this.SPAM_PREVENTER)) return;
+    
     this.player.sendMessage("Performing skill: " + skill.skillName);
     timers.forceStart(compoundTimerId, skill.cooldown, false);
 
-    this.handleEvent("abilityActivate");
+    this.handleEvent("abilityActivate" + activeSlot);
 }
 
-abilityHandler.prototype.setActive1 = function(ability) {
-    if(!ability in skills) return;
-    this.active1 = ability;
-}
-
-abilityHandler.prototype.setActive2 = function(ability) {
-    if(!ability in skills) return;
-    this.active2 = ability;
-}
-
-// Event types: abilityActivate, removeSheathe, tick, attack, damaged
+// Event types: abilityActivate1, abilityActive2, removeSheathe, tick, attack, itemAttack, damaged
 abilityHandler.prototype.handleEvent = function(eventType) {
-    if(!lib.isPlayer(this.player) || !lib.holdingZSword(this.player) || this.zSword.getTag("sheated") == "true") return;
+    if(!lib.isPlayer(this.player) || this.zSword.getTag("sheated") == "true") return;
+    this.zSword = lib.findZSword(this.player);
+    if(!this.zSword) return;
     var event = {
         player : this.player,
         type : eventType,
-        zsword : this.player.getHeldItem(),
-        potency: 1
+        zsword : this.zSword,
+        potency: 1.5,
+        slot: null
     }
 
-    if(this.passive1 in skills && "passive" in this.passive1) this.passive1.passive(event);
-    if(this.passive2 in skills && "passive" in this.passive2) this.passive2.passive(event);
+    // Trigger passives and actives
+    if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
+        event.slot = "active1"
+        this.active1.active(event);
+    }
+    if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
+        event.slot = "active2"
+        this.active2.active(event);
+    }
+    if(this.active1 && "passive" in this.active1) {
+        event.slot = "active1"
+        this.active1.passive(event);
+    }
+    if(this.active2 && "passive" in this.active2) {
+        event.slot = "active2"
+        this.active2.passive(event);
+    }
+    if(this.passive1 && "passive" in this.passive1) {
+        event.slot = "passive1"
+        this.passive1.passive(event);
+    }
+    if(this.passive2 && "passive" in this.passive2) {
+        event.slot = "passive2"
+        this.passive2.passive(event);
+    }
 }
 
 /** Gets weapon skills from player data
@@ -664,13 +700,7 @@ abilityHandler.prototype.handleEvent = function(eventType) {
  * @returns all available skills for player's current progression
  */
 abilityHandler.prototype.getSelectedSkills = function() {
-    var selected = [];
-    var playerSlot = lib.getActiveSlotId(this.player);
-    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordActive1")));
-    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordActive2")));
-    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordPassive1")));
-    selected.push(findSkill(this.player.getStoredData(playerSlot + "zSwordPassive2")));
-    return selected;
+    return [this.active1, this.active2, this.passive1, this.passive2];
 }
 
 /** Adds currently selected skills to item lore
@@ -683,14 +713,77 @@ abilityHandler.prototype.addSkillLore = function() {
         lore.push(oldLore[string])
     }
     if((selectedSkills[0] && selectedSkills[0].skillId >= firstSkillId) || (selectedSkills[1] && selectedSkills[1].skillId >= firstSkillId)) {
-        lore.push(activeLore + (selectedSkills[0].skillName ? selectedSkills[0].skillName + ", " : "None, ") + (selectedSkills[1].skillName ? selectedSkills[1].skillName : "None"));
+        lore.push(activeLore + (selectedSkills[0] ? selectedSkills[0].skillName + ", " : "None, ") + (selectedSkills[1] ? selectedSkills[1].skillName : "None"));
+        
     }
     if((selectedSkills[2] && selectedSkills[2].skillId >= firstSkillId) || (selectedSkills[3] && selectedSkills[3].skillId >= firstSkillId)) { 
-        lore.push(passiveLore + (selectedSkills[2].skillName ? selectedSkills[2].skillName + ", " : "None, ") + (selectedSkills[3].skillName ? selectedSkills[3].skillName : "None"));
+        lore.push(passiveLore + (selectedSkills[2] ? selectedSkills[2].skillName + ", " : "None, ") + (selectedSkills[3] ? selectedSkills[3].skillName : "None"));
     }
-    this.zSword.setLore(lore);
+    for(var l in lore) {
+        lib.debugMessage(this.player.getName(), lore[l])
+    }
+    lib.findZSword(this.player).setLore(lore);
 }
 
+/** Sets a skill as selected
+ * @param {IPlayer} player 
+ * @param {Int} skillId 
+ * @param {Int} skillSlot 
+ */
+abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
+    var selectedSkills = this.getSelectedSkills();
+    var skillIndex = selectedSkills.indexOf(findSkill(skillId));
+    if(skillIndex == skillSlot) return;
+    // Unselect skill if already selected
+    if(skillIndex > -1) {
+        switch(skillIndex) {
+            case(0):
+                this.player.setStoredData(this.slot + "zSwordActive1", 1);
+                this.active1 = null;
+                break;
+            case(1):
+                this.player.setStoredData(this.slot + "zSwordActive2", 1);
+                this.active2 = null;
+                break;
+            case(2):
+                this.player.setStoredData(this.slot + "zSwordPassive1", 1);
+                this.passive1 = null;
+                break;
+            case(3):
+                this.player.setStoredData(this.slot + "zSwordPassive2", 1);
+                this.passive2 = null;
+                break;
+        }
+        gui.getComponent(selectedSkills.indexOf(findSkill(skillId)) + 50).setTexture(skills.blankSkill.icon);
+        gui.update(this.player);
+    } 
+
+    switch(skillSlot) {
+        case(0):
+            this.player.setStoredData(this.slot + "zSwordActive1", skillId);
+            this.active1 = findSkill(skillId);
+            break;
+        case(1):
+            this.player.setStoredData(this.slot + "zSwordActive2", skillId);
+            this.active2 = findSkill(skillId);
+            break;
+        case(2):
+            this.player.setStoredData(this.slot + "zSwordPassive1", skillId);
+            this.passive1 = findSkill(skillId);
+            break;
+        case(3):
+            this.player.setStoredData(this.slot + "zSwordPassive2", skillId);
+            this.passive2 = findSkill(skillId);
+            break;
+    }
+    
+    gui.getComponent(skillSlot + 50).setTexture(findSkill(skillId).icon);
+    gui.update(this.player);
+
+    lib.debugMessage(this.player.getName(), "Writing Lore")
+    this.addSkillLore();
+    lib.debugMessage(this.player.getName(), "Lore Written")
+}
 
 
 /** Finds heavy attack from id

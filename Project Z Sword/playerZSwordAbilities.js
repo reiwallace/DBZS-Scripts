@@ -11,8 +11,8 @@ function keyPressed(event) {
     var activeSlot = active1Keybind == key ? 1 : active2Keybind == key ? 2 : null;
 
     if((key == active1Keybind || key == active2Keybind) && lib.holdingZSword(player)) {
-        if(player.getHeldItem().getTag("sheathed") == "true") return;
-        player.getTempData("zSwordFunctions").active(player, activeSlot);
+        if(player.getHeldItem().getTag("sheathed") == "true" || !player.hasTempData("zAbilityHandler")) return;
+        player.getTempData("zAbilityHandler").abilityActivate(activeSlot);
     }
 }
 
