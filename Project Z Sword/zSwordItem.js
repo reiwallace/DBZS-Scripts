@@ -812,6 +812,64 @@ function doHeavyAttack(player)
     player.timers.forceStart(HEAVY_COOLDOWN, attack.cooldown, false);
 }
 
+/** Displays a skill selection window to the player
+ * @param {IPlayer} player 
+ */
+function displayHeavyMenu(player)
+{
+    if(item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
+    var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth + tabWidth, skillWindowHeight, false);
+    var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
+
+    var skillPosX = skillPosInitialX;
+    var skillPosY = skillPosInitialY;
+    var unlockedSkills = getSkills(player);
+    var skillIcons = [];
+    // Button ids 1-skills_length
+    for(var skill in skills) {
+        if(skills[skill].skillId < firstSkillId) continue;
+
+        if(unlockedSkills.indexOf(skills[skill]) < 0) {
+            var button = skillWindow.addTexturedRect(skills[skill].skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
+        } else {
+            var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
+            if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
+        }
+
+        skillIcons.push(button);
+        
+        // Handle Icon spacing
+        skillPosX += skillIconSpacingX;
+        if(skillPosX >= skillPosInitialX + skillIconSpacingX * 4) {
+            skillPosX = skillPosInitialX;
+            skillPosY += skillIconSpacingY;
+        }
+    }
+
+    var idIndex = 50;
+    var selectedSkills = abilHandler.getSelectedSkills();
+    var skillSlots = getSkillSlots(player);
+    var selectedIcons = [];
+    // Button ids 50-54
+    for(var i = 0; i < 4; i++) {
+        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
+        if(!skillSlots[i]) {
+            var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
+            skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
+        }
+        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
+        selectedIcons.push(button);
+        idIndex++;
+    }
+
+    // Tabs
+    var heavyTab = skillWindow.addTexturedButton(61, "", skillWindowWidth, tabPosY, tabWidth, tabHeight, tabTexture);
+    var keybindTab = skillWindow.addTexturedButton(62, "", skillWindowWidth, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
+
+    player.showCustomGui(skillWindow);
+}
+
+// For lore display
 var keys = {
     "0" : "NONE",
     "1" : "ESCAPE",
