@@ -34,7 +34,9 @@ var quests = {
         "slot.active" : 1,
         "slot.passive" : 1,
         "skill.pinkSkill2" : 1,
-        "skill.redSkill" : 1
+        "skill.redSkill" : 1,
+        "unlock.heavy" : 1,
+        "heavy.slap" : 1
     },
 
     quest2 : quest2 = {
@@ -268,19 +270,45 @@ var skills = {
     }
 };
 
-var heavyAttacks = {};
+var heavyAttacks = {
+    blankHeavy : {
+        heavyName : "None",
+        heavyId : 1,
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
+    },
+
+    lockedHeavy : {
+        heavyName : "None",
+        heavyId : 2,
+        icon : "https://i.ibb.co/vCJJd35f/Ki-Uzxn-Z.png"
+    },
+
+    slap : {
+        heavyName : "Slap",
+        heavyId : 3,
+        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        hoverText : "I'm pink",
+        cooldown : 200,
+        active : function(event) {
+            event.player.world.explode(event.player.getPosition(), 5, false, false);
+        },
+    }
+};
 
 var zSwordFunctions = {
     displaySkillMenu: displaySkillMenu,
+    displayHeavyMenu: displayHeavyMenu,
+    selectHeavyAttack: selectHeavyAttack,
     heavyAttack : doHeavyAttack
 };
 
 // CONFIG
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
-var skillWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordAbilityMenu.png";
-var skillWindowHeight = 167;
-var skillWindowWidth = 240;
+var skillWindowBgTexture = "https://i.ibb.co/rKtdZR6h/zs-GUI2-box4.png";
+var heavyWindowBgTexture = "https://i.ibb.co/vvPCSrdv/zs-GUI2-box5.png";
+var skillWindowHeight = 171;
+var skillWindowWidth = 243;
 
 var skillIconWidth = 24;
 var skillIconHeight = 24;
@@ -291,8 +319,10 @@ var skillIconSpacingY = 30.4;
 
 var selectedLockTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordLockedIcon.png";
 var selectedLockSize = 46;
-var selectedPosX = [153, 200, 153, 200];
-var selectedPosY = [33, 33, 112, 112];
+var selectedPosX = [154, 201, 154, 201];
+var selectedPosY = [35, 35, 114, 114];
+var heavySelectedX = 177
+var heavySelectedY = 36
 
 var tabWidth = 12;
 var tabHeight = 44;
@@ -362,8 +392,8 @@ function rightClick(event)
     }
 
     if(item.getTag("sheathed") == "false") {
+        doHeavyAttack(player);
         
-        //doHeavyAttack();
     }
 }   
 
@@ -564,7 +594,6 @@ function displaySkillMenu(player)
     var idIndex = 50;
     var selectedSkills = abilHandler.getSelectedSkills();
     var skillSlots = getSkillSlots(player);
-    var selectedIcons = [];
     // Button ids 50-54
     for(var i = 0; i < 4; i++) {
         if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
@@ -573,13 +602,12 @@ function displaySkillMenu(player)
             skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
         }
         else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
-        selectedIcons.push(button);
         idIndex++;
     }
 
     // Tabs
-    var heavyTab = skillWindow.addTexturedButton(61, "", skillWindowWidth, tabPosY, tabWidth, tabHeight, tabTexture);
-    var keybindTab = skillWindow.addTexturedButton(62, "", skillWindowWidth, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
+    var heavyTab = skillWindow.addTexturedButton(62, "", skillWindowWidth - 2, tabPosY, tabWidth, tabHeight, tabTexture);
+    //var keybindTab = skillWindow.addTexturedButton(63, "", skillWindowWidth - 2, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
 
     player.showCustomGui(skillWindow);
 }
@@ -622,11 +650,11 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
     var cooldownTimerId = activeSlot == 1 ? this.ACTIVE_1_COOLDOWN : this.ACTIVE_2_COOLDOWN;
     var compoundTimerId = this.slot + "" + cooldownTimerId + "";
     var skill = activeSlot == 1 ? this.active1 : this.active2;
-    if(!skill || item.getTag("sheathed") == "true") return;
+    if(!skill || item.getTag("sheathed") == "true" || !lib.holdingZSword(this.player)) return;
 
     if(timers.has(compoundTimerId) && !timers.has(this.SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(compoundTimerId);
-        this.player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        this.player.sendMessage("Remaining Cooldown on Skill: " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(this.SPAM_PREVENTER, this.spamCd, false);
         return;
     } else if(timers.has(compoundTimerId) && timers.has(this.SPAM_PREVENTER)) return;
@@ -637,7 +665,7 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
     this.handleEvent("abilityActivate" + activeSlot);
 }
 
-// Event types: abilityActivate1, abilityActive2, removeSheathe, tick, attack, itemAttack, damaged
+// Event types: abilityActivate1, abilityActive2, heavyActivate, removeSheathe, tick, attack, itemAttack, damaged
 abilityHandler.prototype.handleEvent = function(eventType) {
     if(!lib.isPlayer(this.player) || this.zSword.getTag("sheated") == "true" || !lib.hasZSword(this.player)) return;
     this.zSword = lib.findZSword(this.player);
@@ -651,6 +679,9 @@ abilityHandler.prototype.handleEvent = function(eventType) {
     }
 
     // Trigger passives and actives
+    if(eventType == "heavyActivate" && getSelectedHeavy(this.player)) {
+        getSelectedHeavy(this.player).active(event);
+    }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
         this.active1.active(event);
@@ -772,6 +803,16 @@ abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
     this.addSkillLore();
 }
 
+function hasUnlockedHeavies(player) {
+    for(var quest in quests) {
+        quest = quests[quest];
+        if(!player.hasFinishedQuest(quest["quest_id"])) continue;
+        for(var attribute in quest) {
+            if(attribute == "unlock.heavy") return true
+        }
+    }
+    return false;
+}
 
 /** Finds heavy attack from id
  * @param {Int} heavyId 
@@ -784,14 +825,38 @@ function findHeavyAttack(heavyId)
     }
 }
 
+
+function getHeavies(player)
+{
+    var availableHeavies = [];
+    for(var quest in quests) {
+        quest = quests[quest];
+        if(!player.hasFinishedQuest(quest["quest_id"])) continue;
+        for(var attribute in quest) {
+            if(!attribute.startsWith("heavy")) continue;
+            var trimmedAttribute = attribute.substring(6);
+            // Add level to skill if skill already attributed else add skill at base level
+            if(availableHeavies.indexOf(trimmedAttribute) < 0) availableHeavies.push(heavyAttacks[trimmedAttribute]);
+        }
+    }
+    return availableHeavies;
+}
+
 /** Sets a heavy attack as selected
  * @param {IPlayer} player 
  * @param {Int} heavyId 
  */
-function selectHeavyAttack(player, heavyId)
+function selectHeavyAttack(player, heavyId, gui)
 {
     var playerSlot = lib.getActiveSlotId(player);
     player.setStoredData(playerSlot + "zSwordHeavy", heavyId);
+
+    gui.getComponent(50).setTexture(findHeavyAttack(heavyId).icon);
+    gui.update(player);
+}
+
+function getSelectedHeavy(player) {
+    return findHeavyAttack(player.getStoredData(lib.getActiveSlotId(player) + "zSwordHeavy"));
 }
 
 /** Executes a heavy attack from the player's selected heavy attack
@@ -799,17 +864,22 @@ function selectHeavyAttack(player, heavyId)
  */
 function doHeavyAttack(player)
 {
+    var timers = player.timers;
     var playerSlot = lib.getActiveSlotId(player);
-    var attack = findHeavyAttack(player.getStoredData(playerSlot + "zSwordHeavy"));
-    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return; // EDIT ------------------------------------------------
+    var attack = getSelectedHeavy(player);
+    if(!lib.holdingZSword(player)) return;
+    var item = player.getHeldItem();
+    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return;
     if(timers.has(playerSlot + "" + HEAVY_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
-        var remainingCooldown = player.timers.ticks(playerSlot + HEAVY_COOLDOWN);
-        player.sendMessage("Remaining Cooldown on " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        var remainingCooldown = timers.ticks(playerSlot + "" + HEAVY_COOLDOWN);
+        player.sendMessage("Remaining Cooldown on Heavy Attack: " + attack.heavyName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
-    } else if(timers.has(playerSlot + "" +  SKILL_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
-    
-    player.timers.forceStart(HEAVY_COOLDOWN, attack.cooldown, false);
+    } else if(timers.has(playerSlot + "" +  HEAVY_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
+
+    player.sendMessage("Performing heavy attack: " + attack.heavyName);
+    abilHandler.handleEvent("heavyActivate");
+    timers.forceStart(playerSlot + "" + HEAVY_COOLDOWN, attack.cooldown, false);
 }
 
 /** Displays a skill selection window to the player
@@ -818,22 +888,21 @@ function doHeavyAttack(player)
 function displayHeavyMenu(player)
 {
     if(item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
-    var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth + tabWidth, skillWindowHeight, false);
-    var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
-
+    var heavyWindow = API.createCustomGui(SKILL_WINDOW_ID + 1, skillWindowWidth + tabWidth, skillWindowHeight, false);
+    var heavyWindowBg = heavyWindow.addTexturedRect(0, heavyWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
     var skillPosX = skillPosInitialX;
     var skillPosY = skillPosInitialY;
-    var unlockedSkills = getSkills(player);
+    var unlockedHeavies = getHeavies(player);
     var skillIcons = [];
     // Button ids 1-skills_length
-    for(var skill in skills) {
-        if(skills[skill].skillId < firstSkillId) continue;
+    for(var heavy in heavyAttacks) {
+        if(heavyAttacks[heavy].heavyId < firstSkillId) continue;
 
-        if(unlockedSkills.indexOf(skills[skill]) < 0) {
-            var button = skillWindow.addTexturedRect(skills[skill].skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
+        if(unlockedHeavies.indexOf(heavyAttacks[heavy]) < 0) {
+            var button = heavyWindow.addTexturedRect(heavyAttacks[heavy].heavyId, heavyAttacks.lockedHeavy.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
         } else {
-            var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
-            if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
+            var button = heavyWindow.addTexturedButton(heavyAttacks[heavy].heavyId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, heavyAttacks[heavy].icon);
+            if(heavyAttacks[heavy].hoverText) button.setHoverText(heavyAttacks[heavy].hoverText);
         }
 
         skillIcons.push(button);
@@ -845,28 +914,21 @@ function displayHeavyMenu(player)
             skillPosY += skillIconSpacingY;
         }
     }
-
     var idIndex = 50;
-    var selectedSkills = abilHandler.getSelectedSkills();
-    var skillSlots = getSkillSlots(player);
-    var selectedIcons = [];
+    var selectedHeavy = getSelectedHeavy(player);
     // Button ids 50-54
-    for(var i = 0; i < 4; i++) {
-        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
-        if(!skillSlots[i]) {
-            var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
-            skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
-        }
-        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
-        selectedIcons.push(button);
-        idIndex++;
+    if(!selectedHeavy || selectedHeavy == "") selectedHeavy = heavyAttacks.blankHeavy;
+    if(!hasUnlockedHeavies(player)) {
+        var button = heavyWindow.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, skillIconWidth, skillIconHeight);
+        skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - skillIconWidth)/2, heavySelectedY - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
     }
+    else var button = heavyWindow.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, skillIconWidth, skillIconHeight, selectedHeavy.icon);
 
     // Tabs
-    var heavyTab = skillWindow.addTexturedButton(61, "", skillWindowWidth, tabPosY, tabWidth, tabHeight, tabTexture);
-    var keybindTab = skillWindow.addTexturedButton(62, "", skillWindowWidth, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
+    var skillsTab = heavyWindow.addTexturedButton(61, "", skillWindowWidth - 2, tabPosY, tabWidth, tabHeight, tabTexture);
+    //var keybindTab = heavyWindow.addTexturedButton(63, "", skillWindowWidth - 2, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
 
-    player.showCustomGui(skillWindow);
+    player.showCustomGui(heavyWindow);
 }
 
 // For lore display

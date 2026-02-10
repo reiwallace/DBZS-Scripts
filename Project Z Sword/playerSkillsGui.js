@@ -53,7 +53,7 @@ function timer(event) {
 // Handle GUI interactions
 function customGuiButton(event) {
     var gui = event.gui;
-    if(gui.getID() != 301) return;
+    if(gui.getID() != 301 && gui.getID() != 302) return;
 
     var buttonId = event.id;
     var player = event.player;
@@ -76,13 +76,24 @@ function customGuiButton(event) {
         }
         gui.update(player);
         return;
-    } 
+    } else if(buttonId == 61) {
+        player.closeGui();
+        if(!player.hasTempData("zSwordFunctions")) return;
+        player.getTempData("zSwordFunctions").displaySkillMenu(player);
+    } else if(buttonId == 62) {
+        player.closeGui();
+        if(!player.hasTempData("zSwordFunctions")) return;
+        player.getTempData("zSwordFunctions").displayHeavyMenu(player);
+    }
 
     try {
         // Check if player has a skill selected
         gui.getComponent(101);
         if(buttonId > 54 || !player.getTempData("selectedButton")) return;
-        player.getTempData("zAbilityHandler").selectSkill(player.getTempData("selectedButton"), buttonId - 50, gui);
+        if(gui.getID() == 301)
+            player.getTempData("zAbilityHandler").selectSkill(player.getTempData("selectedButton"), buttonId - 50, gui);
+        else if(gui.getID() == 302)
+            player.getTempData("zSwordFunctions").selectHeavyAttack(player, player.getTempData("selectedButton"), gui);
         removeSelectBox(gui);
         player.removeTempData("selectedButton");
         gui.update(player);
