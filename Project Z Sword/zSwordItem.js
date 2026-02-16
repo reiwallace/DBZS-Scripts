@@ -105,10 +105,12 @@ var skills = {
         skillId : 3,
         skillName : "&2Senzu Eat&r&f",
         icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
         active : function(event) {
             event.player.sendMessage("Wow I just sent this from the active ability!!");
+            event.player.sendMessage("Is this skill super? " + event.super);
         },
         passive : function(event) {
             
@@ -119,6 +121,7 @@ var skills = {
         skillId : 4,
         skillName : "&aGreen Skill1&r&f",
         icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
+        upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
         active : function(event) {
@@ -133,6 +136,7 @@ var skills = {
         skillId : 5,
         skillName : "&dPink Skill&r&f",
         icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
         active : function(event) {
@@ -147,6 +151,7 @@ var skills = {
         skillId : 6,
         skillName : "&4&lRed &4&mSkill&r&f",
         icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
         active : function(event) {
@@ -161,6 +166,7 @@ var skills = {
         skillId : 7,
         skillName : "&2Senzu Eat&r&f",
         icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
         active : function(event) {
@@ -175,6 +181,7 @@ var skills = {
         skillId : 8,
         skillName : "&aGreen Skill2&r&f",
         icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
+        upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
         active : function(event) {
@@ -189,6 +196,7 @@ var skills = {
         skillId : 9,
         skillName : "&dPink Skill&r&f",
         icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
         active : function(event) {
@@ -203,6 +211,7 @@ var skills = {
         skillId : 10,
         skillName : "&4&lRed &4&mSkill&r&f",
         icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
         active : function(event) {
@@ -217,6 +226,7 @@ var skills = {
         skillId : 11,
         skillName : "&2Senzu Eat&r&f",
         icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
         active : function(event) {
@@ -231,6 +241,7 @@ var skills = {
         skillId : 12,
         skillName : "&aGreen Skill3&r&f",
         icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
+        upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
         active : function(event) {
@@ -245,6 +256,7 @@ var skills = {
         skillId : 13,
         skillName : "&dPink Skill&r&f",
         icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
         active : function(event) {
@@ -259,6 +271,7 @@ var skills = {
         skillId : 14,
         skillName : "&4&lRed &4&mSkill&r&f",
         icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
         active : function(event) {
@@ -287,10 +300,12 @@ var heavyAttacks = {
         heavyName : "Slap",
         heavyId : 3,
         icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
         active : function(event) {
             event.player.world.explode(event.player.getPosition(), 5, false, false);
+            event.player.sendMessage("Is this heavy super? " + event.super);
         },
     }
 };
@@ -300,6 +315,7 @@ var zSwordFunctions = {
     displayHeavyMenu: displayHeavyMenu,
     selectHeavyAttack: selectHeavyAttack,
     heavyAttack : doHeavyAttack
+    //upgrade: upgrade
 };
 
 // CONFIG
@@ -470,7 +486,7 @@ function removeSheathe(item, player)
 
     item.setTag("playerId", player.getEntityId())
     player.setTempData("zSwordFunctions", zSwordFunctions);
-    player.setTempData("zAbilityHandler", abilHandler);
+    player.setTempData("zAbilityHandler", abilHandler);  
     var attribute = getAttributes(player);
 }
 
@@ -522,6 +538,71 @@ function applyAttributes(item, attributes)
         }
     }
 }
+
+/** Finds previously upgraded Heavies
+ * @param {IPlayer} player 
+ * @param {Int} type - 0: ability, 1: heavy
+ */
+function findUpgrades(player, type) {
+    if(!lib.isPlayer(player) || (type == 0 ? player.hasStoredData(lib.getActiveSlotId(player) + "zSwordSkillUpgrade") : player.hasStoredData(lib.getActiveSlotId(player) + "zSwordHeavyUpgrade"))) return false;
+    var playerSlot = lib.getActiveSlotId(player);
+    var upgradeString = type == 0 ? player.getStoredData(playerSlot + "zSwordSkillUpgrade") : player.getStoredData(playerSlot + "zSwordHeavyUpgrade");
+    var upgradeArr = upgradeString.split(",");
+    var upgradeObject = {};
+    for(var s in upgradeArr) {
+        s = upgradeArr[s];
+        var split = s.split("=");
+        upgradeObject[split[0]] = split[1];
+    }
+    return upgradeObject;
+}
+
+/** Checks if skill is super from id
+ * @param {IPlayer} player 
+ * @param {Int} type - 0: ability, 1: heavy
+ * @param {Int} id
+ */
+function isUpgraded(player, type, id) {
+    var upgrades = findUpgrades(player, type);
+    if(upgrades && id in upgrades)
+        return upgrades[id] > 0;
+    return false;
+}
+
+/** Upgrades skill
+ * @param {*} player 
+ * @param {*} type 
+ * @param {*} id 
+ * @returns 
+ */
+/**function upgrade(player, type, id) {
+    if(isUpgraded(player, type, id)) return 2;
+    var playerSlot = lib.getActiveSlotId(player);
+    if(!player.hasStoredData(playerSlot + "zSwordUpgradePoints")) return 5;
+    if(type == 0) {
+        var skill = findSkill(id);
+        var points = player.getStoredData();
+        // Handle unable to upgrade
+        if(!skill || !("upgradeCost" in skill) || getSkills(player).indexOf(skill) < 0) return 3;
+        if(points - skill.upgradeCost < 0) return 4;
+
+        // Upgrade
+        player.setStoredData(playerSlot + "zSwordUpgradePoints", points - skill.upgradeCost);
+        player.setStoredData(playerSlot + "zSwordSkillUpgrade", player.getStoredData(playerSlot + "zSwordSkillUpgrade") + "," + id + "=1");
+        return 1;
+    } else if(type == 1) {
+        var heavy = findHeavyAttack(id);
+        var points = player.getStoredData(playerSlot + "zSwordUpgradePoints");
+        // Handle unable to upgrade
+        if(!heavy || !("upgradeCost" in heavy) || getHeavies(player).indexOf(heavy) < 0) return 3;
+        if(points - heavy.upgradeCost < 0) return 4;
+
+        // Upgrade
+        player.setStoredData(playerSlot + "zSwordUpgradePoints", points - heavy.upgradeCost);
+        player.setStoredData(playerSlot + "zSwordHeavyUpgrade", player.getStoredData(playerSlot + "zSwordHeavyUpgrade") + "," + id + "=1"); 
+        return 1;
+    }
+}*/
 
 /** Gets available weapon skills from player data
  * @param {IPlayer} player 
@@ -674,36 +755,45 @@ abilityHandler.prototype.handleEvent = function(eventType) {
         player : this.player,
         type : eventType,
         zsword : this.zSword,
+        super: false,
         potency: 1.5,
         slot: null
     }
 
     // Trigger passives and actives
     if(eventType == "heavyActivate" && getSelectedHeavy(this.player)) {
-        getSelectedHeavy(this.player).active(event);
+        var heavy = getSelectedHeavy(this.player)
+        if(isUpgraded(this.player, 1, heavy.heavyId)) event.super = true;
+        heavy.active(event);
     }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
+        if(isUpgraded(this.player, 0, this.active1.skillId)) event.super = true;
         this.active1.active(event);
     }
     if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
         event.slot = "active2"
+        if(isUpgraded(this.player, 0, this.active2.skillId)) event.super = true;
         this.active2.active(event);
     }
     if(this.active1 && "passive" in this.active1) {
         event.slot = "active1"
+        if(isUpgraded(this.player, 0, this.active1.skillId)) event.super = true;
         this.active1.passive(event);
     }
     if(this.active2 && "passive" in this.active2) {
         event.slot = "active2"
+        if(isUpgraded(this.player, 0, this.active2.skillId)) event.super = true;
         this.active2.passive(event);
     }
     if(this.passive1 && "passive" in this.passive1) {
         event.slot = "passive1"
+        if(isUpgraded(this.player, 0, this.passive1.skillId)) event.super = true;
         this.passive1.passive(event);
     }
     if(this.passive2 && "passive" in this.passive2) {
         event.slot = "passive2"
+        if(isUpgraded(this.player, 0, this.passive2.skillId)) event.super = true;
         this.passive2.passive(event);
     }
 }
@@ -820,7 +910,7 @@ function hasUnlockedHeavies(player) {
  */
 function findHeavyAttack(heavyId)
 {
-    for(var heavy in heavyAttacks) {  // EDIT ------------------------------------------------
+    for(var heavy in heavyAttacks) {
         if(heavyAttacks[heavy].heavyId == heavyId) return heavyAttacks[heavy];
     }
 }
