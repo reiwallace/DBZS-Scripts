@@ -304,18 +304,29 @@ var heavyAttacks = {
         hoverText : "I'm pink",
         cooldown : 200,
         active : function(event) {
-            event.player.world.explode(event.player.getPosition(), 5, false, false);
-            event.player.sendMessage("Is this heavy super? " + event.super);
+            var abilHandler = event.player.getData().getAbilityData();
+            if(event.super) {
+                abilHandler.activateAbility("BigCharge");
+            } else {
+                abilHandler.activateAbility("DirectionalDash");
+            }
+            event.player.sendMessage(event.super ? "SUPER!" : "not super");
         },
     }
 };
-
+var upFuncs = {
+    getUpgradePoints: getUpgradePoints,
+    setUpgradePoints: setUpgradePoints,
+    addUpgradePoints: addUpgradePoints,
+    takeUpgradePoints: takeUpgradePoints,
+    upgrade: upgrade
+};
 var zSwordFunctions = {
     displaySkillMenu: displaySkillMenu,
     displayHeavyMenu: displayHeavyMenu,
     selectHeavyAttack: selectHeavyAttack,
-    heavyAttack : doHeavyAttack
-    //upgrade: upgrade
+    heavyAttack : doHeavyAttack,
+    upgradeFuncs: upFuncs
 };
 
 // CONFIG
@@ -501,6 +512,10 @@ function setAppearance(item, appearance)
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
 }
 
+// -----------------------------------------------------------------------
+//                      ATTRIBUTES
+// -----------------------------------------------------------------------
+
 /** Gets weapon attributes from player data
  * @param {IPlayer} player 
  * @returns all available attributes for player's current progression
@@ -539,14 +554,20 @@ function applyAttributes(item, attributes)
     }
 }
 
+// -----------------------------------------------------------------------
+//                      UPGRADES
+// -----------------------------------------------------------------------
+
+
 /** Finds previously upgraded Heavies
  * @param {IPlayer} player 
  * @param {Int} type - 0: ability, 1: heavy
  */
 function findUpgrades(player, type) {
-    if(!lib.isPlayer(player) || (type == 0 ? player.hasStoredData(lib.getActiveSlotId(player) + "zSwordSkillUpgrade") : player.hasStoredData(lib.getActiveSlotId(player) + "zSwordHeavyUpgrade"))) return false;
+    if(!lib.isPlayer(player)) return false;
     var playerSlot = lib.getActiveSlotId(player);
     var upgradeString = type == 0 ? player.getStoredData(playerSlot + "zSwordSkillUpgrade") : player.getStoredData(playerSlot + "zSwordHeavyUpgrade");
+    if(!upgradeString) return {};
     var upgradeArr = upgradeString.split(",");
     var upgradeObject = {};
     for(var s in upgradeArr) {
@@ -569,40 +590,47 @@ function isUpgraded(player, type, id) {
     return false;
 }
 
-/** Upgrades skill
- * @param {*} player 
- * @param {*} type 
- * @param {*} id 
- * @returns 
- */
-/**function upgrade(player, type, id) {
-    if(isUpgraded(player, type, id)) return 2;
+// 0 - Invalid player, 1 - Upgrade already present, 2 - skill not unlocked, 3 - Heavy not unlocked, 4 - Insufficient points
+
+function upgrade(player, type, id) {
+    if(!lib.isPlayer(player)) return 0;
+    if(id in findUpgrades(player, type)) return 1;
+    if(type == 0 && !(findSkill(id) in getSkills(player))) return 2;
+    if(type == 1 && !(findHeavyAttack(id) in getHeavies(player))) return 3;
+
+    var availablePoints = getUpgradePoints(player);
+    if((type == 0 && findSkill(id).upgradeCost > availablePoints) || (type == 1 && findHeavyAttack(id).upgradeCost > availablePoints)) return 4;
+
     var playerSlot = lib.getActiveSlotId(player);
-    if(!player.hasStoredData(playerSlot + "zSwordUpgradePoints")) return 5;
-    if(type == 0) {
-        var skill = findSkill(id);
-        var points = player.getStoredData();
-        // Handle unable to upgrade
-        if(!skill || !("upgradeCost" in skill) || getSkills(player).indexOf(skill) < 0) return 3;
-        if(points - skill.upgradeCost < 0) return 4;
+    var upgradeString = type == 0 ? player.getStoredData(playerSlot + "zSwordSkillUpgrade") : player.getStoredData(playerSlot + "zSwordHeavyUpgrade");
+    player.setStoredData(playerSlot + (type == 0 ? "zSwordSkillUpgrade" : "zSwordHeavyUpgrade"), upgradeString + "" + id + "=1,");
+}
 
-        // Upgrade
-        player.setStoredData(playerSlot + "zSwordUpgradePoints", points - skill.upgradeCost);
-        player.setStoredData(playerSlot + "zSwordSkillUpgrade", player.getStoredData(playerSlot + "zSwordSkillUpgrade") + "," + id + "=1");
-        return 1;
-    } else if(type == 1) {
-        var heavy = findHeavyAttack(id);
-        var points = player.getStoredData(playerSlot + "zSwordUpgradePoints");
-        // Handle unable to upgrade
-        if(!heavy || !("upgradeCost" in heavy) || getHeavies(player).indexOf(heavy) < 0) return 3;
-        if(points - heavy.upgradeCost < 0) return 4;
+function getUpgradePoints(player) {
+    if(!lib.isPlayer(player)) return;
+    var points = player.getStoredData(lib.getActiveSlotId(player) + "zSwordUpgradePoints");
+    if(!points) return 0;
+    return parseInt(points);
+}
 
-        // Upgrade
-        player.setStoredData(playerSlot + "zSwordUpgradePoints", points - heavy.upgradeCost);
-        player.setStoredData(playerSlot + "zSwordHeavyUpgrade", player.getStoredData(playerSlot + "zSwordHeavyUpgrade") + "," + id + "=1"); 
-        return 1;
-    }
-}*/
+function setUpgradePoints(player, amount) {
+    if(!lib.isPlayer(player)) return;
+    player.setStoredData(lib.getActiveSlotId(player) + "zSwordUpgradePoints", amount);
+}
+
+function addUpgradePoints(player, amount) {
+    if(!lib.isPlayer(player)) return;
+    setUpgradePoints(player, getUpgradePoints(player) + amount);
+}
+
+function takeUpgradePoints(player, amount) {
+    if(!lib.isPlayer(player)) return;
+    setUpgradePoints(player, getUpgradePoints(player) - amount);
+}
+
+// -----------------------------------------------------------------------
+//                      SKILLS
+// -----------------------------------------------------------------------
 
 /** Gets available weapon skills from player data
  * @param {IPlayer} player 
@@ -892,6 +920,10 @@ abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
 
     this.addSkillLore();
 }
+
+// -----------------------------------------------------------------------
+//                      HEAVIES
+// -----------------------------------------------------------------------
 
 function hasUnlockedHeavies(player) {
     for(var quest in quests) {
