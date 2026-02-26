@@ -37,6 +37,7 @@ var quests = {
         "skill.redSkill" : 1,
         "unlock.heavy" : 1,
         "heavy.slap" : 1
+        
     },
 
     quest2 : quest2 = {
@@ -47,7 +48,8 @@ var quests = {
         "skill.senzuEat" : 1,
         "skill.greenSkill3" : 1,
         "slot.active" : 1,
-        "slot.passive" : 1
+        "slot.passive" : 1,
+        "heavy.nothin" : 1
     }
 };
 
@@ -70,19 +72,19 @@ var quests = {
 var appearanceLevel = [
     level0 = {
         "item_name" : "&rSheathed Z Sword",
-        "item_texture" : "https://i.ibb.co/qZBpxx4/ov14a-CX.png",
+        "item_texture" : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Sheathed_Z_Sword.png",
         "lore" : ["type shi"]
     },
 
     level1 = {
         "item_name" : "&rZ Sword",
-        "item_texture" : "jinryuudragonbc:textures/items/item.ItemZSword.png",
+        "item_texture" : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Z_Sword.png",
         "lore" : ["&rLore dump"]
     },
 
     level2 = {
         "item_name" : "&rZ Sword but stronger",
-        "item_texture" : "jinryuudragonbc:textures/items/item.ItemZSword.png",
+        "item_texture" : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_True_Z_Sword.png",
         "lore" : ["&rLore dump"]
     }
 ];
@@ -312,6 +314,20 @@ var heavyAttacks = {
             }
             event.player.sendMessage(event.super ? "SUPER!" : "not super");
         },
+    },
+
+    nothin : {
+        heavyName : "Nothing burger",
+        heavyId : 4,
+        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        upgradeCost: 1,
+        hoverText : "I'm pink",
+        cooldown : 200,
+        active : function(event) {
+            var abilHandler = event.player.getData().getAbilityData();
+
+            event.player.sendMessage(event.super ? "SUPER!" : "not super");
+        },
     }
 };
 var upFuncs = {
@@ -326,6 +342,7 @@ var zSwordFunctions = {
     displayHeavyMenu: displayHeavyMenu,
     selectHeavyAttack: selectHeavyAttack,
     heavyAttack : doHeavyAttack,
+    sheathe : sheatheWeapon,
     upgradeFuncs: upFuncs
 };
 
@@ -432,7 +449,7 @@ function attack(event) {
     if(player.getEntityId() != item.getTag("playerId") || !player.hasTempData("zSwordFunctions")) {
         sheatheWeapon(item);
     } else {
-        abilHandler.handleEvent("itemAttack");
+        player.getTempData("zAbilityHandler").handleEvent("itemAttack");
     }
 }
 
@@ -1000,7 +1017,7 @@ function doHeavyAttack(player)
     } else if(timers.has(playerSlot + "" +  HEAVY_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
 
     player.sendMessage("Performing heavy attack: " + attack.heavyName);
-    abilHandler.handleEvent("heavyActivate");
+    player.getTempData("zAbilityHandler").handleEvent("heavyActivate");
     timers.forceStart(playerSlot + "" + HEAVY_COOLDOWN, attack.cooldown, false);
 }
 
