@@ -18,12 +18,17 @@ function giveZSword(player)
  */
 function removeZSword(player)
 {
-    var zSword = findZSword(player);
-    if(zSword) {
-        player.removeItem(zSword, 1, true, true);
-        return true;
+    var deletedSword = false;
+    var inv = player.getInventory();
+    for (var item in inv) {
+        item = inv[item]
+        if(item && item.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
+            if(item.getLinkedItem().getId() != zSwordLinkedId) continue;
+            player.removeItem(item, 1, true, true);
+            deletedSword = true;
+        }
     }
-    return false;
+    return deletedSword;
 }
 
 /** Returns if Z Sword is present in player's inventory
@@ -45,7 +50,7 @@ function findZSword(player)
     for (var item in inv) {
         item = inv[item]
         if(item && item.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
-            if(item.getLinkedItem().getId() != zSwordLinkedId) return;
+            if(item.getLinkedItem().getId() != zSwordLinkedId) continue;
             return item;
         }
     }

@@ -421,7 +421,7 @@ function pickedUp(event) {
 
 function tossed(event) {
     event.setCancelled(true);
-    lib.debugMessage(event.player.getName(), tossMessage);
+    lib.giveZSword(event.player);
     item = event.item;
     sheatheWeapon(item);
 }
