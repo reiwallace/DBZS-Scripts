@@ -4,6 +4,7 @@
 
 var highlightOuter = 8385016;
 var highlightInner = 6281182;
+var firstQuest = 3269;
 
 // Don't edit
 var RESET_TIMER = 329;
@@ -53,7 +54,7 @@ function timer(event) {
 // Handle GUI interactions
 function customGuiButton(event) {
     var gui = event.gui;
-    if(gui.getID() != 301 && gui.getID() != 302) return;
+    if(gui.getID() < 301 || gui.getID() > 304) return;
 
     var buttonId = event.id;
     var player = event.player;
@@ -79,21 +80,42 @@ function customGuiButton(event) {
     } else if(buttonId == 61) {
         player.closeGui();
         if(!player.hasTempData("zSwordFunctions")) return;
-        player.getTempData("zSwordFunctions").displaySkillMenu(player);
+        if(gui.getID() == 302) 
+            player.getTempData("zSwordFunctions").displaySkillMenu(player);
+        else
+            player.getTempData("zSwordFunctions").upgradeFuncs.menu(player, 0);
     } else if(buttonId == 62) {
         player.closeGui();
         if(!player.hasTempData("zSwordFunctions")) return;
-        player.getTempData("zSwordFunctions").displayHeavyMenu(player);
+        if(gui.getID() == 301) 
+            player.getTempData("zSwordFunctions").displayHeavyMenu(player);
+        else
+            player.getTempData("zSwordFunctions").upgradeFuncs.menu(player, 1);
     }
 
     try {
         // Check if player has a skill selected
         gui.getComponent(101);
         if(buttonId > 54 || !player.getTempData("selectedButton")) return;
-        if(gui.getID() == 301)
-            player.getTempData("zAbilityHandler").selectSkill(player.getTempData("selectedButton"), buttonId - 50, gui);
-        else if(gui.getID() == 302)
-            player.getTempData("zSwordFunctions").selectHeavyAttack(player, player.getTempData("selectedButton"), gui);
+        switch(gui.getID()) {
+            case 301:
+                player.getTempData("zAbilityHandler").selectSkill(player.getTempData("selectedButton"), buttonId - 50, gui);
+                break;
+
+            case 302:   
+                player.getTempData("zSwordFunctions").selectHeavyAttack(player, player.getTempData("selectedButton"), gui);
+                break;
+
+            case 303:
+                player.setTempData("selectedUpgrade", player.getTempData("selectedButton"));
+                player.getTempData("zSwordFunctions").upgradeFuncs.setUpgradeTexture(gui, 0, player.getTempData("selectedButton"), player);
+                break;
+
+            case 304:
+                player.setTempData("selectedUpgrade", player.getTempData("selectedButton"));
+                player.getTempData("zSwordFunctions").upgradeFuncs.setUpgradeTexture(gui, 1, player.getTempData("selectedButton"), player);
+                break;
+        }
         removeSelectBox(gui);
         player.removeTempData("selectedButton");
         gui.update(player);
@@ -108,6 +130,7 @@ function customGuiClosed(event)
     if(player.hasTempData("zAbilityHandler")) 
         player.getTempData("zAbilityHandler").addSkillLore();
     player.removeTempData("selectedButton");
+    player.removeTempData("selectedUpgrade");
 }
 
 /** Builds a selection box out of Ilines
@@ -154,3 +177,39 @@ function damaged(event) { if(event.player.hasTempData("zAbilityHandler")) event.
 function died(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("died"); }
 function kills(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("kills"); }
 function jump(event) { if(event.player.hasTempData("zAbilityHandler")) event.player.getTempData("zAbilityHandler").handleEvent("jump"); }
+
+function chat(event) {
+    if(!event.getMessage().startsWith(".zsword")) return;
+    function help(player) {
+        player.sendMessage("&6--- Z Sword commands ---&r");
+        player.sendMessage("&eSummon&r: Summons your Z Sword");
+    }
+
+    event.setCancelled(true);
+    var player = event.player;
+    var split = event.getMessage().split(" ");
+    if(split.length < 2) {
+        help(player);
+        return;
+    }
+    if(!player.hasFinishedQuest(firstQuest)) {
+        player.sendMessage("You haven't unlocked that yet, dummy!");
+        return;
+    }
+    switch(split[1]) {
+        case "summon":
+            if(lib.hasZSword(player)) 
+                player.sendMessage("You already have a Z Sword!");
+            else 
+                lib.giveZSword(player);
+            break;
+        case "help":
+            help(player);
+            break;
+
+        default:
+            player.sendMessage("&cNo such command: " + split[1]);
+            player.sendMessage("Try '.zsword help' for a list of commands.");
+            break;
+    }
+}

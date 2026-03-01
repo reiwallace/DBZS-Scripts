@@ -49,10 +49,7 @@ function findZSword(player)
     var inv = player.getInventory();
     for (var item in inv) {
         item = inv[item]
-        if(item && item.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
-            if(item.getLinkedItem().getId() != zSwordLinkedId) continue;
-            return item;
-        }
+        if(isZSword(item)) return item;
     }
 }
 
@@ -65,6 +62,18 @@ function holdingZSword(player)
     var heldItem = player.getHeldItem();
     if(heldItem && heldItem.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
         if(heldItem.getLinkedItem().getId() != zSwordLinkedId) return false;
+        return true;
+    }
+    return false;
+}
+
+/** Returns if an item is a Z Sword
+ * @param {ILinkedItem} item 
+ * @returns 
+ */
+function isZSword(item) {
+    if(item && item.getClass().toString().equals("class noppes.npcs.scripted.item.ScriptLinkedItem")) {
+        if(item.getLinkedItem().getId() != zSwordLinkedId) return false;
         return true;
     }
     return false;

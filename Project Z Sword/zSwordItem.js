@@ -89,26 +89,26 @@ var appearanceLevel = [
     }
 ];
 
-var firstSkillId = 3; 
+var firstPowerId = 3; 
 var skills = {
     blankSkill : {
-        skillName : "None",
-        skillId : 1,
+        name : "None",
+        id : 1,
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
     },
 
     lockedSkill : {
-        skillName : "None",
-        skillId : 2,
-        icon : "https://i.ibb.co/vCJJd35f/Ki-Uzxn-Z.png"
+        name : "None",
+        id : 2,
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Locked%20Icon.png"
     },
 
     senzuEat : {
-        skillId : 3,
-        skillName : "&2Senzu Eat&r&f",
-        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
-        upgradeCost: 1,
-        hoverText : "Eat a senzu!",
+        id : 3,
+        name : "&2Senzu Eat&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
+        upgradeCost: 3,
+        hoverText : ["&aSenzu Eat", "Active: Eat a senzu bean to restore health and ki", "Passive: I forgor"],
         cooldown : 200,
         active : function(event) {
             event.player.sendMessage("Wow I just sent this from the active ability!!");
@@ -120,10 +120,10 @@ var skills = {
     },
 
     greenSkill : {
-        skillId : 4,
-        skillName : "&aGreen Skill1&r&f",
-        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
-        upgradeCost: 1,
+        id : 4,
+        name : "&aGreen Skill1&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
+        upgradeCost: 4,
         hoverText : "I'm green",
         cooldown : 200,
         active : function(event) {
@@ -135,9 +135,9 @@ var skills = {
     },
 
     pinkSkill : {
-        skillId : 5,
-        skillName : "&dPink Skill&r&f",
-        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        id : 5,
+        name : "&dPink Skill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
@@ -150,9 +150,9 @@ var skills = {
     },
 
     redSkill : {
-        skillId : 6,
-        skillName : "&4&lRed &4&mSkill&r&f",
-        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        id : 6,
+        name : "&4&lRed &4&mSkill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
@@ -165,9 +165,9 @@ var skills = {
     },
 
     senzuEat2 : {
-        skillId : 7,
-        skillName : "&2Senzu Eat&r&f",
-        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        id : 7,
+        name : "&2Senzu Eat&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
@@ -180,9 +180,9 @@ var skills = {
     },
 
     greenSkill2 : {
-        skillId : 8,
-        skillName : "&aGreen Skill2&r&f",
-        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
+        id : 8,
+        name : "&aGreen Skill2&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
@@ -195,9 +195,9 @@ var skills = {
     },
 
     pinkSkill2 : {
-        skillId : 9,
-        skillName : "&dPink Skill&r&f",
-        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        id : 9,
+        name : "&dPink Skill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
@@ -210,9 +210,9 @@ var skills = {
     },
 
     redSkill2 : {
-        skillId : 10,
-        skillName : "&4&lRed &4&mSkill&r&f",
-        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        id : 10,
+        name : "&4&lRed &4&mSkill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
@@ -225,9 +225,9 @@ var skills = {
     },
 
     senzuEat3 : {
-        skillId : 11,
-        skillName : "&2Senzu Eat&r&f",
-        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        id : 11,
+        name : "&2Senzu Eat&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
@@ -240,9 +240,9 @@ var skills = {
     },
 
     greenSkill3 : {
-        skillId : 12,
-        skillName : "&aGreen Skill3&r&f",
-        icon : "https://i.ibb.co/bM92BbhQ/s4mm2h-B.png",
+        id : 12,
+        name : "&aGreen Skill3&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
@@ -255,9 +255,9 @@ var skills = {
     },
 
     pinkSkill3 : {
-        skillId : 13,
-        skillName : "&dPink Skill&r&f",
-        icon : "https://i.ibb.co/wZsxYccj/M85psr-Z.png",
+        id : 13,
+        name : "&dPink Skill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
@@ -270,9 +270,9 @@ var skills = {
     },
 
     redSkill3 : {
-        skillId : 14,
-        skillName : "&4&lRed &4&mSkill&r&f",
-        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        id : 14,
+        name : "&4&lRed &4&mSkill&r&f",
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
@@ -287,23 +287,23 @@ var skills = {
 
 var heavyAttacks = {
     blankHeavy : {
-        heavyName : "None",
-        heavyId : 1,
+        name : "None",
+        id : 1,
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
     },
 
     lockedHeavy : {
-        heavyName : "None",
-        heavyId : 2,
-        icon : "https://i.ibb.co/vCJJd35f/Ki-Uzxn-Z.png"
+        name : "None",
+        id : 2,
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png"
     },
 
     slap : {
-        heavyName : "Slap",
-        heavyId : 3,
-        icon : "https://i.ibb.co/d4jwqMj7/Rt-JFgt-I.png",
+        name : "Slap",
+        id : 3,
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
         upgradeCost: 1,
-        hoverText : "I'm pink",
+        hoverText : "I do a big charge",
         cooldown : 200,
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
@@ -317,11 +317,11 @@ var heavyAttacks = {
     },
 
     nothin : {
-        heavyName : "Nothing burger",
-        heavyId : 4,
-        icon : "https://i.ibb.co/Q31g6swd/Jap-NYVe.png",
+        name : "Nothing burger",
+        id : 4,
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
         upgradeCost: 1,
-        hoverText : "I'm pink",
+        hoverText : "I do notin",
         cooldown : 200,
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
@@ -330,12 +330,15 @@ var heavyAttacks = {
         },
     }
 };
+
 var upFuncs = {
     getUpgradePoints: getUpgradePoints,
     setUpgradePoints: setUpgradePoints,
     addUpgradePoints: addUpgradePoints,
     takeUpgradePoints: takeUpgradePoints,
-    upgrade: upgrade
+    upgrade: upgrade,
+    setUpgradeTexture: setUpgradeTexture,
+    menu: buildUpgradeMenu
 };
 var zSwordFunctions = {
     displaySkillMenu: displaySkillMenu,
@@ -349,17 +352,17 @@ var zSwordFunctions = {
 // CONFIG
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
-var skillWindowBgTexture = "https://i.ibb.co/rKtdZR6h/zs-GUI2-box4.png";
-var heavyWindowBgTexture = "https://i.ibb.co/vvPCSrdv/zs-GUI2-box5.png";
-var skillWindowHeight = 171;
-var skillWindowWidth = 243;
+var skillWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Skill_Menu.png";
+var heavyWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Heavy_Menu.png";
+var menuHeight = 171;
+var menuWidth = 243;
 
-var skillIconWidth = 24;
-var skillIconHeight = 24;
-var skillPosInitialX = 17;
-var skillPosInitialY = 18.6;
-var skillIconSpacingX = 30.4;
-var skillIconSpacingY = 30.4;
+var iconWidth = 24;
+var iconHeight = 24;
+var iconPosInitialX = 17;
+var iconPosInitialY = 18.6;
+var iconSpacingX = 30.4;
+var iconSpacingY = 30.4;
 
 var selectedLockTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordLockedIcon.png";
 var selectedLockSize = 46;
@@ -373,19 +376,19 @@ var tabHeight = 44;
 var tabPosY = 10;
 var tabSpacing = 7;
 var tabTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordSideTab.png";
+var heavyTabId = 62;
+var skillTabId = 61;
+
+var uPointX = 144;
+var uPointY = 76;
+var costX = 144;
+var costY = 90;
+var uButtonX = 144;
+var uButtonY = 130;
 
 // LORE CONFIG
 var activeLore = "&6&lActive Abilities: ";
 var passiveLore = "&6&lPassive Abilities: ";
-
-var tossMessage = "The Z Sword fades away as it leaves your hands.";
-
-// HEAVY CONFIG
-var slashParticle = API.createParticle("https://i.imgur.com/tytvfBH.png");
-slashParticle.setSize(964, 575);
-slashParticle.setMaxAge(60);
-slashParticle.setAlpha(1, 0, 0.5, 6);
-slashParticle.setRotationY(90, 90, 1, 90);
 
 // TIMERS DON'T EDIT
 var ACTIVE_1_COOLDOWN = 321;
@@ -572,6 +575,126 @@ function applyAttributes(item, attributes)
 }
 
 // -----------------------------------------------------------------------
+//                      MENUS
+// -----------------------------------------------------------------------
+function buildBase(player, type, guiId) {
+    if(!lib.isPlayer(player)) return;
+    var item = player.getHeldItem();
+    if(!lib.isZSword(item) || item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
+    var menu = API.createCustomGui(guiId, menuWidth + tabWidth, menuHeight, false);
+    menu.addTexturedRect(0, type == 0 ? skillWindowBgTexture : heavyWindowBgTexture, 0, 0, menuWidth, menuHeight);
+
+    var iconPosX = iconPosInitialX;
+    var iconPosY = iconPosInitialY;
+    if(type == 0) {
+        var unlockedPowers = getSkills(player);
+    } else {
+        var unlockedPowers = getHeavies(player);
+    }
+    var powers = type == 0 ? skills : heavyAttacks;
+
+    for(var power in powers) {
+        var power = powers[power];
+        if(power.id < firstPowerId) continue;
+
+        if(unlockedPowers.indexOf(power) < 0) {
+            menu.addTexturedRect(power.id, skills.lockedSkill.icon, iconPosX, iconPosY, iconWidth, iconHeight);
+        } else {
+            var button = menu.addTexturedButton(power.id, "", iconPosX, iconPosY, iconWidth, iconHeight, power.icon);
+            if(power.hoverText) button.setHoverText(power.hoverText);
+        }
+        
+        // Handle Icon spacing
+        iconPosX += iconSpacingX;
+        if(iconPosX >= iconPosInitialX + iconSpacingX * 4) {
+            iconPosX = iconPosInitialX;
+            iconPosY += iconSpacingY;
+        }
+    }
+
+    // Tabs
+    var tab = menu.addTexturedButton(type == 0 ? heavyTabId : skillTabId, "", menuWidth - 2, tabPosY, tabWidth, tabHeight, tabTexture);
+    //var keybindTab = skillWindow.addTexturedButton(63, "", menuWidth - 2, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
+
+    return menu;
+}
+
+function buildUpgradeMenu(player, type) {
+    var menu = buildBase(player, type, SKILL_WINDOW_ID + 2 + type);
+    // Menu fails to build or player is invalid
+    if(!menu) return;
+
+    menu.getComponent(0).setTexture(heavyWindowBgTexture);
+
+    var idIndex = 50;
+    var skillSlots = getSkillSlots(player)
+    if((type == 0 && !skillSlots[0] && !skillSlots[1] && !skillSlots[2] && !skillSlots[3]) || (type == 1 && !hasUnlockedHeavies(player))) { // Skills not unlocked
+        menu.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, iconWidth, iconHeight);
+        menu.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - iconWidth)/2, heavySelectedY - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
+    }
+    else menu.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, iconWidth, iconHeight, heavyAttacks.blankHeavy.icon);
+
+    // Upgrade labels and button
+    var uPointsLabel = menu.addLabel(56, "Upgrade Points: " + getUpgradePoints(player), uPointX, uPointY, 100, 0);
+    var uPointsShadow = menu.addLabel(55, "Upgrade Points: " + getUpgradePoints(player), uPointX + 1, uPointY + 1, 100, 0, 0);
+
+    var costLabel = menu.addLabel(58, "Cost: ", costX, costY, 100, 0);
+    var costShadow = menu.addLabel(57, "Cost: ", costX + 1, costY + 1, 100, 0, 0);
+
+    var upButton = menu.addButton(59, "Upgrade", uButtonX, uButtonY, 90, 20);
+
+    player.showCustomGui(menu);
+}
+
+/** Displays a skill selection window to the player
+ * @param {IPlayer} player 
+ */
+function displaySkillMenu(player)
+{
+    var menu = buildBase(player, 0, SKILL_WINDOW_ID);
+    // Menu fails to build or player is invalid
+    if(!menu) return;
+
+    var idIndex = 50;
+    var selectedSkills = player.getTempData("zAbilityHandler").getSelectedSkills();
+    var skillSlots = getSkillSlots(player);
+    // Button ids 50-54
+    for(var i = 0; i < 4; i++) {
+        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
+        if(!skillSlots[i]) {
+            menu.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], iconWidth, iconHeight);
+            menu.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - iconWidth)/2, selectedPosY[i] - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
+        }
+        else menu.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], iconWidth, iconHeight, selectedSkills[i].icon);
+        idIndex++;
+    }
+
+    player.showCustomGui(menu);
+}
+
+/** Displays a skill selection window to the player
+ * @param {IPlayer} player 
+ */
+function displayHeavyMenu(player)
+{
+    var menu = buildBase(player, 1, SKILL_WINDOW_ID + 1);
+    // Menu fails to build or player is invalid
+    if(!menu) return;
+
+    var idIndex = 50;
+    var selectedHeavy = getSelectedHeavy(player);
+    // Button ids 50-54
+    if(!selectedHeavy || selectedHeavy == "") selectedHeavy = heavyAttacks.blankHeavy;
+    if(!hasUnlockedHeavies(player)) {
+        menu.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, iconWidth, iconHeight);
+        menu.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - iconWidth)/2, heavySelectedY - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
+    }
+    else menu.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, iconWidth, iconHeight, selectedHeavy.icon);
+
+    player.showCustomGui(menu);
+}
+
+// -----------------------------------------------------------------------
 //                      UPGRADES
 // -----------------------------------------------------------------------
 
@@ -645,6 +768,14 @@ function takeUpgradePoints(player, amount) {
     setUpgradePoints(player, getUpgradePoints(player) - amount);
 }
 
+function setUpgradeTexture(gui, type, id, player) {
+    gui.getComponent(50).setTexture(type == 0 ? findSkill(id).icon : findHeavyAttack(id).icon);
+    var power = type == 0 ? findSkill(id) : findHeavyAttack(id);
+    gui.getComponent(58).setText("Cost: " + power.upgradeCost);
+    gui.getComponent(57).setText("Cost: " + power.upgradeCost);
+    gui.update(player);
+}
+
 // -----------------------------------------------------------------------
 //                      SKILLS
 // -----------------------------------------------------------------------
@@ -683,69 +814,14 @@ function getSkillSlots(player)
     return availableSlots;
 }
 
-/** Displays a skill selection window to the player
- * @param {IPlayer} player 
- */
-function displaySkillMenu(player)
-{
-    if(item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
-    var skillWindow = API.createCustomGui(SKILL_WINDOW_ID, skillWindowWidth + tabWidth, skillWindowHeight, false);
-    var skillWindowBg = skillWindow.addTexturedRect(0, skillWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
-
-    var skillPosX = skillPosInitialX;
-    var skillPosY = skillPosInitialY;
-    var unlockedSkills = getSkills(player);
-    var skillIcons = [];
-    // Button ids 1-skills_length
-    for(var skill in skills) {
-        if(skills[skill].skillId < firstSkillId) continue;
-
-        if(unlockedSkills.indexOf(skills[skill]) < 0) {
-            var button = skillWindow.addTexturedRect(skills[skill].skillId, skills.lockedSkill.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
-        } else {
-            var button = skillWindow.addTexturedButton(skills[skill].skillId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, skills[skill].icon);
-            if(skills[skill].hoverText) button.setHoverText(skills[skill].hoverText);
-        }
-
-        skillIcons.push(button);
-        
-        // Handle Icon spacing
-        skillPosX += skillIconSpacingX;
-        if(skillPosX >= skillPosInitialX + skillIconSpacingX * 4) {
-            skillPosX = skillPosInitialX;
-            skillPosY += skillIconSpacingY;
-        }
-    }
-
-    var idIndex = 50;
-    var selectedSkills = abilHandler.getSelectedSkills();
-    var skillSlots = getSkillSlots(player);
-    // Button ids 50-54
-    for(var i = 0; i < 4; i++) {
-        if(!selectedSkills[i] || selectedSkills[i] == "") selectedSkills[i] = skills.blankSkill;
-        if(!skillSlots[i]) {
-            var button = skillWindow.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight);
-            skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - skillIconWidth)/2, selectedPosY[i] - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
-        }
-        else var button = skillWindow.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], skillIconWidth, skillIconHeight, selectedSkills[i].icon);
-        idIndex++;
-    }
-
-    // Tabs
-    var heavyTab = skillWindow.addTexturedButton(62, "", skillWindowWidth - 2, tabPosY, tabWidth, tabHeight, tabTexture);
-    //var keybindTab = skillWindow.addTexturedButton(63, "", skillWindowWidth - 2, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
-
-    player.showCustomGui(skillWindow);
-}
-
 /** Finds skill name from id
- * @param {Int} skillId 
+ * @param {Int} id 
  * @returns skill
  */
-function findSkill(skillId)
+function findSkill(id)
 {
     for(var skill in skills) {
-        if(skills[skill].skillId == skillId) return skills[skill];
+        if(skills[skill].id == id) return skills[skill];
     }
 }
 
@@ -780,12 +856,12 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
 
     if(timers.has(compoundTimerId) && !timers.has(this.SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(compoundTimerId);
-        this.player.sendMessage("Remaining Cooldown on Skill: " + skill.skillName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        this.player.sendMessage("Remaining Cooldown on Skill: " + skill.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(this.SPAM_PREVENTER, this.spamCd, false);
         return;
     } else if(timers.has(compoundTimerId) && timers.has(this.SPAM_PREVENTER)) return;
     
-    this.player.sendMessage("Performing skill: " + skill.skillName);
+    this.player.sendMessage("Performing skill: " + skill.name);
     timers.forceStart(compoundTimerId, skill.cooldown, false);
 
     this.handleEvent("abilityActivate" + activeSlot);
@@ -808,37 +884,37 @@ abilityHandler.prototype.handleEvent = function(eventType) {
     // Trigger passives and actives
     if(eventType == "heavyActivate" && getSelectedHeavy(this.player)) {
         var heavy = getSelectedHeavy(this.player)
-        if(isUpgraded(this.player, 1, heavy.heavyId)) event.super = true;
+        if(isUpgraded(this.player, 1, heavy.id)) event.super = true;
         heavy.active(event);
     }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
-        if(isUpgraded(this.player, 0, this.active1.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.active(event);
     }
     if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
         event.slot = "active2"
-        if(isUpgraded(this.player, 0, this.active2.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.active(event);
     }
     if(this.active1 && "passive" in this.active1) {
         event.slot = "active1"
-        if(isUpgraded(this.player, 0, this.active1.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.passive(event);
     }
     if(this.active2 && "passive" in this.active2) {
         event.slot = "active2"
-        if(isUpgraded(this.player, 0, this.active2.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.passive(event);
     }
     if(this.passive1 && "passive" in this.passive1) {
         event.slot = "passive1"
-        if(isUpgraded(this.player, 0, this.passive1.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.passive1.id)) event.super = true;
         this.passive1.passive(event);
     }
     if(this.passive2 && "passive" in this.passive2) {
         event.slot = "passive2"
-        if(isUpgraded(this.player, 0, this.passive2.skillId)) event.super = true;
+        if(isUpgraded(this.player, 0, this.passive2.id)) event.super = true;
         this.passive2.passive(event);
     }
 }
@@ -860,21 +936,21 @@ abilityHandler.prototype.addSkillLore = function() {
     for(var string in oldLore) {
         lore.push(oldLore[string])
     }
-    if((selectedSkills[0] && selectedSkills[0].skillId >= firstSkillId) || (selectedSkills[1] && selectedSkills[1].skillId >= firstSkillId)) {
+    if((selectedSkills[0] && selectedSkills[0].id >= firstPowerId) || (selectedSkills[1] && selectedSkills[1].id >= firstPowerId)) {
         lore.push(
             activeLore + 
-            (selectedSkills[0] && selectedSkills[0].skillName != "None" ? selectedSkills[0].skillName + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive1Key") ? keys[this.player.getStoredData("zSwordActive1Key")] : keys["41"]) : "&r&fNone") + 
+            (selectedSkills[0] && selectedSkills[0].name != "None" ? selectedSkills[0].name + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive1Key") ? keys[this.player.getStoredData("zSwordActive1Key")] : keys["41"]) : "&r&fNone") + 
             "&r, " +
-            (selectedSkills[1] && selectedSkills[1].skillName != "None" ? selectedSkills[1].skillName + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive2Key") ? keys[this.player.getStoredData("zSwordActive2Key")] : keys["58"]) : "&r&fNone")
+            (selectedSkills[1] && selectedSkills[1].name != "None" ? selectedSkills[1].name + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive2Key") ? keys[this.player.getStoredData("zSwordActive2Key")] : keys["58"]) : "&r&fNone")
         );
         
     }
-    if((selectedSkills[2] && selectedSkills[2].skillId >= firstSkillId) || (selectedSkills[3] && selectedSkills[3].skillId >= firstSkillId)) { 
+    if((selectedSkills[2] && selectedSkills[2].id >= firstPowerId) || (selectedSkills[3] && selectedSkills[3].id >= firstPowerId)) { 
         lore.push(
             passiveLore + 
-            (selectedSkills[2] ? selectedSkills[2].skillName : "&r&fNone") + 
+            (selectedSkills[2] ? selectedSkills[2].name : "&r&fNone") + 
             "&r, " +
-            (selectedSkills[3] ? selectedSkills[3].skillName : "&r&fNone")
+            (selectedSkills[3] ? selectedSkills[3].name : "&r&fNone")
         );
     }
     lib.findZSword(this.player).setLore(lore);
@@ -882,12 +958,12 @@ abilityHandler.prototype.addSkillLore = function() {
 
 /** Sets a skill as selected
  * @param {IPlayer} player 
- * @param {Int} skillId 
+ * @param {Int} id 
  * @param {Int} skillSlot 
  */
-abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
+abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
     var selectedSkills = this.getSelectedSkills();
-    var skillIndex = selectedSkills.indexOf(findSkill(skillId));
+    var skillIndex = selectedSkills.indexOf(findSkill(id));
     if(skillIndex == skillSlot) return;
     // Unselect skill if already selected
     if(skillIndex > -1) {
@@ -909,30 +985,30 @@ abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
                 this.passive2 = null;
                 break;
         }
-        gui.getComponent(selectedSkills.indexOf(findSkill(skillId)) + 50).setTexture(skills.blankSkill.icon);
+        gui.getComponent(selectedSkills.indexOf(findSkill(id)) + 50).setTexture(skills.blankSkill.icon);
         gui.update(this.player);
     } 
 
     switch(skillSlot) {
         case(0):
-            this.player.setStoredData(this.slot + "zSwordActive1", skillId);
-            this.active1 = findSkill(skillId);
+            this.player.setStoredData(this.slot + "zSwordActive1", id);
+            this.active1 = findSkill(id);
             break;
         case(1):
-            this.player.setStoredData(this.slot + "zSwordActive2", skillId);
-            this.active2 = findSkill(skillId);
+            this.player.setStoredData(this.slot + "zSwordActive2", id);
+            this.active2 = findSkill(id);
             break;
         case(2):
-            this.player.setStoredData(this.slot + "zSwordPassive1", skillId);
-            this.passive1 = findSkill(skillId);
+            this.player.setStoredData(this.slot + "zSwordPassive1", id);
+            this.passive1 = findSkill(id);
             break;
         case(3):
-            this.player.setStoredData(this.slot + "zSwordPassive2", skillId);
-            this.passive2 = findSkill(skillId);
+            this.player.setStoredData(this.slot + "zSwordPassive2", id);
+            this.passive2 = findSkill(id);
             break;
     }
     
-    gui.getComponent(skillSlot + 50).setTexture(findSkill(skillId).icon);
+    gui.getComponent(skillSlot + 50).setTexture(findSkill(id).icon);
     gui.update(this.player);
 
     this.addSkillLore();
@@ -942,6 +1018,10 @@ abilityHandler.prototype.selectSkill = function(skillId, skillSlot, gui) {
 //                      HEAVIES
 // -----------------------------------------------------------------------
 
+/** Returns if player has unlocked heavies
+ * @param {IPlayer} player 
+ * @returns bool
+ */
 function hasUnlockedHeavies(player) {
     for(var quest in quests) {
         quest = quests[quest];
@@ -954,17 +1034,20 @@ function hasUnlockedHeavies(player) {
 }
 
 /** Finds heavy attack from id
- * @param {Int} heavyId 
+ * @param {Int} id 
  * @returns heavyAttack
  */
-function findHeavyAttack(heavyId)
+function findHeavyAttack(id)
 {
     for(var heavy in heavyAttacks) {
-        if(heavyAttacks[heavy].heavyId == heavyId) return heavyAttacks[heavy];
+        if(heavyAttacks[heavy].id == id) return heavyAttacks[heavy];
     }
 }
 
-
+/** Returns a list of all unlocked heavies
+ * @param {IPlayer} player 
+ * @returns Object[]
+ */
 function getHeavies(player)
 {
     var availableHeavies = [];
@@ -983,17 +1066,21 @@ function getHeavies(player)
 
 /** Sets a heavy attack as selected
  * @param {IPlayer} player 
- * @param {Int} heavyId 
+ * @param {Int} id 
  */
-function selectHeavyAttack(player, heavyId, gui)
+function selectHeavyAttack(player, id, gui)
 {
     var playerSlot = lib.getActiveSlotId(player);
-    player.setStoredData(playerSlot + "zSwordHeavy", heavyId);
+    player.setStoredData(playerSlot + "zSwordHeavy", id);
 
-    gui.getComponent(50).setTexture(findHeavyAttack(heavyId).icon);
+    gui.getComponent(50).setTexture(findHeavyAttack(id).icon);
     gui.update(player);
 }
 
+/** Returns currently selected heavy attack
+ * @param {IPlayer} player 
+ * @returns Object
+ */
 function getSelectedHeavy(player) {
     return findHeavyAttack(player.getStoredData(lib.getActiveSlotId(player) + "zSwordHeavy"));
 }
@@ -1011,63 +1098,14 @@ function doHeavyAttack(player)
     if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return;
     if(timers.has(playerSlot + "" + HEAVY_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(playerSlot + "" + HEAVY_COOLDOWN);
-        player.sendMessage("Remaining Cooldown on Heavy Attack: " + attack.heavyName + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
+        player.sendMessage("Remaining Cooldown on Heavy Attack: " + attack.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");
         timers.forceStart(SPAM_PREVENTER, 10, false);
         return;
     } else if(timers.has(playerSlot + "" +  HEAVY_COOLDOWN) && timers.has(SPAM_PREVENTER)) return;
 
-    player.sendMessage("Performing heavy attack: " + attack.heavyName);
+    player.sendMessage("Performing heavy attack: " + attack.name);
     player.getTempData("zAbilityHandler").handleEvent("heavyActivate");
     timers.forceStart(playerSlot + "" + HEAVY_COOLDOWN, attack.cooldown, false);
-}
-
-/** Displays a skill selection window to the player
- * @param {IPlayer} player 
- */
-function displayHeavyMenu(player)
-{
-    if(item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
-    var heavyWindow = API.createCustomGui(SKILL_WINDOW_ID + 1, skillWindowWidth + tabWidth, skillWindowHeight, false);
-    var heavyWindowBg = heavyWindow.addTexturedRect(0, heavyWindowBgTexture, 0, 0, skillWindowWidth, skillWindowHeight);
-    var skillPosX = skillPosInitialX;
-    var skillPosY = skillPosInitialY;
-    var unlockedHeavies = getHeavies(player);
-    var skillIcons = [];
-    // Button ids 1-skills_length
-    for(var heavy in heavyAttacks) {
-        if(heavyAttacks[heavy].heavyId < firstSkillId) continue;
-
-        if(unlockedHeavies.indexOf(heavyAttacks[heavy]) < 0) {
-            var button = heavyWindow.addTexturedRect(heavyAttacks[heavy].heavyId, heavyAttacks.lockedHeavy.icon, skillPosX, skillPosY, skillIconWidth, skillIconHeight);
-        } else {
-            var button = heavyWindow.addTexturedButton(heavyAttacks[heavy].heavyId, "", skillPosX, skillPosY, skillIconWidth, skillIconHeight, heavyAttacks[heavy].icon);
-            if(heavyAttacks[heavy].hoverText) button.setHoverText(heavyAttacks[heavy].hoverText);
-        }
-
-        skillIcons.push(button);
-        
-        // Handle Icon spacing
-        skillPosX += skillIconSpacingX;
-        if(skillPosX >= skillPosInitialX + skillIconSpacingX * 4) {
-            skillPosX = skillPosInitialX;
-            skillPosY += skillIconSpacingY;
-        }
-    }
-    var idIndex = 50;
-    var selectedHeavy = getSelectedHeavy(player);
-    // Button ids 50-54
-    if(!selectedHeavy || selectedHeavy == "") selectedHeavy = heavyAttacks.blankHeavy;
-    if(!hasUnlockedHeavies(player)) {
-        var button = heavyWindow.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, skillIconWidth, skillIconHeight);
-        skillWindow.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - skillIconWidth)/2, heavySelectedY - (selectedLockSize - skillIconHeight)/2, selectedLockSize, selectedLockSize);
-    }
-    else var button = heavyWindow.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, skillIconWidth, skillIconHeight, selectedHeavy.icon);
-
-    // Tabs
-    var skillsTab = heavyWindow.addTexturedButton(61, "", skillWindowWidth - 2, tabPosY, tabWidth, tabHeight, tabTexture);
-    //var keybindTab = heavyWindow.addTexturedButton(63, "", skillWindowWidth - 2, tabPosY + tabHeight + tabSpacing, tabWidth, tabHeight, tabTexture);
-
-    player.showCustomGui(heavyWindow);
 }
 
 // For lore display
