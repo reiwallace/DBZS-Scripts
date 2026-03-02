@@ -10,15 +10,17 @@
     Add properties with:
     "property" : value,
 
-    Leave remove comman from last quest and property
+    Remove comma from last quest and property
 
     SUPPORTED PROPERTIES
-    "quest_id" (int)
+    [REQUIRED] "quest_id" (int)
     "attribute.ATTRIBUTE_NAME" (int) - Any custom attribute from CNPC+
     "magic_attribute.MAGIC_ATTRIBUTE_NAME" (int) - Any magic attribute from CNPC+
-    "skill.SKILL_NAME" (int) - Any custom skill added by us
+    "skill.SKILL_NAME" (int) - Any custom skill added by us (set this to 1)
     "apperance" (int) - value to add to appearance level (set this to 1)
-    "ability_slots" (int) - number of ability slots to unlock with quest
+    "unlock.heavy" (int) - Unlocks weapon arts slot
+    "slot.active" (int) - Number of active slots to unlock (max 2)
+    "slot.passive" (int) - Number of passive slots to unlock
 */
 var quests = {
     defaultState : defaultState = {
@@ -62,12 +64,12 @@ var quests = {
     Add properties with:
     "property" : value,
 
-    Leave remove comman from last appearance and property
+    Remove comma from last quest and property
 
     SUPPORTED PROPERTIES
-    "item_name" (string)
-    "item_texture" (string)
-    "lore" (string[])
+    [REQUIRED] "item_name" (string)
+    [REQUIRED] "item_texture" (string)
+    [REQUIRED] "lore" (string[])
 */
 var appearanceLevel = [
     level0 = {
@@ -89,27 +91,55 @@ var appearanceLevel = [
     }
 ];
 
+/*
+    SKILLS DATA FORMAT
+
+    Add a new skill with:
+    NAME = {}
+
+    Add properties with:
+    "property" : value,
+
+    Remove comma from last quest and property
+
+    SUPPORTED PROPERTIES
+    [REQUIRED] "name" (string) - Skill name used for lore and menu display
+    [REQUIRED] "id" (int) - Skill ID (musn't be below 'firstPowerId' or over 50)
+    [REQUIRED] "icon" (string) - Regular icon to be displayed in menus
+    [REQUIRED] "superIcon" (string) - Icon to display in menus after being upgraded
+    "upgradeCost" (int) - Upgrade cost in upgrade points
+    "hoverText" (string[]) - Text shown when hovering over skill in menus
+    "cooldown" (int) - Cooldown in ticks
+    "scaler" (string) - Weapon attribute to scale off (e.g. 'main_attack')
+    "active" (function) - Active portion of skill
+    "passive" (function) - Passive portion of skill
+
+*/
 var firstPowerId = 3; 
 var skills = {
     blankSkill : {
         name : "None",
         id : 1,
-        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png",
+        superIcon : ""
     },
 
     lockedSkill : {
         name : "None",
         id : 2,
-        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Locked%20Icon.png"
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Locked%20Icon.png",
+        superIcon : ""
     },
 
     senzuEat : {
         id : 3,
         name : "&2Senzu Eat&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
+        superIcon : "",
         upgradeCost: 3,
         hoverText : ["&aSenzu Eat", "Active: Eat a senzu bean to restore health and ki", "Passive: I forgor"],
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
             event.player.sendMessage("Wow I just sent this from the active ability!!");
             event.player.sendMessage("Is this skill super? " + event.super);
@@ -123,9 +153,11 @@ var skills = {
         id : 4,
         name : "&aGreen Skill1&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
+        superIcon : "",
         upgradeCost: 4,
         hoverText : "I'm green",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -138,9 +170,11 @@ var skills = {
         id : 5,
         name : "&dPink Skill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -153,9 +187,11 @@ var skills = {
         id : 6,
         name : "&4&lRed &4&mSkill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -168,9 +204,11 @@ var skills = {
         id : 7,
         name : "&2Senzu Eat&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -183,9 +221,11 @@ var skills = {
         id : 8,
         name : "&aGreen Skill2&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -198,9 +238,11 @@ var skills = {
         id : 9,
         name : "&dPink Skill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -213,9 +255,11 @@ var skills = {
         id : 10,
         name : "&4&lRed &4&mSkill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -228,9 +272,11 @@ var skills = {
         id : 11,
         name : "&2Senzu Eat&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -243,9 +289,11 @@ var skills = {
         id : 12,
         name : "&aGreen Skill3&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Green%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -258,9 +306,11 @@ var skills = {
         id : 13,
         name : "&dPink Skill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -273,9 +323,11 @@ var skills = {
         id : 14,
         name : "&4&lRed &4&mSkill&r&f",
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
 
         },
@@ -285,26 +337,54 @@ var skills = {
     }
 };
 
+
+/*
+    Weapon Arts DATA FORMAT
+
+    Add a new Weapon Art with:
+    NAME = {}
+
+    Add properties with:
+    "property" : value,
+
+    Remove comma from last quest and property
+
+    SUPPORTED PROPERTIES
+    [REQUIRED] "name" (string) - Weapon Art name used for lore and menu display
+    [REQUIRED] "id" (int) - Weapon Art ID (musn't be below 'firstPowerId' or over 50)
+    [REQUIRED] "icon" (string) - Regular icon to be displayed in menus
+    [REQUIRED] "superIcon" (string) - Icon to display in menus after being upgraded
+    "upgradeCost" (int) - Upgrade cost in upgrade points
+    "hoverText" (string[]) - Text shown when hovering over Weapon Art in menus
+    "cooldown" (int) - Cooldown in ticks
+    "scaler" (string) - Weapon attribute to scale off (e.g. 'main_attack')
+    "active" (function) - Function run by weapon art
+
+*/
 var heavyAttacks = {
     blankHeavy : {
         name : "None",
         id : 1,
-        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png"
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/zSwordButtons.png",
+        superIcon : ""
     },
 
     lockedHeavy : {
         name : "None",
         id : 2,
-        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png"
+        icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Pink%20Icon.png",
+        superIcon : ""
     },
 
     slap : {
         name : "Slap",
         id : 3,
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Blue%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I do a big charge",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
             if(event.super) {
@@ -320,9 +400,11 @@ var heavyAttacks = {
         name : "Nothing burger",
         id : 4,
         icon : "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/Red%20Icon.png",
+        superIcon : "",
         upgradeCost: 1,
         hoverText : "I do notin",
         cooldown : 200,
+        scaler : "main_attack",
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
 
@@ -331,6 +413,10 @@ var heavyAttacks = {
     }
 };
 
+// -----------------------------------------------------------------------
+//                      Z SWORD API
+// -----------------------------------------------------------------------
+
 var upFuncs = {
     getUpgradePoints: getUpgradePoints,
     setUpgradePoints: setUpgradePoints,
@@ -338,8 +424,10 @@ var upFuncs = {
     takeUpgradePoints: takeUpgradePoints,
     upgrade: upgrade,
     setUpgradeTexture: setUpgradeTexture,
+    handleUpgradeResponse: handleUpgradeResponse,
     menu: buildUpgradeMenu
 };
+
 var zSwordFunctions = {
     displaySkillMenu: displaySkillMenu,
     displayHeavyMenu: displayHeavyMenu,
@@ -349,11 +437,16 @@ var zSwordFunctions = {
     upgradeFuncs: upFuncs
 };
 
-// CONFIG
+
+// -----------------------------------------------------------------------
+//                      CONFIG
+// -----------------------------------------------------------------------
+
 // GUI CONFIG
 var SKILL_WINDOW_ID = 301
 var skillWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Skill_Menu.png";
 var heavyWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/LandOfTheKais_Z-Sword%20Saga_Heavy_Menu.png";
+var upgradeWindowBgTexture = "https://zsstorage.xyz/LandOfTheKais/ZSwordGUI/TEMP/LandOfTheKais_Z-Sword%20Saga_Upgrade_Menu_TEMP.png";
 var menuHeight = 171;
 var menuWidth = 243;
 
@@ -386,6 +479,19 @@ var costY = 90;
 var uButtonX = 144;
 var uButtonY = 130;
 
+// UPGRADE RESPONSE
+var invalidPlayer = "Player invalid";
+var upgradedAlready = "TYPE already upgraded";
+var skillNotUnlocked = "Skill not unlocked";
+var heavyNotUnlocked = "Weapon art not unlocked";
+var insufficientPoints = "Insufficient Points";
+var upgradeSuccess = "Upgrade successful";
+var successColour = 4783944;
+var failColour = 16724530;
+
+var upMessageX = 144;
+var upMessageY = 105;
+
 // LORE CONFIG
 var activeLore = "&6&lActive Abilities: ";
 var passiveLore = "&6&lPassive Abilities: ";
@@ -398,6 +504,10 @@ var SPAM_PREVENTER = 357;
 
 var item;
 var abilHandler;
+
+// -----------------------------------------------------------------------
+//                      BASE EVENT HANDLING
+// -----------------------------------------------------------------------
 
 function buildingItem(event)
 {
@@ -440,7 +550,6 @@ function rightClick(event)
 
     if(item.getTag("sheathed") == "false") {
         doHeavyAttack(player);
-        
     }
 }   
 
@@ -455,6 +564,10 @@ function attack(event) {
         player.getTempData("zAbilityHandler").handleEvent("itemAttack");
     }
 }
+
+// -----------------------------------------------------------------------
+//                      SHEATHE HANDLING
+// -----------------------------------------------------------------------
 
 /** Sets item to sheathed state
  * @param {IItemLinked} item 
@@ -577,10 +690,21 @@ function applyAttributes(item, attributes)
 // -----------------------------------------------------------------------
 //                      MENUS
 // -----------------------------------------------------------------------
+
+/** Builds base menu for all z sword menus
+ * @param {IPlayer} player 
+ * @param {Int} type - 0: Skill, 1: Heavy
+ * @param {Int} guiId 
+ * @returns 
+ */
 function buildBase(player, type, guiId) {
     if(!lib.isPlayer(player)) return;
     var item = player.getHeldItem();
     if(!lib.isZSword(item) || item.getTag("sheathed" == "true") || item.getTag("broken") == "true") return;
+    // Clear button temp data
+    player.removeTempData("selectedButton");
+    player.removeTempData("selectedUpgrade");
+
     var menu = API.createCustomGui(guiId, menuWidth + tabWidth, menuHeight, false);
     menu.addTexturedRect(0, type == 0 ? skillWindowBgTexture : heavyWindowBgTexture, 0, 0, menuWidth, menuHeight);
 
@@ -600,7 +724,7 @@ function buildBase(player, type, guiId) {
         if(unlockedPowers.indexOf(power) < 0) {
             menu.addTexturedRect(power.id, skills.lockedSkill.icon, iconPosX, iconPosY, iconWidth, iconHeight);
         } else {
-            var button = menu.addTexturedButton(power.id, "", iconPosX, iconPosY, iconWidth, iconHeight, power.icon);
+            var button = menu.addTexturedButton(power.id, "", iconPosX, iconPosY, iconWidth, iconHeight, isUpgraded(player, type, power.id) ? power.superIcon : power.icon);
             if(power.hoverText) button.setHoverText(power.hoverText);
         }
         
@@ -619,27 +743,35 @@ function buildBase(player, type, guiId) {
     return menu;
 }
 
+/** Builds an upgrade menu and displays it to the player
+ * @param {IPlayer} player 
+ * @param {Int} type - 0: Skill, 1: Heavy
+ */
 function buildUpgradeMenu(player, type) {
     var menu = buildBase(player, type, SKILL_WINDOW_ID + 2 + type);
     // Menu fails to build or player is invalid
     if(!menu) return;
 
-    menu.getComponent(0).setTexture(heavyWindowBgTexture);
+    menu.getComponent(0).setTexture(upgradeWindowBgTexture);
 
     var idIndex = 50;
     var skillSlots = getSkillSlots(player)
     if((type == 0 && !skillSlots[0] && !skillSlots[1] && !skillSlots[2] && !skillSlots[3]) || (type == 1 && !hasUnlockedHeavies(player))) { // Skills not unlocked
         menu.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, iconWidth, iconHeight);
-        menu.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - iconWidth)/2, heavySelectedY - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
+        menu.addTexturedRect(idIndex + 30, selectedLockTexture, heavySelectedX - (selectedLockSize - iconWidth)/2, heavySelectedY - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
     }
     else menu.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, iconWidth, iconHeight, heavyAttacks.blankHeavy.icon);
 
     // Upgrade labels and button
     var uPointsLabel = menu.addLabel(56, "Upgrade Points: " + getUpgradePoints(player), uPointX, uPointY, 100, 0);
+    uPointsLabel.setScale(0.89);
     var uPointsShadow = menu.addLabel(55, "Upgrade Points: " + getUpgradePoints(player), uPointX + 1, uPointY + 1, 100, 0, 0);
+    uPointsShadow.setScale(0.89);
 
     var costLabel = menu.addLabel(58, "Cost: ", costX, costY, 100, 0);
+    costLabel.setScale(0.89);
     var costShadow = menu.addLabel(57, "Cost: ", costX + 1, costY + 1, 100, 0, 0);
+    costShadow.setScale(0.89);
 
     var upButton = menu.addButton(59, "Upgrade", uButtonX, uButtonY, 90, 20);
 
@@ -713,7 +845,8 @@ function findUpgrades(player, type) {
     for(var s in upgradeArr) {
         s = upgradeArr[s];
         var split = s.split("=");
-        upgradeObject[split[0]] = split[1];
+        if(split[1] > 0)
+            upgradeObject[split[0]] = split[1];
     }
     return upgradeObject;
 }
@@ -730,22 +863,96 @@ function isUpgraded(player, type, id) {
     return false;
 }
 
-// 0 - Invalid player, 1 - Upgrade already present, 2 - skill not unlocked, 3 - Heavy not unlocked, 4 - Insufficient points
-
+/** Upgrades a skill or heavy attack
+ * 0 - Invalid player, 1 - Upgrade already present, 2 - skill not unlocked, 3 - Heavy not unlocked, 4 - Insufficient points, 5 - Success, 9 - Prevents invalid icon displaying
+ * @param {IPlayer} player 
+ * @param {Int} type - 0: Skill, 1: Heavy
+ * @param {Int} id 
+ * @returns 
+ */
 function upgrade(player, type, id) {
     if(!lib.isPlayer(player)) return 0;
+    if(id < firstPowerId) return 9;
     if(id in findUpgrades(player, type)) return 1;
-    if(type == 0 && !(findSkill(id) in getSkills(player))) return 2;
-    if(type == 1 && !(findHeavyAttack(id) in getHeavies(player))) return 3;
+    if(type == 0 && !(getSkills(player).indexOf(findSkill(id)) > -1)) return 2;
+    if(type == 1 && !(getHeavies(player).indexOf(findHeavyAttack(id)) > -1)) return 3;
 
     var availablePoints = getUpgradePoints(player);
     if((type == 0 && findSkill(id).upgradeCost > availablePoints) || (type == 1 && findHeavyAttack(id).upgradeCost > availablePoints)) return 4;
 
     var playerSlot = lib.getActiveSlotId(player);
     var upgradeString = type == 0 ? player.getStoredData(playerSlot + "zSwordSkillUpgrade") : player.getStoredData(playerSlot + "zSwordHeavyUpgrade");
+    if(!upgradeString) upgradeString = "";
+    takeUpgradePoints(player, type == 0 ? findSkill(id).upgradeCost : findHeavyAttack(id).upgradeCost);
     player.setStoredData(playerSlot + (type == 0 ? "zSwordSkillUpgrade" : "zSwordHeavyUpgrade"), upgradeString + "" + id + "=1,");
+    return 5;
 }
 
+/** Handles gui response from pressing upgrade
+ * @param {IPlayer} player 
+ * @param {ICustomGui} gui 
+ */
+function handleUpgradeResponse(player, gui) {
+    if(!lib.isPlayer(player) || !player.hasTempData("selectedUpgrade")) return;
+    var result = upgrade(player, gui.getID() == 303 ? 0 : 1, player.getTempData("selectedUpgrade"));
+    var text = "";
+    switch(result) {
+        case 0:
+            text = invalidPlayer;
+            break;
+
+        case 1:
+            text = upgradedAlready.replace("TYPE", (gui.getID() == 303 ? "Skill" : "Weapon art"));
+            break;
+            
+        case 2:
+            text = skillNotUnlocked;
+            break;
+
+        case 3:
+            text = heavyNotUnlocked;
+            break;
+
+        case 4:
+            text = insufficientPoints;
+            break;
+
+        case 5:
+            text = upgradeSuccess;
+            break;
+
+        default:
+            text = "";
+            break;
+    }
+    var message = gui.addLabel(65, text, upMessageX, upMessageY, 50, 55, result == 5 ? successColour : failColour);
+    var messageShadow = gui.addLabel(64, text, upMessageX + 1, upMessageY + 1, 50, 55, 0);
+    message.setScale(0.89);
+    messageShadow.setScale(0.89);
+    if(result == 5) {
+        // Update ability icons
+        gui.getComponent(player.getTempData("selectedUpgrade")).setTexture(gui.getID() == 303 ? findSkill(player.getTempData("selectedUpgrade")).superIcon : findHeavyAttack(player.getTempData("selectedUpgrade")).superIcon);
+        gui.getComponent(50).setTexture(skills.blankSkill.icon);
+
+        // Update cost text
+        gui.getComponent(58).setText("Cost: ");
+        gui.getComponent(57).setText("Cost: ");
+
+        // Update points text
+        gui.getComponent(56).setText("Upgrade Points: " + getUpgradePoints(player));
+        gui.getComponent(55).setText("Upgrade Points: " + getUpgradePoints(player));
+
+        player.removeTempData("selectedButton");
+        player.removeTempData("selectedUpgrade");
+    }
+    gui.update(player);
+    return;
+}
+
+/** Gets current no. upgrade points
+ * @param {IPlayer} player 
+ * @returns Int
+ */
 function getUpgradePoints(player) {
     if(!lib.isPlayer(player)) return;
     var points = player.getStoredData(lib.getActiveSlotId(player) + "zSwordUpgradePoints");
@@ -753,26 +960,57 @@ function getUpgradePoints(player) {
     return parseInt(points);
 }
 
+/** Sets upgrade points to amount
+ * @param {IPlayer} player 
+ * @param {Int} amount 
+ */
 function setUpgradePoints(player, amount) {
     if(!lib.isPlayer(player)) return;
     player.setStoredData(lib.getActiveSlotId(player) + "zSwordUpgradePoints", amount);
 }
 
+/** Adds upgrade points to total
+ * @param {IPlayer} player 
+ * @param {Int} amount 
+ */
 function addUpgradePoints(player, amount) {
     if(!lib.isPlayer(player)) return;
     setUpgradePoints(player, getUpgradePoints(player) + amount);
 }
 
+/** Takes upgrade points from total
+ * @param {IPlayer} player 
+ * @param {Int} amount 
+ */
 function takeUpgradePoints(player, amount) {
     if(!lib.isPlayer(player)) return;
     setUpgradePoints(player, getUpgradePoints(player) - amount);
 }
 
+/** Updates gui texture and cost for upgrade selection
+ * @param {ICustomGui} gui 
+ * @param {Int} type - 0: Skill, 1: Heavy
+ * @param {Int} id 
+ * @param {IPlayer} player 
+ */
 function setUpgradeTexture(gui, type, id, player) {
-    gui.getComponent(50).setTexture(type == 0 ? findSkill(id).icon : findHeavyAttack(id).icon);
-    var power = type == 0 ? findSkill(id) : findHeavyAttack(id);
-    gui.getComponent(58).setText("Cost: " + power.upgradeCost);
-    gui.getComponent(57).setText("Cost: " + power.upgradeCost);
+    player.sendMessage(id)
+    if(id >= firstPowerId && !isUpgraded(player, type, id)) {
+        var power = type == 0 ? findSkill(id) : findHeavyAttack(id);
+        var cost = power.upgradeCost;
+    }
+    else if(isUpgraded(player, type, id)) {
+        var power = type == 0 ? findSkill(id) : findHeavyAttack(id);
+        var cost = "";
+    }
+    else {
+        power = skills.blankSkill;
+        var cost = "";
+        player.removeTempData("selectedUpgrade")
+    }
+    gui.getComponent(50).setTexture(isUpgraded(player, type, id) ? power.superIcon : power.icon);
+    gui.getComponent(58).setText("Cost: " + cost);
+    gui.getComponent(57).setText("Cost: " + cost);
     gui.update(player);
 }
 
@@ -852,7 +1090,7 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
     var cooldownTimerId = activeSlot == 1 ? this.ACTIVE_1_COOLDOWN : this.ACTIVE_2_COOLDOWN;
     var compoundTimerId = this.slot + "" + cooldownTimerId + "";
     var skill = activeSlot == 1 ? this.active1 : this.active2;
-    if(!skill || item.getTag("sheathed") == "true" || !lib.holdingZSword(this.player)) return;
+    if(!skill || item.getTag("sheathed") == "true" || !lib.holdingZSword(this.player) || skill.id < firstPowerId) return;
 
     if(timers.has(compoundTimerId) && !timers.has(this.SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(compoundTimerId);
@@ -877,43 +1115,49 @@ abilityHandler.prototype.handleEvent = function(eventType) {
         type : eventType,
         zsword : this.zSword,
         super: false,
-        potency: 1.5,
+        scaler: "",
         slot: null
     }
 
     // Trigger passives and actives
-    if(eventType == "heavyActivate" && getSelectedHeavy(this.player)) {
+    if(eventType == "heavyActivate" && getSelectedHeavy(this.player) && "active" in getSelectedHeavy(this.player)) {
         var heavy = getSelectedHeavy(this.player)
         if(isUpgraded(this.player, 1, heavy.id)) event.super = true;
         heavy.active(event);
     }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
+        event.scaler = this.active1.scaler;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.active(event);
     }
     if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
         event.slot = "active2"
+        event.scaler = this.active2.scaler;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.active(event);
     }
     if(this.active1 && "passive" in this.active1) {
         event.slot = "active1"
+        event.scaler = this.active1.scaler;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.passive(event);
     }
     if(this.active2 && "passive" in this.active2) {
         event.slot = "active2"
+        event.scaler = this.active2.scaler;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.passive(event);
     }
     if(this.passive1 && "passive" in this.passive1) {
         event.slot = "passive1"
+        event.scaler = this.passive1.scaler;
         if(isUpgraded(this.player, 0, this.passive1.id)) event.super = true;
         this.passive1.passive(event);
     }
     if(this.passive2 && "passive" in this.passive2) {
         event.slot = "passive2"
+        event.scaler = this.passive2.scaler;
         if(isUpgraded(this.player, 0, this.passive2.id)) event.super = true;
         this.passive2.passive(event);
     }
@@ -963,10 +1207,11 @@ abilityHandler.prototype.addSkillLore = function() {
  */
 abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
     var selectedSkills = this.getSelectedSkills();
-    var skillIndex = selectedSkills.indexOf(findSkill(id));
+    var skill = findSkill(id);
+    var skillIndex = selectedSkills.indexOf(skill);
     if(skillIndex == skillSlot) return;
     // Unselect skill if already selected
-    if(skillIndex > -1) {
+    if(skillIndex > -1 || skill.id == 1) {
         switch(skillIndex) {
             case(0):
                 this.player.setStoredData(this.slot + "zSwordActive1", 1);
@@ -985,30 +1230,30 @@ abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
                 this.passive2 = null;
                 break;
         }
-        gui.getComponent(selectedSkills.indexOf(findSkill(id)) + 50).setTexture(skills.blankSkill.icon);
+        gui.getComponent(skillSlot + 50).setTexture(skills.blankSkill.icon);
         gui.update(this.player);
     } 
 
     switch(skillSlot) {
         case(0):
             this.player.setStoredData(this.slot + "zSwordActive1", id);
-            this.active1 = findSkill(id);
+            this.active1 = skill;
             break;
         case(1):
             this.player.setStoredData(this.slot + "zSwordActive2", id);
-            this.active2 = findSkill(id);
+            this.active2 = skill;
             break;
         case(2):
             this.player.setStoredData(this.slot + "zSwordPassive1", id);
-            this.passive1 = findSkill(id);
+            this.passive1 = skill;
             break;
         case(3):
             this.player.setStoredData(this.slot + "zSwordPassive2", id);
-            this.passive2 = findSkill(id);
+            this.passive2 = skill;
             break;
     }
     
-    gui.getComponent(skillSlot + 50).setTexture(findSkill(id).icon);
+    gui.getComponent(skillSlot + 50).setTexture(skill.icon);
     gui.update(this.player);
 
     this.addSkillLore();
@@ -1095,7 +1340,7 @@ function doHeavyAttack(player)
     var attack = getSelectedHeavy(player);
     if(!lib.holdingZSword(player)) return;
     var item = player.getHeldItem();
-    if(!attack in heavyAttacks || item.getTag("sheathed") == "true") return;
+    if(!attack || !attack in heavyAttacks || attack.id < firstPowerId || item.getTag("sheathed") == "true") return;
     if(timers.has(playerSlot + "" + HEAVY_COOLDOWN) && !timers.has(SPAM_PREVENTER)) {
         var remainingCooldown = timers.ticks(playerSlot + "" + HEAVY_COOLDOWN);
         player.sendMessage("Remaining Cooldown on Heavy Attack: " + attack.name + " : " + (Math.round(remainingCooldown/2)/10) + " seconds.");

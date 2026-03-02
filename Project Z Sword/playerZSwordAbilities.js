@@ -15,8 +15,3 @@ function keyPressed(event) {
         player.getTempData("zAbilityHandler").abilityActivate(activeSlot);
     }
 }
-
-// Add keybind support for mouse keys
-function mouseClicked(event) {
-    // HEAVY ATTACK NYI
-}
