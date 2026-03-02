@@ -110,7 +110,7 @@ var appearanceLevel = [
     "upgradeCost" (int) - Upgrade cost in upgrade points
     "hoverText" (string[]) - Text shown when hovering over skill in menus
     "cooldown" (int) - Cooldown in ticks
-    "scaler" (string) - Weapon attribute to scale off (e.g. 'main_attack')
+    "scalar" (string) - Weapon attribute to scale off (e.g. 'main_attack')
     "active" (function) - Active portion of skill
     "passive" (function) - Passive portion of skill
 
@@ -139,7 +139,7 @@ var skills = {
         upgradeCost: 3,
         hoverText : ["&aSenzu Eat", "Active: Eat a senzu bean to restore health and ki", "Passive: I forgor"],
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
             event.player.sendMessage("Wow I just sent this from the active ability!!");
             event.player.sendMessage("Is this skill super? " + event.super);
@@ -157,7 +157,7 @@ var skills = {
         upgradeCost: 4,
         hoverText : "I'm green",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -174,7 +174,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -191,7 +191,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -208,7 +208,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -225,7 +225,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -242,7 +242,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -259,7 +259,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -276,7 +276,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -293,7 +293,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -310,7 +310,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -327,7 +327,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
 
         },
@@ -357,7 +357,7 @@ var skills = {
     "upgradeCost" (int) - Upgrade cost in upgrade points
     "hoverText" (string[]) - Text shown when hovering over Weapon Art in menus
     "cooldown" (int) - Cooldown in ticks
-    "scaler" (string) - Weapon attribute to scale off (e.g. 'main_attack')
+    "scalar" (string) - Weapon attribute to scale off (e.g. 'main_attack')
     "active" (function) - Function run by weapon art
 
 */
@@ -384,7 +384,7 @@ var heavyAttacks = {
         upgradeCost: 1,
         hoverText : "I do a big charge",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
             if(event.super) {
@@ -404,7 +404,7 @@ var heavyAttacks = {
         upgradeCost: 1,
         hoverText : "I do notin",
         cooldown : 200,
-        scaler : "main_attack",
+        scalar : "main_attack",
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
 
@@ -1115,7 +1115,7 @@ abilityHandler.prototype.handleEvent = function(eventType) {
         type : eventType,
         zsword : this.zSword,
         super: false,
-        scaler: "",
+        scalar: "",
         slot: null
     }
 
@@ -1127,37 +1127,37 @@ abilityHandler.prototype.handleEvent = function(eventType) {
     }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
-        event.scaler = this.active1.scaler;
+        event.scalar = this.active1.scalar;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.active(event);
     }
     if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
         event.slot = "active2"
-        event.scaler = this.active2.scaler;
+        event.scalar = this.active2.scalar;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.active(event);
     }
     if(this.active1 && "passive" in this.active1) {
         event.slot = "active1"
-        event.scaler = this.active1.scaler;
+        event.scalar = this.active1.scalar;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.passive(event);
     }
     if(this.active2 && "passive" in this.active2) {
         event.slot = "active2"
-        event.scaler = this.active2.scaler;
+        event.scalar = this.active2.scalar;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.passive(event);
     }
     if(this.passive1 && "passive" in this.passive1) {
         event.slot = "passive1"
-        event.scaler = this.passive1.scaler;
+        event.scalar = this.passive1.scalar;
         if(isUpgraded(this.player, 0, this.passive1.id)) event.super = true;
         this.passive1.passive(event);
     }
     if(this.passive2 && "passive" in this.passive2) {
         event.slot = "passive2"
-        event.scaler = this.passive2.scaler;
+        event.scalar = this.passive2.scalar;
         if(isUpgraded(this.player, 0, this.passive2.id)) event.super = true;
         this.passive2.passive(event);
     }
