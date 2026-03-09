@@ -38,8 +38,8 @@ var quests = {
         "skill.pinkSkill2" : 1,
         "skill.redSkill" : 1,
         "unlock.heavy" : 1,
-        "heavy.slap" : 1
-        
+        "heavy.slap" : 1,
+        "attribute.Skill Level" : 10
     },
 
     quest2 : quest2 = {
@@ -90,6 +90,15 @@ var appearanceLevel = [
         "lore" : ["&rLore dump"]
     }
 ];
+
+var infoLore = [
+    "Weapon Level: "
+]
+
+// LORE CONFIG
+var activeLore = "&6&lActive Abilities: ";
+var passiveLore = "&6&lPassive Abilities: ";
+var heavyLore = "&7&lWeapon Art: ";
 
 /*
     SKILLS DATA FORMAT
@@ -481,7 +490,7 @@ var uButtonY = 130;
 
 // UPGRADE RESPONSE
 var invalidPlayer = "Player invalid";
-var upgradedAlready = "TYPE already upgraded";
+var upgradedAlready = "TYPE already upgraded"; // TYPE replaced by upgrade type
 var skillNotUnlocked = "Skill not unlocked";
 var heavyNotUnlocked = "Weapon art not unlocked";
 var insufficientPoints = "Insufficient Points";
@@ -491,10 +500,6 @@ var failColour = 16724530;
 
 var upMessageX = 144;
 var upMessageY = 105;
-
-// LORE CONFIG
-var activeLore = "&6&lActive Abilities: ";
-var passiveLore = "&6&lPassive Abilities: ";
 
 // TIMERS DON'T EDIT
 var ACTIVE_1_COOLDOWN = 321;
@@ -1177,9 +1182,11 @@ abilityHandler.prototype.addSkillLore = function() {
     var oldLore = appearanceLevel[this.zSword.getTag("appearance")].lore;
     var lore = [];
     var selectedSkills = this.getSelectedSkills();
+    var selectedHeavy = getSelectedHeavy(this.player);
     for(var string in oldLore) {
         lore.push(oldLore[string])
     }
+    lore.push("");
     if((selectedSkills[0] && selectedSkills[0].id >= firstPowerId) || (selectedSkills[1] && selectedSkills[1].id >= firstPowerId)) {
         lore.push(
             activeLore + 
@@ -1197,6 +1204,11 @@ abilityHandler.prototype.addSkillLore = function() {
             (selectedSkills[3] ? selectedSkills[3].name : "&r&fNone")
         );
     }
+    if(selectedHeavy && selectedHeavy.id >= firstPowerId) {
+        lore.push("");
+        lore.push(heavyLore + "&r" + selectedHeavy.name);
+        lore.push("");
+    } 
     lib.findZSword(this.player).setLore(lore);
 }
 
