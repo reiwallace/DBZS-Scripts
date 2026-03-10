@@ -1,5 +1,6 @@
-/** playerSkillGui.js
- *  Handles z sword skill gui
+/** zSwordGlobal.js
+ *  Handles most player scripts for z sword
+ * AUTHOR: Noxie
  */
 
 // Button config
@@ -13,6 +14,7 @@ var zSwordLinkedId = 29;
 // Don't edit
 var LOOP_BREAK_TIMER = 912;
 var RESET_TIMER = 329;
+var UPDATE_LORE = 330;
 var oldIds = [];
 var keyDown = 0;
 var keyUp = 1;
@@ -140,10 +142,10 @@ function customGuiButton(event) {
 // Remove selection when closing gui
 function customGuiClosed(event)
 {
-    if(event.gui.getID() != 301) return;
+    if(event.gui.getID() < 301 || event.gui.getID() > 304) return;
     var player = event.player
     if(player.hasTempData("zAbilityHandler")) 
-        player.getTempData("zAbilityHandler").addSkillLore();
+        player.timers.forceStart(UPDATE_LORE, 5, false);
     player.removeTempData("selectedButton");
     player.removeTempData("selectedUpgrade");
 }
@@ -259,17 +261,22 @@ function containerOpen(event) {
     var timers = player.timers;
     // Timer to prevent looping function
     if(timers.has(LOOP_BREAK_TIMER)) {
-        timers.forceStart(LOOP_BREAK_TIMER, 3, false);
+        timers.forceStart(LOOP_BREAK_TIMER, 1, false);
         return;
     }
-    timers.forceStart(LOOP_BREAK_TIMER, 3, false);
+    timers.forceStart(LOOP_BREAK_TIMER, 1, false);
     openWithZS = lib.hasZSword(player);
     container = event.getContainer();
 }
 
 function timer(event) {
+    if(event.id == UPDATE_LORE) {
+        var player = event.player;
+        if(!player.hasTempData("zSwordFunctions")) return;
+        player.getTempData("zSwordFunctions").addConditionalLore(lib.findZSword(player), player);
+    }
     if(event.id == RESET_TIMER) successful = 0; 
-    if(event.id != 911 || !container) return;
+    if(event.id != LOOP_BREAK_TIMER || !container) return;
     var player = event.player;
     var closeWithZS = lib.hasZSword(player);
     if(openWithZS == closeWithZS) return;
@@ -298,8 +305,8 @@ function chat(event) {
     if(!event.getMessage().startsWith(".zsword")) return;
     function help(player) {
         player.sendMessage("&6--- Z Sword commands ---&r");
-        player.sendMessage("&eSummon&r: Summons your Z Sword");
-        player.sendMessage("&eKeybind&r: Rebind or Check Z Sword keybinds");
+        player.sendMessage("&esummon&r: Summons your Z Sword");
+        player.sendMessage("&ekeybind&r: Rebind or Check Z Sword keybinds");
     }
 
     var chatBinds = ["skill1", "skill2"]

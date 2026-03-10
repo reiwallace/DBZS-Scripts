@@ -1,4 +1,7 @@
-// Check key inputs for ability keybinds
+// playerZSwordAbilities.js
+// AUTHOR: Noxie
+// Handles key presses for z sword abilities
+
 function keyPressed(event) {
     if(!event.keyDown()) return;
     var key = event.getKey();

@@ -14,13 +14,14 @@
 
     SUPPORTED PROPERTIES
     [REQUIRED] "quest_id" (int)
-    "attribute.ATTRIBUTE_NAME" (int) - Any custom attribute from CNPC+
+    "attribute.ATTRIBUTE_NAME" (int) - Any custom attribute from CNPC+ (and sword_level)
     "magic_attribute.MAGIC_ATTRIBUTE_NAME" (int) - Any magic attribute from CNPC+
     "skill.SKILL_NAME" (int) - Any custom skill added by us (set this to 1)
     "apperance" (int) - value to add to appearance level (set this to 1)
     "unlock.heavy" (int) - Unlocks weapon arts slot
     "slot.active" (int) - Number of active slots to unlock (max 2)
     "slot.passive" (int) - Number of passive slots to unlock
+    "level_req" (int) - Adds to level requirement
 */
 var quests = {
     defaultState : defaultState = {
@@ -39,7 +40,8 @@ var quests = {
         "skill.redSkill" : 1,
         "unlock.heavy" : 1,
         "heavy.slap" : 1,
-        "attribute.Skill Level" : 10
+        "attribute.sword_level" : 3,
+        "level_req" : 3000
     },
 
     quest2 : quest2 = {
@@ -51,7 +53,8 @@ var quests = {
         "skill.greenSkill3" : 1,
         "slot.active" : 1,
         "slot.passive" : 1,
-        "heavy.nothin" : 1
+        "heavy.nothin" : 1,
+        "level_req" : 7000
     }
 };
 
@@ -92,7 +95,11 @@ var appearanceLevel = [
 ];
 
 var infoLore = [
-    "Weapon Level: "
+    "\u00A77\u00A7rLevel Req:&r ",
+    "\u00A76Sword Level: ",
+    "\u00A76\u00A7lActive Abilities:&r ",
+    "\u00A76\u00A7lPassive Abilities:&r ",
+    "\u00A77\u00A7lWeapon Art:&r "
 ]
 
 // LORE CONFIG
@@ -104,7 +111,7 @@ var heavyLore = "&7&lWeapon Art: ";
     SKILLS DATA FORMAT
 
     Add a new skill with:
-    NAME = {}
+    NAME : {}
 
     Add properties with:
     "property" : value,
@@ -148,7 +155,7 @@ var skills = {
         upgradeCost: 3,
         hoverText : ["&aSenzu Eat", "Active: Eat a senzu bean to restore health and ki", "Passive: I forgor"],
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
             event.player.sendMessage("Wow I just sent this from the active ability!!");
             event.player.sendMessage("Is this skill super? " + event.super);
@@ -166,7 +173,7 @@ var skills = {
         upgradeCost: 4,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -183,7 +190,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -200,7 +207,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -217,7 +224,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -234,7 +241,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -251,7 +258,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -268,7 +275,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -285,7 +292,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -302,7 +309,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -319,7 +326,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -336,7 +343,7 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "main_attack",
+        scalar : "sword_level ",
         active : function(event) {
 
         },
@@ -443,7 +450,8 @@ var zSwordFunctions = {
     selectHeavyAttack: selectHeavyAttack,
     heavyAttack : doHeavyAttack,
     sheathe : sheatheWeapon,
-    upgradeFuncs: upFuncs
+    upgradeFuncs: upFuncs,
+    addConditionalLore: addConditionalLore
 };
 
 
@@ -548,6 +556,17 @@ function rightClick(event)
 {
     item = event.item;
     var player = event.player;
+    var target = event.getTarget();
+    if(player.hasTempData("zSwordClickFlag")) return;
+    if(target && target.getClass().toString().equals("class noppes.npcs.scripted.entity.ScriptNpc") && target.getFaction().getName() == "Friendly") {
+        player.setTempData("zSwordClickFlag", 1);
+        player.getActionManager().scheduleParallel("zSwordResetClickFlag", 10, function(act) {
+            act.getData("player").removeTempData("zSwordClickFlag");
+            act.markDone();
+        }).setData("player", player);
+        player.getActionManager().start();
+        return;
+    }
     if(item.getTag("sheathed") == "true") {
         removeSheathe(item, event.player);
         return;
@@ -628,15 +647,15 @@ function removeSheathe(item, player)
     applyAttributes(item, getAttributes(player));
     
     abilHandler = new abilityHandler(player, item);
-    abilHandler.addSkillLore();
     abilHandler.handleEvent("removeSheathe");
 
     item.setRequirement("cnpc_soulbind", player.getUniqueID());
+    item.setTag("power", getLevelReq(player));
 
     item.setTag("playerId", player.getEntityId())
     player.setTempData("zSwordFunctions", zSwordFunctions);
-    player.setTempData("zAbilityHandler", abilHandler);  
-    var attribute = getAttributes(player);
+
+    addConditionalLore(item, player);
 }
 
 /** Sets appearence of item from appearance object
@@ -648,6 +667,46 @@ function setAppearance(item, appearance)
     if(appearance.item_name) item.setCustomName(appearance.item_name);
     if(appearance.lore) item.setLore(appearance.lore);
     if(appearance.item_texture) item.setTexture(appearance.item_texture);
+}
+
+/** Adds currently selected skills to item lore
+ */
+function addConditionalLore(zSword, player) {
+    var oldLore = appearanceLevel[zSword.getTag("appearance")].lore;
+    var lore = [];
+    lore.push(infoLore[1] + zSword.getCustomAttribute("sword_level"));
+    var selectedSkills = player.getTempData("zAbilityHandler").getSelectedSkills();;
+    var selectedHeavy = getSelectedHeavy(player);
+    for(var string in oldLore) {
+        lore.push(oldLore[string])
+    }
+    var activeFlag = (selectedSkills[0] && selectedSkills[0].id >= firstPowerId) || (selectedSkills[1] && selectedSkills[1].id >= firstPowerId);
+    var passiveFlag = (selectedSkills[2] && selectedSkills[2].id >= firstPowerId) || (selectedSkills[3] && selectedSkills[3].id >= firstPowerId);
+    if(activeFlag) {
+        lore.push("");
+        lore.push(
+            infoLore[2] +
+            (selectedSkills[0] && selectedSkills[0].name != "None" ? selectedSkills[0].name + " &7&l[KEY]".replace("KEY", player.hasStoredData("zSwordActive1Key") ? keys[player.getStoredData("zSwordActive1Key")] : keys["41"]) : "&r&fNone") + 
+            "&r, " +
+            (selectedSkills[1] && selectedSkills[1].name != "None" ? selectedSkills[1].name + " &7&l[KEY]".replace("KEY", player.hasStoredData("zSwordActive2Key") ? keys[player.getStoredData("zSwordActive2Key")] : keys["58"]) : "&r&fNone")
+        );
+    }
+    if(passiveFlag) { 
+        if(!activeFlag) lore.push("");
+        lore.push(
+            infoLore[3] + 
+            (selectedSkills[2] ? selectedSkills[2].name : "&r&fNone") + 
+            "&r, " +
+            (selectedSkills[3] ? selectedSkills[3].name : "&r&fNone")
+        );
+    }
+    if(selectedHeavy && selectedHeavy.id >= firstPowerId) {
+        lore.push("");
+        lore.push(infoLore[4] + "&r" + selectedHeavy.name);
+        lore.push("");
+    }
+    lore.push(infoLore[0] + getLevelReq(player));
+    lib.findZSword(player).setLore(lore);
 }
 
 // -----------------------------------------------------------------------
@@ -671,6 +730,19 @@ function getAttributes(player)
         }
     }
     return availableAttributes;
+}
+
+/** Gets the level requirement for the player's current weapon
+ * @param {IPlayer} player 
+ * @returns 
+ */
+function getLevelReq(player) {
+    var level_req = 0;
+    for(var quest in quests) {
+        if(!player.hasFinishedQuest(quests[quest]["quest_id"])) continue;
+        if(quests[quest]["level_req"]) level_req += quests[quest]["level_req"];
+    }
+    return level_req;
 }
 
 /** Applys attributes from an object to current item
@@ -802,7 +874,7 @@ function displaySkillMenu(player)
             menu.addTexturedRect(idIndex, skills.blankSkill.icon, selectedPosX[i], selectedPosY[i], iconWidth, iconHeight);
             menu.addTexturedRect(idIndex + 4, selectedLockTexture, selectedPosX[i] - (selectedLockSize - iconWidth)/2, selectedPosY[i] - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
         }
-        else menu.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], iconWidth, iconHeight, selectedSkills[i].icon);
+        else menu.addTexturedButton(idIndex, "", selectedPosX[i], selectedPosY[i], iconWidth, iconHeight, isUpgraded(player, 0, selectedSkills[i].id) ? selectedSkills[i].superIcon : selectedSkills[i].icon);
         idIndex++;
     }
 
@@ -826,7 +898,7 @@ function displayHeavyMenu(player)
         menu.addTexturedRect(idIndex, heavyAttacks.blankHeavy.icon, heavySelectedX, heavySelectedY, iconWidth, iconHeight);
         menu.addTexturedRect(idIndex + 4, selectedLockTexture, heavySelectedX - (selectedLockSize - iconWidth)/2, heavySelectedY - (selectedLockSize - iconHeight)/2, selectedLockSize, selectedLockSize);
     }
-    else menu.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, iconWidth, iconHeight, selectedHeavy.icon);
+    else menu.addTexturedButton(idIndex, "", heavySelectedX, heavySelectedY, iconWidth, iconHeight, isUpgraded(player, 1, selectedHeavy.id) ? selectedHeavy.superIcon : selectedHeavy.icon);
 
     player.showCustomGui(menu);
 }
@@ -999,7 +1071,6 @@ function takeUpgradePoints(player, amount) {
  * @param {IPlayer} player 
  */
 function setUpgradeTexture(gui, type, id, player) {
-    player.sendMessage(id)
     if(id >= firstPowerId && !isUpgraded(player, type, id)) {
         var power = type == 0 ? findSkill(id) : findHeavyAttack(id);
         var cost = power.upgradeCost;
@@ -1083,6 +1154,8 @@ function abilityHandler(player, item) {
     this.ACTIVE_1_COOLDOWN = 322;
     this.SPAM_PREVENTER = 324;
     this.spamCd = 10;
+
+    player.setTempData("zAbilityHandler", this);  
 }
 
 /** Uses active ability in chosen slot
@@ -1176,40 +1249,10 @@ abilityHandler.prototype.getSelectedSkills = function() {
     return [this.active1, this.active2, this.passive1, this.passive2];
 }
 
-/** Adds currently selected skills to item lore
+/** Deprecated
  */
 abilityHandler.prototype.addSkillLore = function() {
-    var oldLore = appearanceLevel[this.zSword.getTag("appearance")].lore;
-    var lore = [];
-    var selectedSkills = this.getSelectedSkills();
-    var selectedHeavy = getSelectedHeavy(this.player);
-    for(var string in oldLore) {
-        lore.push(oldLore[string])
-    }
-    lore.push("");
-    if((selectedSkills[0] && selectedSkills[0].id >= firstPowerId) || (selectedSkills[1] && selectedSkills[1].id >= firstPowerId)) {
-        lore.push(
-            activeLore + 
-            (selectedSkills[0] && selectedSkills[0].name != "None" ? selectedSkills[0].name + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive1Key") ? keys[this.player.getStoredData("zSwordActive1Key")] : keys["41"]) : "&r&fNone") + 
-            "&r, " +
-            (selectedSkills[1] && selectedSkills[1].name != "None" ? selectedSkills[1].name + " &7&l[KEY]".replace("KEY", this.player.hasStoredData("zSwordActive2Key") ? keys[this.player.getStoredData("zSwordActive2Key")] : keys["58"]) : "&r&fNone")
-        );
-        
-    }
-    if((selectedSkills[2] && selectedSkills[2].id >= firstPowerId) || (selectedSkills[3] && selectedSkills[3].id >= firstPowerId)) { 
-        lore.push(
-            passiveLore + 
-            (selectedSkills[2] ? selectedSkills[2].name : "&r&fNone") + 
-            "&r, " +
-            (selectedSkills[3] ? selectedSkills[3].name : "&r&fNone")
-        );
-    }
-    if(selectedHeavy && selectedHeavy.id >= firstPowerId) {
-        lore.push("");
-        lore.push(heavyLore + "&r" + selectedHeavy.name);
-        lore.push("");
-    } 
-    lib.findZSword(this.player).setLore(lore);
+    addConditionalLore(this.zSword, this.player);
 }
 
 /** Sets a skill as selected
@@ -1224,7 +1267,8 @@ abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
     if(skillIndex == skillSlot) return;
     // Unselect skill if already selected
     if(skillIndex > -1 || skill.id == 1) {
-        switch(skillIndex) {
+        slot = skillIndex > -1 ? skillIndex : skillSlot
+        switch(slot) {
             case(0):
                 this.player.setStoredData(this.slot + "zSwordActive1", 1);
                 this.active1 = null;
@@ -1242,9 +1286,9 @@ abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
                 this.passive2 = null;
                 break;
         }
-        gui.getComponent(skillSlot + 50).setTexture(skills.blankSkill.icon);
+        gui.getComponent(slot + 50).setTexture(skills.blankSkill.icon);
         gui.update(this.player);
-    } 
+    }
 
     switch(skillSlot) {
         case(0):
@@ -1265,10 +1309,10 @@ abilityHandler.prototype.selectSkill = function(id, skillSlot, gui) {
             break;
     }
     
-    gui.getComponent(skillSlot + 50).setTexture(skill.icon);
+    gui.getComponent(skillSlot + 50).setTexture(isUpgraded(this.player, 0, skill.id) ? skill.superIcon : skill.icon);
     gui.update(this.player);
 
-    this.addSkillLore();
+    addConditionalLore(this.zSword, this.player);
 }
 
 // -----------------------------------------------------------------------
@@ -1329,9 +1373,10 @@ function selectHeavyAttack(player, id, gui)
 {
     var playerSlot = lib.getActiveSlotId(player);
     player.setStoredData(playerSlot + "zSwordHeavy", id);
-
-    gui.getComponent(50).setTexture(findHeavyAttack(id).icon);
+    var heavy = findHeavyAttack(id).icon;
+    gui.getComponent(50).setTexture(isUpgraded(player, 1, heavy.id) ? heavy.superIcon : heavy.icon);
     gui.update(player);
+    addConditionalLore(lib.findZSword(player), player);
 }
 
 /** Returns currently selected heavy attack
