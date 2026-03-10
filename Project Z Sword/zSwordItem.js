@@ -164,7 +164,7 @@ var skills = {
             level : {
                 1 : {ki: 100, stam: 100},
                 2 : {ki: 100, stam: 100},
-                3 : {ki: 100, stam: 100},
+                3 : {ki: 100000, stam: 1000000},
                 4 : {ki: 100, stam: 100},
                 5 : {ki: 100, stam: 100},
                 6 : {ki: 100, stam: 100},
@@ -193,7 +193,7 @@ var skills = {
             dbcPlayer.setStamina(dbcPlayer.getMaxStamina());
             dbcPlayer.setKi(dbcPlayer.getMaxKi());
             if(event.super) {
-                event.player.setTempData("senzuData", config.level);
+                event.player.setTempData("senzuSuperData", config.level);
                 API.getCustomEffectHandler().applyEffect(
                     player, 
                     config.superBuffId, 
@@ -204,15 +204,15 @@ var skills = {
         },
         passive : function(event) {
             // Only trigger on ability active events
-            if(event.type != "abilityActive1" && event.type != "abilityActive2") return;
+            if(event.type != "abilityActivate1" && event.type != "abilityActivate2") return;
             if(!lib.isPlayer(event.player)) return;
             var config = event.config;
-            event.player.setTempData("senzuData", config.level);
+            event.player.setTempData("senzuPassiveData", config.level);
             API.getCustomEffectHandler().applyEffect(
                 event.player, 
                 config.passiveBuffId, 
                 config.stamDuration, 
-                parseInt(event.zsword.getCustomAttribute(event.scaler))
+                event.zsword.getCustomAttribute(event.scalar)
             );
         }
     },
@@ -1248,7 +1248,7 @@ abilityHandler.prototype.abilityActivate = function(activeSlot) {
     this.handleEvent("abilityActivate" + activeSlot);
 }
 
-// Event types: abilityActivate1, abilityActive2, heavyActivate, removeSheathe, tick, attack, itemAttack, damaged
+// Event types: abilityActivate1, abilityActivate2, heavyActivate, removeSheathe, tick, attack, itemAttack, damaged
 abilityHandler.prototype.handleEvent = function(eventType) {
     if(!lib.isPlayer(this.player) || this.zSword.getTag("sheated") == "true" || !lib.hasZSword(this.player)) return;
     this.zSword = lib.findZSword(this.player);
