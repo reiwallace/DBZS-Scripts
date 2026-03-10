@@ -155,13 +155,65 @@ var skills = {
         upgradeCost: 3,
         hoverText : ["&aSenzu Eat", "Active: Eat a senzu bean to restore health and ki", "Passive: I forgor"],
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {
+            passiveBuffId: 18,
+            superBuffId: 19,
+            stamDuration: 10,
+            kiDuration: 5,
+            level : {
+                1 : {ki: 100, stam: 100},
+                2 : {ki: 100, stam: 100},
+                3 : {ki: 100, stam: 100},
+                4 : {ki: 100, stam: 100},
+                5 : {ki: 100, stam: 100},
+                6 : {ki: 100, stam: 100},
+                7 : {ki: 100, stam: 100},
+                8 : {ki: 100, stam: 100},
+                9 : {ki: 100, stam: 100},
+                10 : {ki: 100, stam: 100},
+                11 : {ki: 100, stam: 100},
+                12 : {ki: 100, stam: 100},
+                13 : {ki: 100, stam: 100},
+                14 : {ki: 100, stam: 100},
+                15 : {ki: 100, stam: 100},
+                16 : {ki: 100, stam: 100},
+                17 : {ki: 100, stam: 100},
+                18 : {ki: 100, stam: 100},
+                19 : {ki: 100, stam: 100},
+                20 : {ki: 100, stam: 100},
+            }
+        },
         active : function(event) {
-            event.player.sendMessage("Wow I just sent this from the active ability!!");
-            event.player.sendMessage("Is this skill super? " + event.super);
+            if(!lib.isPlayer(event.player)) return;
+            var player = event.player;
+            var config = event.config;
+            var dbcPlayer = player.getDBCPlayer();
+            dbcPlayer.setBody(dbcPlayer.getMaxBody());
+            dbcPlayer.setStamina(dbcPlayer.getMaxStamina());
+            dbcPlayer.setKi(dbcPlayer.getMaxKi());
+            if(event.super) {
+                event.player.setTempData("senzuData", config.level);
+                API.getCustomEffectHandler().applyEffect(
+                    player, 
+                    config.superBuffId, 
+                    config.kiDuration, 
+                    event.zsword.getCustomAttribute(event.scalar)
+                );
+            }
         },
         passive : function(event) {
-            
+            // Only trigger on ability active events
+            if(event.type != "abilityActive1" && event.type != "abilityActive2") return;
+            if(!lib.isPlayer(event.player)) return;
+            var config = event.config;
+            event.player.setTempData("senzuData", config.level);
+            API.getCustomEffectHandler().applyEffect(
+                event.player, 
+                config.passiveBuffId, 
+                config.stamDuration, 
+                parseInt(event.zsword.getCustomAttribute(event.scaler))
+            );
         }
     },
 
@@ -173,7 +225,8 @@ var skills = {
         upgradeCost: 4,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -190,7 +243,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -207,7 +261,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -224,7 +279,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -241,7 +297,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -258,7 +315,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -275,7 +333,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -292,7 +351,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "Eat a senzu!",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -309,7 +369,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm green",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -326,7 +387,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm pink",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -343,7 +405,8 @@ var skills = {
         upgradeCost: 1,
         hoverText : "I'm red",
         cooldown : 200,
-        scalar : "sword_level ",
+        scalar : "sword_level",
+        config : {},
         active : function(event) {
 
         },
@@ -401,6 +464,7 @@ var heavyAttacks = {
         hoverText : "I do a big charge",
         cooldown : 200,
         scalar : "main_attack",
+        config : {},
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
             if(event.super) {
@@ -421,6 +485,7 @@ var heavyAttacks = {
         hoverText : "I do notin",
         cooldown : 200,
         scalar : "main_attack",
+        config : {},
         active : function(event) {
             var abilHandler = event.player.getData().getAbilityData();
 
@@ -1194,6 +1259,7 @@ abilityHandler.prototype.handleEvent = function(eventType) {
         zsword : this.zSword,
         super: false,
         scalar: "",
+        config: {},
         slot: null
     }
 
@@ -1201,41 +1267,49 @@ abilityHandler.prototype.handleEvent = function(eventType) {
     if(eventType == "heavyActivate" && getSelectedHeavy(this.player) && "active" in getSelectedHeavy(this.player)) {
         var heavy = getSelectedHeavy(this.player)
         if(isUpgraded(this.player, 1, heavy.id)) event.super = true;
+        event.config = heavy.config;
+        event.scalar = heavy.scalar;
         heavy.active(event);
     }
     if(eventType == "abilityActivate1" && this.active1 && "active" in this.active1) {
         event.slot = "active1"
         event.scalar = this.active1.scalar;
+        event.config = this.active1.config;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.active(event);
     }
     if(eventType == "abilityActivate2" && this.active2 && "active" in this.active2) {
         event.slot = "active2"
         event.scalar = this.active2.scalar;
+        event.config = this.active2.config;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.active(event);
     }
     if(this.active1 && "passive" in this.active1) {
         event.slot = "active1"
         event.scalar = this.active1.scalar;
+        event.config = this.active1.config;
         if(isUpgraded(this.player, 0, this.active1.id)) event.super = true;
         this.active1.passive(event);
     }
     if(this.active2 && "passive" in this.active2) {
         event.slot = "active2"
         event.scalar = this.active2.scalar;
+        event.config = this.active2.config;
         if(isUpgraded(this.player, 0, this.active2.id)) event.super = true;
         this.active2.passive(event);
     }
     if(this.passive1 && "passive" in this.passive1) {
         event.slot = "passive1"
         event.scalar = this.passive1.scalar;
+        event.config = this.passive1.config;
         if(isUpgraded(this.player, 0, this.passive1.id)) event.super = true;
         this.passive1.passive(event);
     }
     if(this.passive2 && "passive" in this.passive2) {
         event.slot = "passive2"
         event.scalar = this.passive2.scalar;
+        event.config = this.passive2.config;
         if(isUpgraded(this.player, 0, this.passive2.id)) event.super = true;
         this.passive2.passive(event);
     }
