@@ -126,7 +126,7 @@ var heavyLore = "&7&lWeapon Art: ";
     "upgradeCost" (int) - Upgrade cost in upgrade points
     "hoverText" (string[]) - Text shown when hovering over skill in menus
     "cooldown" (int) - Cooldown in ticks
-    "scalar" (string) - Weapon attribute to scale off (e.g. 'main_attack')
+    "scalar" (string) - Weapon attribute to scale off (e.g. 'main_attack' or 'sword_level')
     "active" (function) - Active portion of skill
     "passive" (function) - Passive portion of skill
 
@@ -737,6 +737,7 @@ function setAppearance(item, appearance)
 /** Adds currently selected skills to item lore
  */
 function addConditionalLore(zSword, player) {
+    if(!zSword || !lib.isPlayer(player) || !zSword.hasTag("appearance")) return;
     var oldLore = appearanceLevel[zSword.getTag("appearance")].lore;
     var lore = [];
     lore.push(infoLore[1] + zSword.getCustomAttribute("sword_level"));
@@ -1447,8 +1448,8 @@ function selectHeavyAttack(player, id, gui)
 {
     var playerSlot = lib.getActiveSlotId(player);
     player.setStoredData(playerSlot + "zSwordHeavy", id);
-    var heavy = findHeavyAttack(id).icon;
-    gui.getComponent(50).setTexture(isUpgraded(player, 1, heavy.id) ? heavy.superIcon : heavy.icon);
+    var heavy = findHeavyAttack(id);
+    gui.getComponent(50).setTexture((isUpgraded(player, 1, heavy.id) ? heavy.superIcon : heavy.icon));
     gui.update(player);
     addConditionalLore(lib.findZSword(player), player);
 }

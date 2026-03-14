@@ -45,7 +45,7 @@ function keyPressed(event) {
     else {
         keyUp = event.getKey();
         zSlot = findZSwordSlot(player);
-        if(zSlot && keyUp == keyDown && keyUp == zSlot + 2) {
+        if(zSlot && keyUp == keyDown && (keyUp == zSlot + 2 || (zSlot == 0 && keyUp == 11))) {
             if(successful == 0) {
                 successful +=1
                 player.timers.forceStart(RESET_TIMER, 20, false);
